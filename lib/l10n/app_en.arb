@@ -1,0 +1,7 @@
+{
+  "@@locale": "en",
+  "appTitle": "TinyTunes",
+  "@appTitle": {
+    "description": "The application title shown in the task switcher and app bar."
+  }
+}

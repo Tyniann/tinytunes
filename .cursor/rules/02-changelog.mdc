@@ -1,0 +1,158 @@
+---
+description: "Rules for maintaining the CHANGELOG.md file"
+globs:
+  - "lib/**"
+  - "docs/CHANGELOG.md"
+---
+
+## Changelog Management
+
+This rule defines how to maintain the changelog for the TinyTunes project. The changelog provides a detailed history of all changes, making it easy to see what changed between versions.
+
+### 1. Changelog Location
+
+The changelog is located at: `docs/CHANGELOG.md`
+
+### 2. Changelog Format
+
+Follow the [Keep a Changelog](https://keepachangelog.com/) format:
+
+```markdown
+# Changelog
+
+All notable changes to the TinyTunes project are documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/),
+and this project adheres to [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
+### Added
+- New features that have been added
+
+### Changed
+- Changes to existing functionality
+
+### Fixed
+- Bug fixes
+
+### Removed
+- Features that have been removed
+
+### Security
+- Security-related changes
+
+---
+
+## [1.0.0] - 2025-01-08
+
+### Added
+- Initial release
+- Feature X
+- Feature Y
+```
+
+### 3. Categories
+
+Use these categories in order:
+
+| Category | Use For |
+|----------|---------|
+| **Added** | New features, new screens, new functionality |
+| **Changed** | Changes to existing features, UI updates, behavior changes |
+| **Fixed** | Bug fixes, error corrections |
+| **Removed** | Removed features, deprecated functionality |
+| **Security** | Security patches, vulnerability fixes |
+| **Deprecated** | Features marked for future removal |
+
+### 4. What to Log
+
+**Always log:**
+- New features (big or small)
+- Bug fixes
+- Removed features
+- Security fixes
+- Breaking changes
+- Database schema changes
+- New or changed API endpoints
+
+**Optionally log (if notable):**
+- Performance improvements
+- Refactoring that changes behavior
+- UI/UX improvements
+- Dependency updates (especially major versions)
+
+**Do NOT log:**
+- Internal refactoring without user-visible changes
+- Code style changes
+- Minor typo fixes in code
+- Development-only changes
+
+### 5. Entry Format
+
+Each entry should be:
+- Written in imperative mood ("Add", "Fix", "Remove", not "Added", "Fixed")
+- Clear and understandable without code context
+- Reference GitHub Issues or PRs when applicable
+
+**Good examples:**
+```markdown
+### Added
+- Add PDF export functionality for device lists (#12)
+- Add search filter to company list screen
+
+### Fixed
+- Fix date format displaying incorrectly in German locale (#15)
+- Fix crash when opening device details without network
+
+### Changed
+- Improve performance of device list loading
+- Update device form to include new warranty field
+```
+
+**Bad examples:**
+```markdown
+### Added
+- pdf stuff
+- fixed the thing
+- UserProfileScreen.dart changes
+```
+
+### 6. Version Numbers
+
+Use Semantic Versioning (MAJOR.MINOR.PATCH):
+
+- **MAJOR:** Breaking changes, major redesigns
+- **MINOR:** New features, significant improvements
+- **PATCH:** Bug fixes, minor improvements
+
+### 7. Workflow
+
+**When making any change:**
+
+1. Add entry under `## [Unreleased]` section
+2. Use appropriate category (Added, Changed, Fixed, etc.)
+3. Write clear description
+4. Include Issue/PR reference if applicable
+
+**When releasing a version:**
+
+1. Change `## [Unreleased]` to `## [X.Y.Z] - YYYY-MM-DD`
+2. Add new empty `## [Unreleased]` section at top
+3. Commit with message `chore: release version X.Y.Z`
+
+### 8. Example Workflow
+
+Developer fixes a bug:
+
+1. Create branch `bugfix/fix-date-format`
+2. Fix the bug in code
+3. Add to CHANGELOG:
+   ```markdown
+   ## [Unreleased]
+   
+   ### Fixed
+   - Fix date format displaying incorrectly in device list (#15)
+   ```
+4. Commit: `fix: correct date format in device list`
+5. Create Pull Request

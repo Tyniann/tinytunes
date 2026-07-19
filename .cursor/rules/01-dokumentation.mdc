@@ -1,0 +1,115 @@
+---
+alwaysApply: true
+---
+
+## Automatic Feature Documentation
+
+This rule defines when and how to create documentation for features in the project. Documentation is stored in `docs/features/` and should provide a comprehensive overview of each major feature.
+
+### 1. When to Create Documentation
+
+**Documentation IS required for:**
+- New modules (e.g., new `lib/modulename/` directory)
+- New screens or major UI components
+- New major functionality (e.g., export, import, sync features)
+- Significant changes to existing features
+- New integrations with external services
+
+**Documentation is NOT required for:**
+- Bug fixes
+- Adding or modifying individual table fields
+- Styling or UI tweaks
+- Code refactoring without functional changes
+- Performance optimizations
+- Dependency updates
+
+### 2. Documentation Structure
+
+All feature documentation goes in `docs/features/`.
+
+**File naming:** Use kebab-case matching the feature name:
+- `docs/features/geraeteverwaltung.md`
+- `docs/features/pdf-export.md`
+- `docs/features/firma-management.md`
+
+### 3. Documentation Template
+
+When creating documentation for a new feature, use this template:
+
+```markdown
+# [Feature Name]
+
+## Overview
+
+Brief description of what this feature does and why it exists.
+
+## Location
+
+- **Module:** `lib/[module-name]/`
+- **Main Screen:** `lib/[module-name]/screens/[screen-name].dart`
+- **Related Files:** List key files
+
+## Functionality
+
+### [Sub-feature 1]
+Description of the sub-feature.
+
+### [Sub-feature 2]
+Description of the sub-feature.
+
+## Data Model
+
+If applicable, describe the data structures used:
+- Table name and key fields
+- Relationships to other data
+
+## User Interface
+
+Describe the main UI elements and user interactions.
+
+## Dependencies
+
+List any external packages or services this feature depends on.
+
+## Related Features
+
+Links to related feature documentation.
+
+---
+*Last updated: [Date]*
+```
+
+### 4. When to Update Documentation
+
+Update existing documentation when:
+- Adding significant new functionality to a feature
+- Changing how a feature works
+- Modifying the data model
+- Adding new screens to a module
+
+### 5. When to Remove Documentation
+
+**Remove documentation when:**
+- A feature is completely removed from the app
+- A feature is replaced by a different implementation (update or replace the doc)
+
+**Process for removal:**
+1. Delete the corresponding `docs/features/[feature-name].md` file
+2. Update `docs/features/README.md` to remove the reference
+3. Add a "Removed" entry in the CHANGELOG
+
+### 6. Documentation Index
+
+Maintain an index file at `docs/features/README.md` that lists all documented features with brief descriptions and links.
+
+### 7. Automatic Documentation Workflow
+
+When implementing a new feature that requires documentation:
+
+1. Create the feature branch
+2. Implement the feature
+3. Create `docs/features/[feature-name].md` using the template
+4. Update `docs/features/README.md` to include the new feature
+5. Add "Added" entry to CHANGELOG
+6. Commit all changes together
+7. Create Pull Request

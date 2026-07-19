@@ -1,0 +1,39 @@
+---
+alwaysApply: true
+---
+
+## Project spec
+TinyTunes is a small mobile Audio / MP3 player (Android + iOS first), focused on simplicity and ease of use. Standard Buttons (Play / Pause, last, next title), random mode, playlist (add folders to playlist, including subfolders) and random shuffle mode. Background playback is a v1 requirement.
+
+Cloud is planned as **read-only sync** with a user folder (list / download / cache only — never delete, rename, or overwrite remote files). No cloud provider SDK in v1; lock the `CloudLibrarySource` architecture only.
+
+TinyTunes is **not** in production yet; treat backward compatibility and legacy behavior as non-goals unless explicitly requested.
+
+## Tech Stack
+- **Platforms:** Android + iOS (mobile first).
+- **State / DI:** `flutter_riverpod` + `riverpod_annotation` + `riverpod_generator` — DI + test overrides, no `get_it`.
+- **Models:** `freezed` + `json_serializable` for domain/DTOs; Drift owns persistence tables.
+- **Nav:** `go_router` typed routes.
+- **Data:** `drift` + `drift_flutter` (+ `drift_dev` for codegen).
+- **Audio:** `just_audio` + `audio_session` + `just_audio_background` (background / lock-screen controls from v1).
+- **Files:** `file_picker` + `permission_handler` + `path` + `path_provider`.
+- **Metadata:** `audiotags` (read-only: title, artist, album, cover art; cache covers locally). Behind a `TrackMetadataReader` interface so the implementation stays swappable.
+- **UI:** Material 3 theme, shared widgets in `lib/shared/widgets`; toasts via `toastification`.
+- **Prefs:** `shared_preferences` for settings only (playlists/tracks live in Drift).
+- **i18n:** `flutter_localizations` + `intl` + official gen-l10n (ARB).
+- **Lint:** `flutter_lints`.
+- **Cloud (later):** `CloudLibrarySource` interface — list / download / cache only; provider SDK TBD, not in v1.
+- **Layout:** feature-first, clean-arch lite.
+
+
+## Documentation
+1. **Mandate:** ALWAYS add `///` docs to all new/modified flutter classes, methods, and public members immediately. Fail if omitted. Apply same standard to SQL and TypeScript code using the appropriate syntax.
+2. **Syntax:** - Use `///` prefix for flutter.
+   - First line: single-sentence summary ending in a period.
+   - Use `[Brackets]` to link all in-scope params, classes, and methods. Use `backticks` for values, DB tables and columns.
+3. **Content:** - Focus on INTENT (Why/When), not implementation (How).
+   - For Widgets, explicitly state: Purpose, Usage Context, & Key Params.
+
+## Common guidelines
+1. Errors/exceptions: report via session message center (error severity, ref-first) and show a short toast via `toastification`.
+2. ALWAYS use debugPrint instead of print
