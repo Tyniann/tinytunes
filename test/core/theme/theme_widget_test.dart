@@ -22,6 +22,7 @@ void main() {
     expect(Theme.of(context).brightness, Brightness.light);
     expect(Theme.of(context).colorScheme.brightness, Brightness.light);
     expect(Theme.of(context).useMaterial3, isTrue);
+    await endPumpApp(tester);
   });
 
   testWidgets('forced dark mode resolves dark catalog theme', (tester) async {
@@ -38,6 +39,7 @@ void main() {
     expect(Theme.of(context).brightness, Brightness.dark);
     expect(Theme.of(context).colorScheme.brightness, Brightness.dark);
     expect(Theme.of(context).useMaterial3, isTrue);
+    await endPumpApp(tester);
   });
 
   testWidgets('invalid prefs fall back to system mode and default scheme', (
@@ -60,6 +62,7 @@ void main() {
       'missing-scheme',
     );
     expect(container.read(activeThemeSchemeProvider).id, 'default');
+    await endPumpApp(tester);
   });
 }
 

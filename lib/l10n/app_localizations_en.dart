@@ -18,7 +18,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTooltip => 'Settings';
 
   @override
-  String get queuePlaceholder => 'Queue';
+  String get queueEmpty => 'Queue is empty. Add a folder to get started.';
 
   @override
   String get settingsTitle => 'Settings';
@@ -49,4 +49,81 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transportNext => 'Next';
+
+  @override
+  String get addFolderTooltip => 'Add folder';
+
+  @override
+  String get playlistMenuTooltip => 'Playlist actions';
+
+  @override
+  String get clearQueue => 'Clear queue';
+
+  @override
+  String get rescanFolder => 'Re-scan folder';
+
+  @override
+  String get forgetFolder => 'Forget folder';
+
+  @override
+  String get removeFromQueueTooltip => 'Remove from queue';
+
+  @override
+  String get cancelScan => 'Cancel';
+
+  @override
+  String scanningProgress(int count) {
+    return 'Scanning… $count';
+  }
+
+  @override
+  String get clearQueueTitle => 'Clear queue?';
+
+  @override
+  String get clearQueueBody =>
+      'Removes all songs from the queue. Your library folders stay.';
+
+  @override
+  String get forgetFolderTitle => 'Forget folder?';
+
+  @override
+  String get forgetFolderBody =>
+      'Removes this folder from the library and its songs from the queue.';
+
+  @override
+  String get confirmAction => 'Confirm';
+
+  @override
+  String get cancelAction => 'Cancel';
+
+  @override
+  String get pickFolderTitle => 'Choose folder';
+
+  @override
+  String get noLibraryFolders => 'No library folders yet.';
+
+  @override
+  String get libraryScanStarted => 'Scanning library…';
+
+  @override
+  String get libraryScanComplete => 'Library scan complete.';
+
+  @override
+  String get libraryScanCancelled => 'Library scan cancelled.';
+
+  @override
+  String get libraryScanFailed => 'Library scan failed.';
+
+  @override
+  String get libraryRootRevoked => 'Folder access was revoked.';
+
+  @override
+  String get libraryForgetComplete => 'Folder forgotten.';
+
+  @override
+  String get libraryForgetFailed =>
+      'Folder removed locally, but access release failed.';
+
+  @override
+  String get unknownArtist => 'Unknown artist';
 }

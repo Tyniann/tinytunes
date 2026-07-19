@@ -3,7 +3,7 @@
   "appTitle": "TinyTunes",
   "messagesTooltip": "Nachrichten",
   "settingsTooltip": "Einstellungen",
-  "queuePlaceholder": "Warteschlange",
+  "queueEmpty": "Warteschlange ist leer. Ordner hinzufügen, um zu starten.",
   "settingsTitle": "Einstellungen",
   "settingsStubBody": "Der Designmodus kommt in einer späteren Phase.",
   "messagesTitle": "Nachrichten",
@@ -13,5 +13,36 @@
   "demoErrorMessage": "Demo-Fehler-Nachricht",
   "transportPrevious": "Zurück",
   "transportPlayPause": "Wiedergeben oder pausieren",
-  "transportNext": "Weiter"
+  "transportNext": "Weiter",
+  "addFolderTooltip": "Ordner hinzufügen",
+  "playlistMenuTooltip": "Playlist-Aktionen",
+  "clearQueue": "Warteschlange leeren",
+  "rescanFolder": "Ordner erneut scannen",
+  "forgetFolder": "Ordner vergessen",
+  "removeFromQueueTooltip": "Aus Warteschlange entfernen",
+  "cancelScan": "Abbrechen",
+  "scanningProgress": "Scannen… {count}",
+  "@scanningProgress": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "clearQueueTitle": "Warteschlange leeren?",
+  "clearQueueBody": "Entfernt alle Titel aus der Warteschlange. Bibliotheksordner bleiben erhalten.",
+  "forgetFolderTitle": "Ordner vergessen?",
+  "forgetFolderBody": "Entfernt diesen Ordner aus der Bibliothek und seine Titel aus der Warteschlange.",
+  "confirmAction": "Bestätigen",
+  "cancelAction": "Abbrechen",
+  "pickFolderTitle": "Ordner wählen",
+  "noLibraryFolders": "Noch keine Bibliotheksordner.",
+  "libraryScanStarted": "Bibliothek wird gescannt…",
+  "libraryScanComplete": "Bibliotheksscan abgeschlossen.",
+  "libraryScanCancelled": "Bibliotheksscan abgebrochen.",
+  "libraryScanFailed": "Bibliotheksscan fehlgeschlagen.",
+  "libraryRootRevoked": "Ordnerzugriff wurde widerrufen.",
+  "libraryForgetComplete": "Ordner vergessen.",
+  "libraryForgetFailed": "Ordner lokal entfernt, aber Freigabe fehlgeschlagen.",
+  "unknownArtist": "Unbekannter Künstler"
 }

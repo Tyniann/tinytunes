@@ -12,9 +12,9 @@
   "@settingsTooltip": {
     "description": "App bar tooltip for Settings."
   },
-  "queuePlaceholder": "Queue",
-  "@queuePlaceholder": {
-    "description": "Placeholder body text on the playlist home shell."
+  "queueEmpty": "Queue is empty. Add a folder to get started.",
+  "@queueEmpty": {
+    "description": "Empty state when the playlist queue has no entries."
   },
   "settingsTitle": "Settings",
   "@settingsTitle": {
@@ -55,5 +55,106 @@
   "transportNext": "Next",
   "@transportNext": {
     "description": "Semantics label for the inert next transport control."
+  },
+  "addFolderTooltip": "Add folder",
+  "@addFolderTooltip": {
+    "description": "Tooltip for adding a music folder to the library."
+  },
+  "playlistMenuTooltip": "Playlist actions",
+  "@playlistMenuTooltip": {
+    "description": "Tooltip for the playlist overflow menu."
+  },
+  "clearQueue": "Clear queue",
+  "@clearQueue": {
+    "description": "Menu action that clears the queue only."
+  },
+  "rescanFolder": "Re-scan folder",
+  "@rescanFolder": {
+    "description": "Menu action to re-scan a library root."
+  },
+  "forgetFolder": "Forget folder",
+  "@forgetFolder": {
+    "description": "Menu action to forget a library root."
+  },
+  "removeFromQueueTooltip": "Remove from queue",
+  "@removeFromQueueTooltip": {
+    "description": "Tooltip for removing one queue row."
+  },
+  "cancelScan": "Cancel",
+  "@cancelScan": {
+    "description": "Button to cancel an in-flight library scan."
+  },
+  "scanningProgress": "Scanning… {count}",
+  "@scanningProgress": {
+    "description": "Scan progress banner with files processed so far.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "clearQueueTitle": "Clear queue?",
+  "@clearQueueTitle": {
+    "description": "Confirm dialog title for clearing the queue."
+  },
+  "clearQueueBody": "Removes all songs from the queue. Your library folders stay.",
+  "@clearQueueBody": {
+    "description": "Confirm dialog body for clearing the queue."
+  },
+  "forgetFolderTitle": "Forget folder?",
+  "@forgetFolderTitle": {
+    "description": "Confirm dialog title for forgetting a library root."
+  },
+  "forgetFolderBody": "Removes this folder from the library and its songs from the queue.",
+  "@forgetFolderBody": {
+    "description": "Confirm dialog body for forgetting a library root."
+  },
+  "confirmAction": "Confirm",
+  "@confirmAction": {
+    "description": "Positive button on destructive confirm dialogs."
+  },
+  "cancelAction": "Cancel",
+  "@cancelAction": {
+    "description": "Negative button on dialogs."
+  },
+  "pickFolderTitle": "Choose folder",
+  "@pickFolderTitle": {
+    "description": "Title when picking a library root for re-scan or forget."
+  },
+  "noLibraryFolders": "No library folders yet.",
+  "@noLibraryFolders": {
+    "description": "Shown when re-scan/forget is chosen but no roots exist."
+  },
+  "libraryScanStarted": "Scanning library…",
+  "@libraryScanStarted": {
+    "description": "Message/toast when a library scan starts."
+  },
+  "libraryScanComplete": "Library scan complete.",
+  "@libraryScanComplete": {
+    "description": "Message/toast when a library scan finishes successfully."
+  },
+  "libraryScanCancelled": "Library scan cancelled.",
+  "@libraryScanCancelled": {
+    "description": "Message/toast when the user cancels a scan."
+  },
+  "libraryScanFailed": "Library scan failed.",
+  "@libraryScanFailed": {
+    "description": "Message/toast when a library scan fails."
+  },
+  "libraryRootRevoked": "Folder access was revoked.",
+  "@libraryRootRevoked": {
+    "description": "Message/toast when a persisted folder grant is missing."
+  },
+  "libraryForgetComplete": "Folder forgotten.",
+  "@libraryForgetComplete": {
+    "description": "Message/toast after forgetting a folder."
+  },
+  "libraryForgetFailed": "Folder removed locally, but access release failed.",
+  "@libraryForgetFailed": {
+    "description": "Message/toast when grant release fails after DB delete."
+  },
+  "unknownArtist": "Unknown artist",
+  "@unknownArtist": {
+    "description": "Subtitle when a track has no artist tag."
   }
 }

@@ -25,6 +25,7 @@ void main() {
     await tester.tap(find.byTooltip('Messages'));
     await tester.pumpAndSettle();
     expect(find.text('Add demo message'), findsOneWidget);
+    await endPumpApp(tester);
   });
 
   testWidgets('demo messages update list; badge hidden at zero and shows count', (
@@ -58,6 +59,7 @@ void main() {
 
     final badgeAfterReenter = tester.widget<Badge>(find.byType(Badge));
     expect(badgeAfterReenter.isLabelVisible, isFalse);
+    await endPumpApp(tester);
   });
 
   testWidgets('reporting a message on home does not reset the router stack', (
@@ -75,6 +77,10 @@ void main() {
     await tester.pump();
 
     expect(find.byType(PlaylistHomeScreen), findsOneWidget);
-    expect(find.text('Queue'), findsOneWidget);
+    expect(
+      find.text('Queue is empty. Add a folder to get started.'),
+      findsOneWidget,
+    );
+    await endPumpApp(tester);
   });
 }

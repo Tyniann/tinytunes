@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
@@ -10,40 +12,67 @@ import 'package:tinytunes/core/library/media_locator.dart';
 ///
 /// Purpose: Pick/retain a document tree and resolve items without broad storage
 /// permissions or `file_picker` domain types.
-/// Usage Context: Phase 0 spike and kept as the Android adapter after cleanup.
+/// Usage Context: Android production adapter for library ingest and playback.
+///
+/// All channel calls are serialized — concurrent [materializeReadablePath] during
+/// scan concurrency > 1 otherwise interleaves MethodChannel replies and fails
+/// the walk with `library.scan.failed`.
 class AndroidLocalLibrarySource implements LocalLibrarySource {
   /// Creates an adapter using the default SAF channel name.
   AndroidLocalLibrarySource({
     MethodChannel? channel,
     this.maxMaterializeBytes = 100 * 1024 * 1024,
-  }) : _channel = channel ?? const MethodChannel('at.blumenlaube.tinytunes/saf');
+    Random? random,
+  })  : _channel = channel ?? const MethodChannel('at.blumenlaube.tinytunes/saf'),
+        _random = random ?? Random();
 
   final MethodChannel _channel;
+  final Random _random;
+
+  /// Chains channel work so only one invoke runs at a time.
+  Future<void> _channelGate = Future<void>.value();
 
   /// Hard ceiling when copying a document into a temp file for tags.
   final int maxMaterializeBytes;
 
-  @override
-  Future<MediaLocator?> pickAndRetainRoot() async {
-    final uri = await _channel.invokeMethod<String>('pickAndPersistTree');
-    if (uri == null || uri.isEmpty) return null;
-    return MediaLocator(uri);
+  /// Runs [action] after prior channel calls finish.
+  Future<T> _serialized<T>(Future<T> Function() action) {
+    final done = Completer<T>();
+    _channelGate = _channelGate.then((_) async {
+      try {
+        done.complete(await action());
+      } on Object catch (error, stack) {
+        done.completeError(error, stack);
+      }
+    });
+    return done.future;
   }
 
   @override
-  Future<List<LibraryEntry>> listChildren(MediaLocator parent) async {
-    final raw = await _channel.invokeMethod<List<dynamic>>('listChildren', {
-      'directoryUri': parent.value,
+  Future<MediaLocator?> pickAndRetainRoot() {
+    return _serialized(() async {
+      final uri = await _channel.invokeMethod<String>('pickAndPersistTree');
+      if (uri == null || uri.isEmpty) return null;
+      return MediaLocator(uri);
     });
-    if (raw == null) return const [];
-    return raw.map((row) {
-      final map = Map<String, dynamic>.from(row as Map);
-      return LibraryEntry(
-        locator: MediaLocator(map['uri'] as String),
-        name: map['name'] as String? ?? '',
-        isDirectory: map['isDirectory'] as bool? ?? false,
-      );
-    }).toList(growable: false);
+  }
+
+  @override
+  Future<List<LibraryEntry>> listChildren(MediaLocator parent) {
+    return _serialized(() async {
+      final raw = await _channel.invokeMethod<List<dynamic>>('listChildren', {
+        'directoryUri': parent.value,
+      });
+      if (raw == null) return const [];
+      return raw.map((row) {
+        final map = Map<String, dynamic>.from(row as Map);
+        return LibraryEntry(
+          locator: MediaLocator(map['uri'] as String),
+          name: map['name'] as String? ?? '',
+          isDirectory: map['isDirectory'] as bool? ?? false,
+        );
+      }).toList(growable: false);
+    });
   }
 
   @override
@@ -55,19 +84,20 @@ class AndroidLocalLibrarySource implements LocalLibrarySource {
   Future<String> materializeReadablePath(
     MediaLocator item, {
     String? fileNameHint,
-  }) async {
-    final tempDir = await getTemporaryDirectory();
-    final ext = _extensionFor(fileNameHint, item);
-    final dest = p.join(
-      tempDir.path,
-      'tinytunes_meta_${DateTime.now().millisecondsSinceEpoch}$ext',
-    );
-    await _channel.invokeMethod<String>('copyToCache', {
-      'documentUri': item.value,
-      'destPath': dest,
-      'maxBytes': maxMaterializeBytes,
+  }) {
+    return _serialized(() async {
+      final tempDir = await getTemporaryDirectory();
+      final ext = _extensionFor(fileNameHint, item);
+      final unique = '${DateTime.now().microsecondsSinceEpoch}_'
+          '${_random.nextInt(1 << 32).toRadixString(16)}';
+      final dest = p.join(tempDir.path, 'tinytunes_meta_$unique$ext');
+      await _channel.invokeMethod<String>('copyToCache', {
+        'documentUri': item.value,
+        'destPath': dest,
+        'maxBytes': maxMaterializeBytes,
+      });
+      return dest;
     });
-    return dest;
   }
 
   /// Picks a temp-file extension so path-only tag readers can detect format.
@@ -84,26 +114,32 @@ class AndroidLocalLibrarySource implements LocalLibrarySource {
   }
 
   @override
-  Future<bool> hasPersistedAccess(MediaLocator root) async {
-    final ok = await _channel.invokeMethod<bool>('hasPersisted', {
-      'treeUri': root.value,
+  Future<bool> hasPersistedAccess(MediaLocator root) {
+    return _serialized(() async {
+      final ok = await _channel.invokeMethod<bool>('hasPersisted', {
+        'treeUri': root.value,
+      });
+      return ok ?? false;
     });
-    return ok ?? false;
   }
 
   @override
-  Future<List<MediaLocator>> listPersistedRoots() async {
-    final raw = await _channel.invokeMethod<List<dynamic>>('listPersisted');
-    if (raw == null) return const [];
-    return raw
-        .whereType<String>()
-        .map(MediaLocator.new)
-        .toList(growable: false);
+  Future<List<MediaLocator>> listPersistedRoots() {
+    return _serialized(() async {
+      final raw = await _channel.invokeMethod<List<dynamic>>('listPersisted');
+      if (raw == null) return const [];
+      return raw
+          .whereType<String>()
+          .map(MediaLocator.new)
+          .toList(growable: false);
+    });
   }
 
   @override
-  Future<void> releaseRoot(MediaLocator root) async {
-    await _channel.invokeMethod<void>('release', {'treeUri': root.value});
+  Future<void> releaseRoot(MediaLocator root) {
+    return _serialized(() async {
+      await _channel.invokeMethod<void>('release', {'treeUri': root.value});
+    });
   }
 }
 
@@ -117,6 +153,6 @@ void deleteQuietly(String path) {
       file.deleteSync();
     }
   } on Object {
-    // Best-effort cleanup for spike/adapter temps.
+    // Best-effort cleanup for adapter temps.
   }
 }

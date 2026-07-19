@@ -7,5 +7,6 @@ void main() {
     await pumpApp(tester);
 
     expect(find.text('TinyTunes'), findsWidgets);
+    await endPumpApp(tester);
   });
 }

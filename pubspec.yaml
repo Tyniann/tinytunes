@@ -1,7 +1,7 @@
 ﻿name: tinytunes
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.2.0+2
+version: 0.3.0+3
 
 environment:
   sdk: ^3.11.0
@@ -27,6 +27,8 @@ dependencies:
   # Data — 2.34.0 pairs with freezed 3.2.x via analyzer override below
   drift: 2.34.0
   drift_flutter: 0.3.1
+  # Bundles libsqlite3.so into the APK (0.6.0+eol is empty; see overrides).
+  sqlite3_flutter_libs: 0.5.39
 
   # Audio
   just_audio: ^0.10.6
@@ -72,6 +74,20 @@ dependency_overrides:
   # riverpod_generator pulls mockito ^5.4.4 → resolves to 5.7.0 (analyzer ^13).
   # Pin 5.6.3 so the build script compiles against analyzer 10.
   mockito: 5.6.3
+  # drift_flutter 0.3.1 wants ^0.6.0+eol which no longer ships native SQLite.
+  # Keep 0.5.39 so Android APKs include libsqlite3.so for sqlite3 3.x system load.
+  sqlite3_flutter_libs: 0.5.39
+
+# sqlite3 3.x hooks currently emit NativeAssetsManifest "absolute" without
+# packaging the .so into jniLibs on this Flutter/tooling combo. Load the copy
+# bundled by sqlite3_flutter_libs 0.5.39 on Android (`libsqlite3.so`).
+# On Windows host tests, use the OS `winsqlite3.dll` (no separate sqlite3.dll).
+hooks:
+  user_defines:
+    sqlite3:
+      source: system
+      name: sqlite3
+      name_windows: winsqlite3
 
 flutter:
   generate: true

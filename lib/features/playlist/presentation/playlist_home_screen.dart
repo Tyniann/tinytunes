@@ -1,27 +1,81 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/routing/app_routes.dart';
+import 'package:tinytunes/features/library/application/library_ingest_controller.dart';
+import 'package:tinytunes/features/library/application/library_ingest_l10n_mapper.dart';
+import 'package:tinytunes/features/playlist/application/playlist_providers.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 
-/// Playlist home shell with queue placeholder and inert transport chrome.
+/// Playlist home: queue list, library actions, inert transport.
 ///
-/// Purpose: Primary IA surface — app-bar access to Messages and Settings until
-/// catalog/playback land in later phases.
+/// Purpose: Primary IA surface for the single Winamp-style queue and folder
+/// ingest until playback lands in Phase 3.
 /// Usage Context: Route `/` via [PlaylistHomeRoute].
-class PlaylistHomeScreen extends ConsumerWidget {
-  /// Creates the playlist home shell.
+class PlaylistHomeScreen extends ConsumerStatefulWidget {
+  /// Creates the playlist home screen.
   const PlaylistHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PlaylistHomeScreen> createState() => _PlaylistHomeScreenState();
+}
+
+class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+      ref.read(libraryIngestControllerProvider.notifier).checkRevokedRoots(
+            l10n: libraryIngestL10nFrom(l10n),
+          );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final unread = ref.watch(unreadMessageCountProvider);
+    final progress = ref.watch(libraryIngestControllerProvider);
+    final queueAsync = ref.watch(orderedQueueProvider);
+    final busy = progress.isBusy;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
+          IconButton(
+            tooltip: l10n.addFolderTooltip,
+            onPressed: busy
+                ? null
+                : () {
+                    ref.read(libraryIngestControllerProvider.notifier).addFolder(
+                          l10n: libraryIngestL10nFrom(l10n),
+                        );
+                  },
+            icon: const Icon(Icons.create_new_folder_outlined),
+          ),
+          PopupMenuButton<_PlaylistMenuAction>(
+            tooltip: l10n.playlistMenuTooltip,
+            enabled: !busy,
+            onSelected: (action) => _onMenuAction(action, l10n),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: _PlaylistMenuAction.clearQueue,
+                child: Text(l10n.clearQueue),
+              ),
+              PopupMenuItem(
+                value: _PlaylistMenuAction.rescan,
+                child: Text(l10n.rescanFolder),
+              ),
+              PopupMenuItem(
+                value: _PlaylistMenuAction.forget,
+                child: Text(l10n.forgetFolder),
+              ),
+            ],
+          ),
           IconButton(
             tooltip: l10n.messagesTooltip,
             onPressed: () => const MessagesRoute().push<void>(context),
@@ -38,13 +92,164 @@ class PlaylistHomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: Center(child: Text(l10n.queuePlaceholder)),
+      body: Column(
+        children: [
+          if (progress.phase == IngestPhase.scanning)
+            Material(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(l10n.scanningProgress(progress.processedCount)),
+                    ),
+                    TextButton(
+                      onPressed: () => ref
+                          .read(libraryIngestControllerProvider.notifier)
+                          .cancelScan(),
+                      child: Text(l10n.cancelScan),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          Expanded(
+            child: queueAsync.when(
+              data: (queue) {
+                if (queue.isEmpty) {
+                  return Center(child: Text(l10n.queueEmpty));
+                }
+                return ListView.builder(
+                  itemCount: queue.length,
+                  itemBuilder: (context, index) {
+                    final row = queue[index];
+                    return ListTile(
+                      title: Text(row.listTitle),
+                      subtitle: Text(
+                        (row.artist != null && row.artist!.trim().isNotEmpty)
+                            ? row.artist!
+                            : l10n.unknownArtist,
+                      ),
+                      trailing: IconButton(
+                        tooltip: l10n.removeFromQueueTooltip,
+                        onPressed: busy
+                            ? null
+                            : () => ref
+                                .read(queueActionsProvider)
+                                .removeEntry(row.queueEntryId),
+                        icon: const Icon(Icons.remove_circle_outline),
+                      ),
+                    );
+                  },
+                );
+              },
+              // Avoid an indefinite CircularProgressIndicator — it prevents
+              // widget tests from ever completing pumpAndSettle.
+              loading: () => const SizedBox.shrink(),
+              error: (error, _) => Center(child: Text('$error')),
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: const _InertTransportChrome(),
+    );
+  }
+
+  Future<void> _onMenuAction(
+    _PlaylistMenuAction action,
+    AppLocalizations l10n,
+  ) async {
+    switch (action) {
+      case _PlaylistMenuAction.clearQueue:
+        final ok = await _confirm(
+          title: l10n.clearQueueTitle,
+          body: l10n.clearQueueBody,
+          l10n: l10n,
+        );
+        if (ok && mounted) {
+          await ref.read(queueActionsProvider).clearQueue();
+        }
+      case _PlaylistMenuAction.rescan:
+        final root = await _pickRoot(l10n);
+        if (root != null && mounted) {
+          await ref.read(libraryIngestControllerProvider.notifier).rescanRoot(
+                rootId: root.id,
+                l10n: libraryIngestL10nFrom(l10n),
+              );
+        }
+      case _PlaylistMenuAction.forget:
+        final root = await _pickRoot(l10n);
+        if (root == null || !mounted) return;
+        final ok = await _confirm(
+          title: l10n.forgetFolderTitle,
+          body: l10n.forgetFolderBody,
+          l10n: l10n,
+        );
+        if (ok && mounted) {
+          await ref.read(libraryIngestControllerProvider.notifier).forgetRoot(
+                rootId: root.id,
+                l10n: libraryIngestL10nFrom(l10n),
+              );
+        }
+    }
+  }
+
+  Future<bool> _confirm({
+    required String title,
+    required String body,
+    required AppLocalizations l10n,
+  }) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancelAction),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.confirmAction),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  Future<LibraryRoot?> _pickRoot(AppLocalizations l10n) async {
+    final roots = await ref.read(libraryRootsProvider.future);
+    if (!mounted) return null;
+    if (roots.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.noLibraryFolders)),
+      );
+      return null;
+    }
+    if (roots.length == 1) return roots.single;
+
+    return showDialog<LibraryRoot>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(l10n.pickFolderTitle),
+        children: [
+          for (final root in roots)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop(root),
+              child: Text(root.displayName),
+            ),
+        ],
+      ),
     );
   }
 }
 
-/// Explicitly inert play/pause/prev/next row — no audio wiring in Phase 1.
+enum _PlaylistMenuAction { clearQueue, rescan, forget }
+
+/// Explicitly inert play/pause/prev/next row — no audio wiring in Phase 2.
 class _InertTransportChrome extends StatelessWidget {
   const _InertTransportChrome();
 

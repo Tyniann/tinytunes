@@ -116,11 +116,11 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTooltip;
 
-  /// Placeholder body text on the playlist home shell.
+  /// Empty state when the playlist queue has no entries.
   ///
   /// In en, this message translates to:
-  /// **'Queue'**
-  String get queuePlaceholder;
+  /// **'Queue is empty. Add a folder to get started.'**
+  String get queueEmpty;
 
   /// Settings screen app bar title.
   ///
@@ -181,6 +181,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Next'**
   String get transportNext;
+
+  /// Tooltip for adding a music folder to the library.
+  ///
+  /// In en, this message translates to:
+  /// **'Add folder'**
+  String get addFolderTooltip;
+
+  /// Tooltip for the playlist overflow menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Playlist actions'**
+  String get playlistMenuTooltip;
+
+  /// Menu action that clears the queue only.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear queue'**
+  String get clearQueue;
+
+  /// Menu action to re-scan a library root.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-scan folder'**
+  String get rescanFolder;
+
+  /// Menu action to forget a library root.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget folder'**
+  String get forgetFolder;
+
+  /// Tooltip for removing one queue row.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from queue'**
+  String get removeFromQueueTooltip;
+
+  /// Button to cancel an in-flight library scan.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelScan;
+
+  /// Scan progress banner with files processed so far.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning… {count}'**
+  String scanningProgress(int count);
+
+  /// Confirm dialog title for clearing the queue.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear queue?'**
+  String get clearQueueTitle;
+
+  /// Confirm dialog body for clearing the queue.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes all songs from the queue. Your library folders stay.'**
+  String get clearQueueBody;
+
+  /// Confirm dialog title for forgetting a library root.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget folder?'**
+  String get forgetFolderTitle;
+
+  /// Confirm dialog body for forgetting a library root.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes this folder from the library and its songs from the queue.'**
+  String get forgetFolderBody;
+
+  /// Positive button on destructive confirm dialogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmAction;
+
+  /// Negative button on dialogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelAction;
+
+  /// Title when picking a library root for re-scan or forget.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose folder'**
+  String get pickFolderTitle;
+
+  /// Shown when re-scan/forget is chosen but no roots exist.
+  ///
+  /// In en, this message translates to:
+  /// **'No library folders yet.'**
+  String get noLibraryFolders;
+
+  /// Message/toast when a library scan starts.
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning library…'**
+  String get libraryScanStarted;
+
+  /// Message/toast when a library scan finishes successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Library scan complete.'**
+  String get libraryScanComplete;
+
+  /// Message/toast when the user cancels a scan.
+  ///
+  /// In en, this message translates to:
+  /// **'Library scan cancelled.'**
+  String get libraryScanCancelled;
+
+  /// Message/toast when a library scan fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Library scan failed.'**
+  String get libraryScanFailed;
+
+  /// Message/toast when a persisted folder grant is missing.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder access was revoked.'**
+  String get libraryRootRevoked;
+
+  /// Message/toast after forgetting a folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder forgotten.'**
+  String get libraryForgetComplete;
+
+  /// Message/toast when grant release fails after DB delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Folder removed locally, but access release failed.'**
+  String get libraryForgetFailed;
+
+  /// Subtitle when a track has no artist tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown artist'**
+  String get unknownArtist;
 }
 
 class _AppLocalizationsDelegate

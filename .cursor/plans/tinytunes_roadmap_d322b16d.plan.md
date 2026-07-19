@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: phase-2
     content: "Phase 2: Local catalog + single queue — Drift schema, URI-first scan, forget-root, docs"
-    status: pending
+    status: completed
   - id: phase-3
     content: "Phase 3: Playback + background as one slice — PlaybackService, just_audio_background, persist/resume paused"
     status: pending
@@ -270,15 +270,22 @@ Optional early: `track.source` / locator kind enum so cloud cache entries do not
 
 ### Semantics
 
-- First import / add folder: upsert catalog, **append** new tracks to queue.
-- Re-scan: upsert by identity; after **complete successful** scan, **hard-delete** missing tracks and prune queue; partial failure → no mass-delete; report counts via message center.
+- Add folder: upsert catalog and append every discovered track not currently
+  queued. Selecting an existing root refills missing queue rows without
+  creating duplicates.
+- Re-scan: upsert by identity and append only newly discovered catalog tracks;
+  manually removed queue rows stay removed. After a **complete successful**
+  scan, **hard-delete** missing tracks and prune queue; partial failure → no
+  mass-delete.
 - Remove queue row ≠ delete catalog. Clear queue ≠ forget roots. **Forget folder** removes root + catalog + related queue rows.
 - SAF-first: no broad storage permission unless a concrete API requires it.
 - Scan off UI thread (isolate/chunked) with bounded metadata concurrency and batched writes; progress messages (“Scanning… n/m”).
 - Manual re-scan (not every cold start) unless later product change.
 - Feature docs for library ingest in this phase.
 
-**Exit:** Nested folder survives restart/reboot; idempotent rescan does not duplicate; revoked access reported; queue order persists.
+**Exit:** Nested folder survives restart/reboot; Add refills without duplicates;
+explicit Re-scan preserves manual removals; Forget → Add is a fresh import;
+revoked access is reported; queue order persists.
 
 ---
 

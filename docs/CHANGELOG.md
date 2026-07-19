@@ -19,6 +19,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.3.0] - 2026-07-19
+
+### Added
+
+- Add Drift schema v1: `library_roots`, `tracks`, `queue_entries`, singleton `playback_state` (FK `ON DELETE SET NULL`)
+- Add single-flight library ingest (add folder, re-scan, forget) with safe prune and no queue resurrection
+- Add playlist home queue chrome: list, add folder, remove, clear, re-scan, forget, scan progress
+- Add `docs/features/library-ingest.md` and root `CONTEXT.md` glossary
+
+### Changed
+
+- Extend `pumpApp` with in-memory Drift + fake `LocalLibrarySource` overrides for widget tests
+- Distinguish Add folder (refill missing queue rows) from explicit Re-scan (append only newly discovered catalog tracks)
+
+### Fixed
+
+- Bundle `libsqlite3.so` via `sqlite3_flutter_libs` 0.5.39 (override empty `0.6.0+eol`) so Drift can open on Android; load via sqlite3 hooks `source: system` (`name_windows: winsqlite3` for host tests)
+- Enable Drift `shareAcrossIsolates` so hot restart cannot leave a background isolate locking the DB during schema create
+- Prevent startup SAF access checks from escaping as unhandled plugin errors
+- Make Add folder refill missing queue entries without duplicates while explicit Re-scan preserves manual removals
+- Delete a forgotten root's queue and catalog rows explicitly in one transaction
+
+---
+
 ## [0.2.0] - 2026-07-19
 
 ### Added
