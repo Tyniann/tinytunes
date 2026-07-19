@@ -1,4 +1,17 @@
 {
   "@@locale": "de",
-  "appTitle": "TinyTunes"
+  "appTitle": "TinyTunes",
+  "messagesTooltip": "Nachrichten",
+  "settingsTooltip": "Einstellungen",
+  "queuePlaceholder": "Warteschlange",
+  "settingsTitle": "Einstellungen",
+  "settingsStubBody": "Der Designmodus kommt in einer späteren Phase.",
+  "messagesTitle": "Nachrichten",
+  "messagesEmpty": "Noch keine Nachrichten.",
+  "addDemoMessage": "Demo-Nachricht hinzufügen",
+  "demoInfoMessage": "Demo-Info-Nachricht",
+  "demoErrorMessage": "Demo-Fehler-Nachricht",
+  "transportPrevious": "Zurück",
+  "transportPlayPause": "Wiedergeben oder pausieren",
+  "transportNext": "Weiter"
 }

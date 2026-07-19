@@ -103,6 +103,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TinyTunes'**
   String get appTitle;
+
+  /// App bar tooltip for the message center.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messagesTooltip;
+
+  /// App bar tooltip for Settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTooltip;
+
+  /// Placeholder body text on the playlist home shell.
+  ///
+  /// In en, this message translates to:
+  /// **'Queue'**
+  String get queuePlaceholder;
+
+  /// Settings screen app bar title.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// Placeholder copy on the Settings stub screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme mode comes in a later phase.'**
+  String get settingsStubBody;
+
+  /// Message center app bar title.
+  ///
+  /// In en, this message translates to:
+  /// **'Messages'**
+  String get messagesTitle;
+
+  /// Empty state when the session message list has no entries.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet.'**
+  String get messagesEmpty;
+
+  /// Button that reports demo info and error messages.
+  ///
+  /// In en, this message translates to:
+  /// **'Add demo message'**
+  String get addDemoMessage;
+
+  /// Localized text for the demo info report.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo info message'**
+  String get demoInfoMessage;
+
+  /// Localized text for the demo error report.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo error message'**
+  String get demoErrorMessage;
+
+  /// Semantics label for the inert previous transport control.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get transportPrevious;
+
+  /// Semantics label for the inert play/pause transport control.
+  ///
+  /// In en, this message translates to:
+  /// **'Play or pause'**
+  String get transportPlayPause;
+
+  /// Semantics label for the inert next transport control.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get transportNext;
 }
 
 class _AppLocalizationsDelegate

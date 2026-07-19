@@ -1,37 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tinytunes/core/routing/app_router.dart';
+import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
+import 'package:toastification/toastification.dart';
 
-void main() {
-  runApp(const ProviderScope(child: MainApp()));
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+  runApp(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+      ],
+      child: const TinyTunesApp(),
+    ),
+  );
 }
 
-/// Root widget for TinyTunes.
+/// Root TinyTunes application widget shared by production and tests.
 ///
-/// Purpose: Hosts Material 3, localization, and Riverpod scope for the app.
-/// Usage Context: Passed to [runApp] from [main].
-class MainApp extends StatelessWidget {
+/// Purpose: Compose Material 3 themes, l10n, typed router, and toast overlay
+/// in one place so [pumpApp] cannot drift from `main`.
+/// Usage Context: Passed to [runApp] after prefs bootstrap; also used by the
+/// widget test harness.
+class TinyTunesApp extends ConsumerWidget {
   /// Creates the TinyTunes root widget.
-  const MainApp({super.key});
+  const TinyTunesApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: Center(
-          child: Builder(
-            builder: (context) => Text(AppLocalizations.of(context)!.appTitle),
-          ),
-        ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(appRouterProvider);
+    final light = ref.watch(lightThemeDataProvider);
+    final dark = ref.watch(darkThemeDataProvider);
+    final themeMode = ref.watch(materialThemeModeProvider);
+
+    return ToastificationWrapper(
+      child: MaterialApp.router(
+        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+        theme: light,
+        darkTheme: dark,
+        themeMode: themeMode,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
       ),
     );
   }

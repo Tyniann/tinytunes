@@ -1,9 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tinytunes/main.dart';
+
+import 'helpers/pump_app.dart';
 
 void main() {
-  testWidgets('app shows localized title', (tester) async {
-    await tester.pumpWidget(const MainApp());
-    expect(find.text('TinyTunes'), findsOneWidget);
+  testWidgets('playlist home shell shows app title', (tester) async {
+    await pumpApp(tester);
+
+    expect(find.text('TinyTunes'), findsWidgets);
   });
 }

@@ -1,7 +1,7 @@
 ﻿name: tinytunes
 description: "A new Flutter project."
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: ^3.11.0
@@ -12,9 +12,10 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # State / DI
-  flutter_riverpod: ^3.3.2
-  riverpod_annotation: ^4.0.2
+  # State / DI — pinned with riverpod_generator 4.0.3 (analyzer ^9) for Freezed 3.2.5
+  flutter_riverpod: 3.3.1
+  riverpod: 3.2.1
+  riverpod_annotation: 4.0.2
 
   # Models
   freezed_annotation: ^3.1.0
@@ -54,7 +55,8 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
   build_runner: ^2.10.4
-  riverpod_generator: ^4.0.2
+  # 4.0.4 requires analyzer ^12; freezed 3.2.5 requires analyzer <11 — pin 4.0.3.
+  riverpod_generator: 4.0.3
   freezed: 3.2.5
   json_serializable: ^6.11.2
   drift_dev: 2.34.0
@@ -62,11 +64,14 @@ dev_dependencies:
 
 # Resolution notes for Flutter 3.41.2 / Dart 3.11.0:
 # - audiotags 1.4.5 constrains freezed_annotation ^2.4.x; Riverpod 3 / Freezed 3 need ^3.x.
-# - freezed 3.2.5, drift_dev 2.34.0, and riverpod_generator 4.x disagree on analyzer;
-#   pin analyzer 10.0.1 so the codegen stack resolves together.
+# - freezed 3.2.5 needs analyzer >=9 <11; riverpod_generator 4.0.3 accepts ^9.
+#   analyzer 10.0.1 is the shared pin (do not bump to 12 while freezed stays <11).
 dependency_overrides:
   freezed_annotation: ^3.1.0
   analyzer: 10.0.1
+  # riverpod_generator pulls mockito ^5.4.4 → resolves to 5.7.0 (analyzer ^13).
+  # Pin 5.6.3 so the build script compiles against analyzer 10.
+  mockito: 5.6.3
 
 flutter:
   generate: true

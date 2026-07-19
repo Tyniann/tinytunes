@@ -25,7 +25,6 @@ TinyTunes is **not** in production yet; treat backward compatibility and legacy 
 - **Cloud (later):** `CloudLibrarySource` interface — list / download / cache only; provider SDK TBD, not in v1.
 - **Layout:** feature-first, clean-arch lite.
 
-
 ## Documentation
 1. **Mandate:** ALWAYS add `///` docs to all new/modified flutter classes, methods, and public members immediately. Fail if omitted. Apply same standard to SQL and TypeScript code using the appropriate syntax.
 2. **Syntax:** - Use `///` prefix for flutter.
@@ -35,5 +34,15 @@ TinyTunes is **not** in production yet; treat backward compatibility and legacy 
    - For Widgets, explicitly state: Purpose, Usage Context, & Key Params.
 
 ## Common guidelines
-1. Errors/exceptions: report via session message center (error severity, ref-first) and show a short toast via `toastification`.
+1. Errors/exceptions/status messages: report via session message center (error severity, ref-first) and show a short toast via `toastification`.
 2. ALWAYS use debugPrint instead of print
+
+## Introduction
+I'm Mario. You're my agent. We will be working together a lot, so I thought it would be wise introducing myself.
+I love to build. I focus on building complex things as simple as possible. I love to find ways to reduce complexity when solving problems.
+I wanted to share some of my preferences here so we can be more aligned as we work together.
+
+## Coding preferences - general
+- Keep things simple. Channel "yagni" energy unless told otherwise.
+- Tests are good! Endless smoke tests, "regression tests" for feature deletions, etc. much less good. Tests have to be focused, not slop.
+- Don't shy away from proposing bold ideas if they can meaningfully benefit our work.

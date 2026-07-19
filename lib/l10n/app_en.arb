@@ -3,5 +3,57 @@
   "appTitle": "TinyTunes",
   "@appTitle": {
     "description": "The application title shown in the task switcher and app bar."
+  },
+  "messagesTooltip": "Messages",
+  "@messagesTooltip": {
+    "description": "App bar tooltip for the message center."
+  },
+  "settingsTooltip": "Settings",
+  "@settingsTooltip": {
+    "description": "App bar tooltip for Settings."
+  },
+  "queuePlaceholder": "Queue",
+  "@queuePlaceholder": {
+    "description": "Placeholder body text on the playlist home shell."
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Settings screen app bar title."
+  },
+  "settingsStubBody": "Theme mode comes in a later phase.",
+  "@settingsStubBody": {
+    "description": "Placeholder copy on the Settings stub screen."
+  },
+  "messagesTitle": "Messages",
+  "@messagesTitle": {
+    "description": "Message center app bar title."
+  },
+  "messagesEmpty": "No messages yet.",
+  "@messagesEmpty": {
+    "description": "Empty state when the session message list has no entries."
+  },
+  "addDemoMessage": "Add demo message",
+  "@addDemoMessage": {
+    "description": "Button that reports demo info and error messages."
+  },
+  "demoInfoMessage": "Demo info message",
+  "@demoInfoMessage": {
+    "description": "Localized text for the demo info report."
+  },
+  "demoErrorMessage": "Demo error message",
+  "@demoErrorMessage": {
+    "description": "Localized text for the demo error report."
+  },
+  "transportPrevious": "Previous",
+  "@transportPrevious": {
+    "description": "Semantics label for the inert previous transport control."
+  },
+  "transportPlayPause": "Play or pause",
+  "@transportPlayPause": {
+    "description": "Semantics label for the inert play/pause transport control."
+  },
+  "transportNext": "Next",
+  "@transportNext": {
+    "description": "Semantics label for the inert next transport control."
   }
 }
