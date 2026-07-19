@@ -19,6 +19,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.4.0] - 2026-07-19
+
+### Added
+
+- Add playback + background via `just_audio` + `audio_service` (`TinyTunesAudioHandler`, `PlaybackController`)
+- Add home transport seek bar, row tap to play, current-row highlight, Drift resume paused
+- Add Off/Off navigation with shared `AdvanceReason` skip path (remove→autoplay, clear→stop, N=5 unplayable bound)
+- Add `docs/features/player.md`
+
+### Changed
+
+- Replace `just_audio_background` with direct `audio_service`; `MainActivity` extends `AudioServiceActivity`
+- Bootstrap uses `UncontrolledProviderScope` + `audioHandlerProvider` override before eager controller attach
+- Extend `pumpApp` with fake `PlaybackEngine` + detached handler (no `AudioService.init` in tests)
+
+### Fixed
+
+- Stop playback and dismiss the media notification promptly on swipe-away / task removed (`onTaskRemoved` → `super.stop()`)
+- Publish playing state immediately by not awaiting `just_audio` track completion, keeping the media notification and foreground service alive in the background
+
+### Removed
+
+- Remove `just_audio_background` dependency
+
+### Security
+
+---
+
 ## [0.3.0] - 2026-07-19
 
 ### Added

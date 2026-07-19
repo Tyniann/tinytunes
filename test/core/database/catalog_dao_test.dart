@@ -129,6 +129,23 @@ void main() {
     expect(state.currentQueueEntryId, isNull);
   });
 
+  test('checkpoint atomically writes entry and position', () async {
+    final rootId = await seedRoot();
+    final result = await db.upsertTracksBatch(rootId, [trackRow('a', 'a.mp3')]);
+    await db.appendTrackIds(result.insertedIds);
+    final entryId = (await db.select(db.queueEntries).get()).single.id;
+
+    await db.checkpoint(entryId: entryId, positionMs: 12345);
+    final state = await db.getPlaybackState();
+    expect(state.currentQueueEntryId, entryId);
+    expect(state.positionMs, 12345);
+
+    await db.checkpoint(entryId: null, positionMs: 0);
+    final cleared = await db.getPlaybackState();
+    expect(cleared.currentQueueEntryId, isNull);
+    expect(cleared.positionMs, 0);
+  });
+
   test('upsertRoot is idempotent on locator', () async {
     final a = await db.upsertRoot(
       locator: 'content://tree/root',

@@ -128,4 +128,18 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get unknownArtist => 'Unbekannter Künstler';
+
+  @override
+  String get playerFileMissing => 'Titeldatei fehlt oder ist nicht zugänglich.';
+
+  @override
+  String get playerLoadFailed => 'Titel konnte nicht geladen werden.';
+
+  @override
+  String get playerRestoreSkipped =>
+      'Vorheriger Titel ist nicht mehr in der Warteschlange.';
+
+  @override
+  String get playerSkipBoundReached =>
+      'Gestoppt nach mehreren nicht abspielbaren Titeln.';
 }

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Indexes user-picked local music folders into a durable **catalog** and a single Winamp-style **queue**. Folder access uses the Phase 0 SAF adapter (`LocalLibrarySource`); playback is out of scope until Phase 3.
+Indexes user-picked local music folders into a durable **catalog** and a single Winamp-style **queue**. Folder access uses the Phase 0 SAF adapter (`LocalLibrarySource`). Playback is documented in [player.md](player.md).
 
 ## Location
 
@@ -71,7 +71,7 @@ stale plugin cannot escape the post-frame startup callback.
 | `library_roots` | Opaque root locator + display name |
 | `tracks` | Catalog identity `(rootId, sourceItemId)`; tags; nullable reserved `artworkCacheRef` / `sizeBytes` / `modifiedAt` (always null in Phase 2) |
 | `queue_entries` | Ordered unique `trackId` links |
-| `playback_state` | Singleton `id=1`; `currentQueueEntryId` ON DELETE SET NULL; unused for UX until Phase 3–4 |
+| `playback_state` | Singleton `id=1`; `currentQueueEntryId` ON DELETE SET NULL; driven by [player](player.md) |
 
 Identity: `sourceItemId` == item `MediaLocator.value`. `PRAGMA foreign_keys = ON`.
 
@@ -85,7 +85,7 @@ Identity: `sourceItemId` == item `MediaLocator.value`. `PRAGMA foreign_keys = ON
 
 ## User Interface
 
-Playlist home: queue list, Add folder, remove row, overflow Clear / Re-scan / Forget (confirms for Clear and Forget), scan banner + Cancel. Transport chrome stays inert until Phase 3.
+Playlist home: queue list, Add folder, remove row, overflow Clear / Re-scan / Forget (confirms for Clear and Forget), scan banner + Cancel, live transport (see [player](player.md)).
 
 ## Dependencies
 

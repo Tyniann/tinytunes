@@ -15,7 +15,7 @@ TinyTunes is **not** in production yet; treat backward compatibility and legacy 
 - **Models:** `freezed` + `json_serializable` for domain/DTOs; Drift owns persistence tables.
 - **Nav:** `go_router` typed routes.
 - **Data:** `drift` + `drift_flutter` (+ `drift_dev` for codegen).
-- **Audio:** `just_audio` + `audio_session` + `just_audio_background` (background / lock-screen controls from v1).
+- **Audio:** `just_audio` + `audio_session` + `audio_service` (custom `BaseAudioHandler` for background / lock-screen / media buttons from v1). Do **not** use `just_audio_background` — it conflicts with a custom handler and cannot own Phase 4 Shuffle×Repeat skip logic.
 - **Files:** `file_picker` + `permission_handler` + `path` + `path_provider`.
 - **Metadata:** `audiotags` (read-only: title, artist, album, cover art; cache covers locally). Behind a `TrackMetadataReader` interface so the implementation stays swappable.
 - **UI:** Material 3 theme, shared widgets in `lib/shared/widgets`; toasts via `toastification`.

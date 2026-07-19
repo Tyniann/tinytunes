@@ -267,4 +267,28 @@ extension CatalogDao on AppDatabase {
     )..where((t) => t.rootId.equals(rootId))).get();
     return rows.map((r) => r.id).toList(growable: false);
   }
+
+  /// Watches the singleton `playback_state` row (`id = 1`).
+  Stream<PlaybackStateData> watchPlaybackState() {
+    return (select(playbackState)..where((t) => t.id.equals(1)))
+        .watchSingle();
+  }
+
+  /// One-shot read of the singleton `playback_state` row.
+  Future<PlaybackStateData> getPlaybackState() {
+    return (select(playbackState)..where((t) => t.id.equals(1))).getSingle();
+  }
+
+  /// Atomically writes resume fields on the singleton playback row.
+  Future<void> checkpoint({
+    int? entryId,
+    required int positionMs,
+  }) {
+    return (update(playbackState)..where((t) => t.id.equals(1))).write(
+      PlaybackStateCompanion(
+        currentQueueEntryId: Value(entryId),
+        positionMs: Value(positionMs),
+      ),
+    );
+  }
 }

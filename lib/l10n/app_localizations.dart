@@ -164,19 +164,19 @@ abstract class AppLocalizations {
   /// **'Demo error message'**
   String get demoErrorMessage;
 
-  /// Semantics label for the inert previous transport control.
+  /// Semantics label for the previous transport control.
   ///
   /// In en, this message translates to:
   /// **'Previous'**
   String get transportPrevious;
 
-  /// Semantics label for the inert play/pause transport control.
+  /// Semantics label for the play/pause transport control.
   ///
   /// In en, this message translates to:
   /// **'Play or pause'**
   String get transportPlayPause;
 
-  /// Semantics label for the inert next transport control.
+  /// Semantics label for the next transport control.
   ///
   /// In en, this message translates to:
   /// **'Next'**
@@ -325,6 +325,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown artist'**
   String get unknownArtist;
+
+  /// Message when resolve/SAF cannot open the current track.
+  ///
+  /// In en, this message translates to:
+  /// **'Track file is missing or inaccessible.'**
+  String get playerFileMissing;
+
+  /// Message when the audio engine fails to load a source.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load track for playback.'**
+  String get playerLoadFailed;
+
+  /// Info when cold-start resume entry was removed from the queue.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous track is no longer in the queue.'**
+  String get playerRestoreSkipped;
+
+  /// Error when consecutive missing/load skips hit the N=5 bound.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped after several unplayable tracks in a row.'**
+  String get playerSkipBoundReached;
 }
 
 class _AppLocalizationsDelegate

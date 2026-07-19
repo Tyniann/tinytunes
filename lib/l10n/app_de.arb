@@ -44,5 +44,9 @@
   "libraryRootRevoked": "Ordnerzugriff wurde widerrufen.",
   "libraryForgetComplete": "Ordner vergessen.",
   "libraryForgetFailed": "Ordner lokal entfernt, aber Freigabe fehlgeschlagen.",
-  "unknownArtist": "Unbekannter Künstler"
+  "unknownArtist": "Unbekannter Künstler",
+  "playerFileMissing": "Titeldatei fehlt oder ist nicht zugänglich.",
+  "playerLoadFailed": "Titel konnte nicht geladen werden.",
+  "playerRestoreSkipped": "Vorheriger Titel ist nicht mehr in der Warteschlange.",
+  "playerSkipBoundReached": "Gestoppt nach mehreren nicht abspielbaren Titeln."
 }

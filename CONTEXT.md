@@ -18,6 +18,7 @@ Single-context mobile audio player. Prefer these terms in issues, PRs, tests, an
 | **Single-flight scan** | At most one catalog-mutating Add / Re-scan / Forget at a time. |
 | **Add folder** | Import or refill action: refresh the selected root and append its tracks that are not currently queued; never duplicate queue entries. |
 | **Re-scan** | Catalog synchronization: append only newly discovered tracks, prune missing files after a safe complete scan, and preserve manual queue removals. |
+| **Now playing** | Current queue entry driven by `PlaybackController` / `playback_state`; UI highlight + transport. |
 | **Theme catalog** | Named color schemes (unrelated to the music catalog). |
 
 ## Avoid

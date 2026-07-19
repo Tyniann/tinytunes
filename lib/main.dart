@@ -1,3 +1,4 @@
+import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
 import 'package:tinytunes/core/routing/app_router.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
+import 'package:tinytunes/features/player/application/playback_controller.dart';
+import 'package:tinytunes/features/player/application/player_providers.dart';
+import 'package:tinytunes/features/player/application/tinytunes_audio_handler.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 import 'package:toastification/toastification.dart';
 
@@ -14,13 +18,31 @@ Future<void> main() async {
   // libsqlite3.so on older Android (no-op when already loadable).
   await applyWorkaroundToOpenSqlite3OnOldAndroidVersions();
 
+  final handler = await AudioService.init(
+    builder: TinyTunesAudioHandler.new,
+    config: const AudioServiceConfig(
+      androidNotificationChannelId: 'at.blumenlaube.tinytunes.audio',
+      androidNotificationChannelName: 'TinyTunes',
+      androidNotificationOngoing: true,
+      androidStopForegroundOnPause: true,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+    ),
+  );
+
   final prefs = await SharedPreferences.getInstance();
+  final container = ProviderContainer(
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(prefs),
+      audioHandlerProvider.overrideWithValue(handler),
+    ],
+  );
+
+  // Eager attach: controller owns engine + session; handler receives remote.
+  container.read(playbackControllerProvider);
 
   runApp(
-    ProviderScope(
-      overrides: [
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
+    UncontrolledProviderScope(
+      container: container,
       child: const TinyTunesApp(),
     ),
   );

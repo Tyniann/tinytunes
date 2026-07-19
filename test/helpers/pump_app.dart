@@ -17,10 +17,19 @@ import 'package:tinytunes/core/routing/app_router.dart';
 import 'package:tinytunes/core/routing/app_routes.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:tinytunes/features/library/application/library_providers.dart';
+import 'package:tinytunes/features/player/application/player_providers.dart';
+import 'package:tinytunes/features/player/application/tinytunes_audio_handler.dart';
 import 'package:tinytunes/features/playlist/application/playlist_providers.dart';
 import 'package:tinytunes/main.dart';
 
-/// Pumps [TinyTunesApp] with mock prefs, in-memory DB, fake library, noop toasts.
+import '../features/player/fake_playback_engine.dart';
+
+export '../features/player/fake_playback_engine.dart';
+
+/// Pumps [TinyTunesApp] with mock prefs, in-memory DB, fake library/player, noop toasts.
+///
+/// Does **not** call [AudioService.init]. Override [liveQueueStreams] for
+/// remove→skip tests that need Drift watch after mutations.
 ///
 /// Call [endPumpApp] at the end of every widget test that uses this helper.
 Future<void> pumpApp(
@@ -30,12 +39,15 @@ Future<void> pumpApp(
   String initialLocation = '/',
   AppDatabase? database,
   LocalLibrarySource? librarySource,
+  FakePlaybackEngine? playbackEngine,
   bool liveQueueStreams = false,
 }) async {
-    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   SharedPreferences.setMockInitialValues(prefsValues);
   final prefs = await SharedPreferences.getInstance();
   final db = database ?? AppDatabase.memory();
+  final engine = playbackEngine ?? FakePlaybackEngine();
+  final handler = TinyTunesAudioHandler();
 
   final streamOverrides = <Override>[
     if (!liveQueueStreams) ...[
@@ -61,6 +73,8 @@ Future<void> pumpApp(
           const _EmptyFakeMetadataReader(),
         ),
         toastDeliveryProvider.overrideWithValue(const NoopToastDelivery()),
+        audioHandlerProvider.overrideWithValue(handler),
+        playbackEngineProvider.overrideWithValue(engine),
         appRouterProvider.overrideWithValue(
           GoRouter(
             navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'test-root'),

@@ -46,15 +46,15 @@
   },
   "transportPrevious": "Previous",
   "@transportPrevious": {
-    "description": "Semantics label for the inert previous transport control."
+    "description": "Semantics label for the previous transport control."
   },
   "transportPlayPause": "Play or pause",
   "@transportPlayPause": {
-    "description": "Semantics label for the inert play/pause transport control."
+    "description": "Semantics label for the play/pause transport control."
   },
   "transportNext": "Next",
   "@transportNext": {
-    "description": "Semantics label for the inert next transport control."
+    "description": "Semantics label for the next transport control."
   },
   "addFolderTooltip": "Add folder",
   "@addFolderTooltip": {
@@ -156,5 +156,21 @@
   "unknownArtist": "Unknown artist",
   "@unknownArtist": {
     "description": "Subtitle when a track has no artist tag."
+  },
+  "playerFileMissing": "Track file is missing or inaccessible.",
+  "@playerFileMissing": {
+    "description": "Message when resolve/SAF cannot open the current track."
+  },
+  "playerLoadFailed": "Could not load track for playback.",
+  "@playerLoadFailed": {
+    "description": "Message when the audio engine fails to load a source."
+  },
+  "playerRestoreSkipped": "Previous track is no longer in the queue.",
+  "@playerRestoreSkipped": {
+    "description": "Info when cold-start resume entry was removed from the queue."
+  },
+  "playerSkipBoundReached": "Stopped after several unplayable tracks in a row.",
+  "@playerSkipBoundReached": {
+    "description": "Error when consecutive missing/load skips hit the N=5 bound."
   }
 }

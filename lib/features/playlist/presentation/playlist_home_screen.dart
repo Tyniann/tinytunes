@@ -5,13 +5,15 @@ import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/routing/app_routes.dart';
 import 'package:tinytunes/features/library/application/library_ingest_controller.dart';
 import 'package:tinytunes/features/library/application/library_ingest_l10n_mapper.dart';
+import 'package:tinytunes/features/player/application/playback_controller.dart';
+import 'package:tinytunes/features/player/presentation/transport_chrome.dart';
 import 'package:tinytunes/features/playlist/application/playlist_providers.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 
-/// Playlist home: queue list, library actions, inert transport.
+/// Playlist home: queue list, library actions, live transport.
 ///
-/// Purpose: Primary IA surface for the single Winamp-style queue and folder
-/// ingest until playback lands in Phase 3.
+/// Purpose: Primary IA surface for the single Winamp-style queue, folder
+/// ingest, and Phase 3 playback controls.
 /// Usage Context: Route `/` via [PlaylistHomeRoute].
 class PlaylistHomeScreen extends ConsumerStatefulWidget {
   /// Creates the playlist home screen.
@@ -40,7 +42,9 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
     final unread = ref.watch(unreadMessageCountProvider);
     final progress = ref.watch(libraryIngestControllerProvider);
     final queueAsync = ref.watch(orderedQueueProvider);
+    final playback = ref.watch(playbackControllerProvider);
     final busy = progress.isBusy;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -124,13 +128,20 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
                   itemCount: queue.length,
                   itemBuilder: (context, index) {
                     final row = queue[index];
+                    final isCurrent =
+                        row.queueEntryId == playback.currentQueueEntryId;
                     return ListTile(
+                      selected: isCurrent,
+                      selectedTileColor: scheme.secondaryContainer,
                       title: Text(row.listTitle),
                       subtitle: Text(
                         (row.artist != null && row.artist!.trim().isNotEmpty)
                             ? row.artist!
                             : l10n.unknownArtist,
                       ),
+                      onTap: () => ref
+                          .read(playbackControllerProvider.notifier)
+                          .playEntry(row.queueEntryId),
                       trailing: IconButton(
                         tooltip: l10n.removeFromQueueTooltip,
                         onPressed: busy
@@ -144,15 +155,13 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
                   },
                 );
               },
-              // Avoid an indefinite CircularProgressIndicator — it prevents
-              // widget tests from ever completing pumpAndSettle.
               loading: () => const SizedBox.shrink(),
               error: (error, _) => Center(child: Text('$error')),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: const _InertTransportChrome(),
+      bottomNavigationBar: const TransportChrome(),
     );
   }
 
@@ -248,41 +257,3 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
 }
 
 enum _PlaylistMenuAction { clearQueue, rescan, forget }
-
-/// Explicitly inert play/pause/prev/next row — no audio wiring in Phase 2.
-class _InertTransportChrome extends StatelessWidget {
-  const _InertTransportChrome();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    return Material(
-      elevation: 3,
-      child: SafeArea(
-        child: IgnorePointer(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              IconButton(
-                onPressed: null,
-                tooltip: l10n.transportPrevious,
-                icon: const Icon(Icons.skip_previous),
-              ),
-              IconButton(
-                onPressed: null,
-                tooltip: l10n.transportPlayPause,
-                icon: const Icon(Icons.play_arrow),
-              ),
-              IconButton(
-                onPressed: null,
-                tooltip: l10n.transportNext,
-                icon: const Icon(Icons.skip_next),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

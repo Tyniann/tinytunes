@@ -126,4 +126,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknownArtist => 'Unknown artist';
+
+  @override
+  String get playerFileMissing => 'Track file is missing or inaccessible.';
+
+  @override
+  String get playerLoadFailed => 'Could not load track for playback.';
+
+  @override
+  String get playerRestoreSkipped =>
+      'Previous track is no longer in the queue.';
+
+  @override
+  String get playerSkipBoundReached =>
+      'Stopped after several unplayable tracks in a row.';
 }

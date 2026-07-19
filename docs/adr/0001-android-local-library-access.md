@@ -84,4 +84,4 @@ Gradle: `kotlin.incremental=false` on this machine (pub cache on `C:` + project 
 - iOS security-scoped bookmarks (Phase 6)
 - Cloud provider SDK (Phase 7)
 - Drift catalog/queue schema (Phase 2)
-- Background playback / `just_audio_background` (Phase 3)
+- Background playback / lock-screen controls via `audio_service` + `TinyTunesAudioHandler` (Phase 3; not `just_audio_background`)
