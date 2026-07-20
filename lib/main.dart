@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
+import 'package:tinytunes/core/l10n/locale_resolution.dart';
 import 'package:tinytunes/core/routing/app_router.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:tinytunes/features/player/application/playback_controller.dart';
@@ -78,6 +79,7 @@ class TinyTunesApp extends ConsumerWidget {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: AppLocalizations.supportedLocales,
+        localeListResolutionCallback: resolveAppLocale,
         routerConfig: router,
       ),
     );

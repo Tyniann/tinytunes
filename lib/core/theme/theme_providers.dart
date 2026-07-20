@@ -29,7 +29,7 @@ ThemePreferences themePreferences(Ref ref) {
 @Riverpod(keepAlive: true)
 ThemeCatalog themeCatalog(Ref ref) => ThemeCatalog.v1();
 
-/// Persisted appearance mode with write API for tests and Phase 5 Settings.
+/// Persisted appearance mode with write API for Settings and tests.
 @Riverpod(keepAlive: true)
 class AppThemeModeController extends _$AppThemeModeController {
   @override

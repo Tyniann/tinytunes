@@ -83,15 +83,54 @@ void main() {
     await tester.tap(find.text('Confirm'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('Queue is empty. Add a folder to get started.'),
-      findsOneWidget,
-    );
+    expect(find.text('Queue is empty.'), findsOneWidget);
+    expect(find.text('Add folder'), findsWidgets);
     expect(await db.select(db.tracks).get(), hasLength(2));
     await endPumpApp(tester);
   });
 
-  testWidgets('add folder disabled while scan is busy', (tester) async {
+  testWidgets('empty state shows Add folder CTA', (tester) async {
+    await pumpApp(tester, database: db);
+
+    expect(find.text('Queue is empty.'), findsOneWidget);
+    expect(
+      find.widgetWithText(FilledButton, 'Add folder'),
+      findsOneWidget,
+    );
+    await endPumpApp(tester);
+  });
+
+  testWidgets('empty state Add folder CTA starts folder pick', (tester) async {
+    final gate = Completer<MediaLocator?>();
+    final source = _GatedLibrarySource(gate);
+
+    await pumpApp(tester, database: db, librarySource: source);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Add folder'));
+    await tester.pump();
+
+    // CTA shares addFolder — picking is busy; actions disabled.
+    final addButton = tester.widget<IconButton>(
+      find.widgetWithIcon(IconButton, Icons.create_new_folder_outlined),
+    );
+    expect(addButton.onPressed, isNull);
+    expect(find.textContaining('Scanning'), findsNothing);
+
+    gate.complete(null);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .widget<IconButton>(
+            find.widgetWithIcon(IconButton, Icons.create_new_folder_outlined),
+          )
+          .onPressed,
+      isNotNull,
+    );
+    await endPumpApp(tester);
+  });
+
+  testWidgets('add folder disabled while picker is busy', (tester) async {
     final gate = Completer<MediaLocator?>();
     final source = _GatedLibrarySource(gate);
 
@@ -104,7 +143,8 @@ void main() {
       find.widgetWithIcon(IconButton, Icons.create_new_folder_outlined),
     );
     expect(addButton.onPressed, isNull);
-    expect(find.textContaining('Scanning'), findsOneWidget);
+    // Picking is busy but must not show the scan banner / Scanning… copy.
+    expect(find.textContaining('Scanning'), findsNothing);
 
     gate.complete(null);
     await tester.pumpAndSettle();
@@ -113,6 +153,55 @@ void main() {
       find.widgetWithIcon(IconButton, Icons.create_new_folder_outlined),
     );
     expect(addAfter.onPressed, isNotNull);
+    expect(find.byType(PlaylistHomeScreen), findsOneWidget);
+    await endPumpApp(tester);
+  });
+
+  testWidgets('revoked root strip offers Forget', (tester) async {
+    final rootId = await db.upsertRoot(
+      locator: 'content://tree/revoked',
+      displayName: 'LostFolder',
+      addedAt: DateTime.utc(2026, 1, 1),
+    );
+    expect(rootId, isPositive);
+
+    final source = _RevokedLibrarySource();
+    await pumpApp(tester, database: db, librarySource: source);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('LostFolder'), findsOneWidget);
+    expect(find.text('Forget'), findsOneWidget);
+    await endPumpApp(tester);
+  });
+
+  testWidgets('multi-root picker Cancel dismisses without selection', (
+    tester,
+  ) async {
+    await db.upsertRoot(
+      locator: 'content://tree/one',
+      displayName: 'One',
+      addedAt: DateTime.utc(2026, 1, 1),
+    );
+    await db.upsertRoot(
+      locator: 'content://tree/two',
+      displayName: 'Two',
+      addedAt: DateTime.utc(2026, 1, 2),
+    );
+
+    await pumpApp(tester, database: db);
+
+    await tester.tap(find.byTooltip('Playlist actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Re-scan folder'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose folder'), findsOneWidget);
+    expect(find.text('One'), findsOneWidget);
+    expect(find.text('Two'), findsOneWidget);
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Choose folder'), findsNothing);
     expect(find.byType(PlaylistHomeScreen), findsOneWidget);
     await endPumpApp(tester);
   });
@@ -143,6 +232,35 @@ class _GatedLibrarySource implements LocalLibrarySource {
 
   @override
   Future<bool> hasPersistedAccess(MediaLocator root) async => true;
+
+  @override
+  Future<List<MediaLocator>> listPersistedRoots() async => const [];
+
+  @override
+  Future<void> releaseRoot(MediaLocator root) async {}
+}
+
+class _RevokedLibrarySource implements LocalLibrarySource {
+  @override
+  Future<MediaLocator?> pickAndRetainRoot() async => null;
+
+  @override
+  Future<List<LibraryEntry>> listChildren(MediaLocator parent) async =>
+      const [];
+
+  @override
+  Future<Uri> resolvePlaybackUri(MediaLocator item) async =>
+      Uri.parse(item.value);
+
+  @override
+  Future<String> materializeReadablePath(
+    MediaLocator item, {
+    String? fileNameHint,
+  }) async =>
+      '/tmp/empty.mp3';
+
+  @override
+  Future<bool> hasPersistedAccess(MediaLocator root) async => false;
 
   @override
   Future<List<MediaLocator>> listPersistedRoots() async => const [];

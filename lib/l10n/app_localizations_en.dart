@@ -18,13 +18,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTooltip => 'Settings';
 
   @override
-  String get queueEmpty => 'Queue is empty. Add a folder to get started.';
+  String get queueEmpty => 'Queue is empty.';
+
+  @override
+  String get addFolderAction => 'Add folder';
 
   @override
   String get settingsTitle => 'Settings';
 
   @override
-  String get settingsStubBody => 'Theme mode comes in a later phase.';
+  String get settingsAppearanceSection => 'Appearance';
+
+  @override
+  String get settingsThemeSystem => 'System';
+
+  @override
+  String get settingsThemeLight => 'Light';
+
+  @override
+  String get settingsThemeDark => 'Dark';
+
+  @override
+  String get settingsAboutSection => 'About';
+
+  @override
+  String settingsAboutVersion(String version) {
+    return 'Version $version';
+  }
 
   @override
   String get messagesTitle => 'Messages';
@@ -33,13 +53,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get messagesEmpty => 'No messages yet.';
 
   @override
-  String get addDemoMessage => 'Add demo message';
+  String get forgettingProgress => 'Forgetting folder…';
 
   @override
-  String get demoInfoMessage => 'Demo info message';
+  String revokedRootBanner(String folderName) {
+    return 'Access lost: $folderName';
+  }
 
   @override
-  String get demoErrorMessage => 'Demo error message';
+  String get forgetRevokedRootAction => 'Forget';
 
   @override
   String get transportPrevious => 'Previous';

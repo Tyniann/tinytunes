@@ -32,23 +32,19 @@ Repositories must not call toasts or touch `BuildContext`.
 
 ### Unread watermark
 
-Each message gets a monotonic `int id`. Unread = `id > lastReadId`. Opening `/messages` marks read once per visit (`MessagesScreen.initState` / post-frame). Demo while on Messages adds rows; the home badge updates after leave; re-enter clears unread.
+Each message gets a monotonic `int id`. Unread = `id > lastReadId`. Opening `/messages` marks read once per visit (`MessagesScreen.initState` / post-frame). Reporting while on home updates the badge; opening Messages clears unread.
 
 ### Bound
 
 Max **100** entries; oldest-first eviction. UI list is newest-first.
 
-### Demo path
-
-Messages screen button “Add demo message” reports `demo.info` and `demo.error`.
-
 ## Data Model
 
-In-memory only for daily driver — no Drift persistence across restarts.
+In-memory only for daily driver — no Drift persistence across restarts. Rows keep a machine `code` for stable refs; the UI does not display it.
 
 ## User Interface
 
-App-bar notifications icon with unread `Badge` (hidden at 0) → `/messages`. List shows severity icon, text, `code`, and time.
+App-bar notifications icon with unread `Badge` (hidden at 0) → `/messages`. List shows severity icon, localized message text, and time (no code subtitle).
 
 ## Dependencies
 
@@ -60,4 +56,4 @@ App-bar notifications icon with unread `Badge` (hidden at 0) → `/messages`. Li
 - [Theming](theming.md)
 
 ---
-*Last updated: 2026-07-19*
+*Last updated: 2026-07-20*

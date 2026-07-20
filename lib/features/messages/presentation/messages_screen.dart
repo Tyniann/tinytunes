@@ -4,10 +4,10 @@ import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/messages/session_message.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 
-/// Session message center with demo report path.
+/// Session message center showing human-readable session log rows.
 ///
-/// Purpose: Show the in-memory session log and prove toast + badge via the
-/// demo button. Marks messages read once per visit in [initState].
+/// Purpose: List in-memory session messages with severity and time; mark read
+/// on open. Machine codes stay in the model but are not shown in the UI.
 /// Usage Context: Route `/messages` via [MessagesRoute].
 class MessagesScreen extends ConsumerStatefulWidget {
   /// Creates the message center screen.
@@ -29,13 +29,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     });
   }
 
-  void _addDemoMessages() {
-    final l10n = AppLocalizations.of(context)!;
-    final reporter = ref.read(messageReporterProvider);
-    reporter.reportInfo(code: 'demo.info', message: l10n.demoInfoMessage);
-    reporter.reportError(code: 'demo.error', message: l10n.demoErrorMessage);
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -43,40 +36,25 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.messagesTitle)),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: FilledButton(
-              onPressed: _addDemoMessages,
-              child: Text(l10n.addDemoMessage),
-            ),
-          ),
-          Expanded(
-            child: messages.isEmpty
-                ? Center(child: Text(l10n.messagesEmpty))
-                : ListView.builder(
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      return ListTile(
-                        leading: Icon(
-                          message.severity == SessionMessageSeverity.error
-                              ? Icons.error_outline
-                              : Icons.info_outline,
-                        ),
-                        title: Text(message.message),
-                        subtitle: Text(message.code),
-                        trailing: Text(
-                          TimeOfDay.fromDateTime(message.createdAt)
-                              .format(context),
-                        ),
-                      );
-                    },
+      body: messages.isEmpty
+          ? Center(child: Text(l10n.messagesEmpty))
+          : ListView.builder(
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final message = messages[index];
+                return ListTile(
+                  leading: Icon(
+                    message.severity == SessionMessageSeverity.error
+                        ? Icons.error_outline
+                        : Icons.info_outline,
                   ),
-          ),
-        ],
-      ),
+                  title: Text(message.message),
+                  trailing: Text(
+                    TimeOfDay.fromDateTime(message.createdAt).format(context),
+                  ),
+                );
+              },
+            ),
     );
   }
 }

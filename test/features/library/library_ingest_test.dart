@@ -272,6 +272,102 @@ void main() {
       expect(messageCodes(), contains(LibraryMessageCodes.forgetFailed));
     },
   );
+
+  test('cancel pick leaves idle with no scanStarted message', () async {
+    source.returnNullPick = true;
+    await pumpAdd();
+
+    expect(
+      container.read(libraryIngestControllerProvider).phase,
+      IngestPhase.idle,
+    );
+    expect(messageCodes(), isEmpty);
+  });
+
+  test('checkRevokedRoots populates UI list and continues after throws', () async {
+    await pumpAdd();
+    final secondRoot = MediaLocator('content://fake/tree/other');
+    await db.upsertRoot(
+      locator: secondRoot.value,
+      displayName: 'Other',
+    );
+
+    // First root throws; second is revoked — must still populate second.
+    source.hasPersistedThrowsFor = {root.value};
+    source.hasPersistedFor = {
+      root.value: false,
+      secondRoot.value: false,
+    };
+
+    await container
+        .read(libraryIngestControllerProvider.notifier)
+        .checkRevokedRoots(l10n: l10n);
+
+    final progress = container.read(libraryIngestControllerProvider);
+    expect(
+      progress.revokedRoots.map((r) => r.locator),
+      contains(secondRoot.value),
+    );
+    expect(progress.revokedRoots.map((r) => r.locator), isNot(contains(root.value)));
+    expect(messageCodes(), contains(LibraryMessageCodes.rootRevoked));
+  });
+
+  test('forget clears revoked UI entry', () async {
+    await pumpAdd();
+    source.hasPersistedFor = {root.value: false};
+    await container
+        .read(libraryIngestControllerProvider.notifier)
+        .checkRevokedRoots(l10n: l10n);
+    expect(
+      container.read(libraryIngestControllerProvider).revokedRoots,
+      isNotEmpty,
+    );
+
+    final rootId = (await db.select(db.libraryRoots).get()).single.id;
+    await container
+        .read(libraryIngestControllerProvider.notifier)
+        .forgetRoot(rootId: rootId, l10n: l10n);
+
+    expect(
+      container.read(libraryIngestControllerProvider).revokedRoots,
+      isEmpty,
+    );
+  });
+
+  test('restored access clears revoked UI entry on re-add', () async {
+    await pumpAdd();
+    source.hasPersistedFor = {root.value: false};
+    await container
+        .read(libraryIngestControllerProvider.notifier)
+        .checkRevokedRoots(l10n: l10n);
+    expect(
+      container.read(libraryIngestControllerProvider).revokedRoots,
+      isNotEmpty,
+    );
+
+    source.hasPersistedFor = {root.value: true};
+    await pumpAdd();
+
+    expect(
+      container.read(libraryIngestControllerProvider).revokedRoots,
+      isEmpty,
+    );
+  });
+
+  test('rescan early-fail when revoked populates UI list', () async {
+    await pumpAdd();
+    source.hasPersistedFor = {root.value: false};
+    final rootId = (await db.select(db.libraryRoots).get()).single.id;
+
+    await container
+        .read(libraryIngestControllerProvider.notifier)
+        .rescanRoot(rootId: rootId, l10n: l10n);
+
+    final progress = container.read(libraryIngestControllerProvider);
+    expect(progress.phase, IngestPhase.idle);
+    expect(progress.revokedRoots.map((r) => r.locator), contains(root.value));
+    expect(messageCodes(), contains(LibraryMessageCodes.rootRevoked));
+  });
 }
 
 class _FakeTrackMetadataReader implements TrackMetadataReader {
@@ -299,12 +395,16 @@ class _FakeLocalLibrarySource implements LocalLibrarySource {
   int? failListAfter;
   bool releaseThrows = false;
   bool hasPersistedThrows = false;
+  bool returnNullPick = false;
+  Map<String, bool>? hasPersistedFor;
+  Set<String> hasPersistedThrowsFor = {};
   Duration? delayPick;
   void Function()? beforeListChildren;
 
   @override
   Future<MediaLocator?> pickAndRetainRoot() async {
     if (delayPick != null) await Future<void>.delayed(delayPick!);
+    if (returnNullPick) return null;
     return root;
   }
 
@@ -336,6 +436,12 @@ class _FakeLocalLibrarySource implements LocalLibrarySource {
   @override
   Future<bool> hasPersistedAccess(MediaLocator root) async {
     if (hasPersistedThrows) throw StateError('plugin unavailable');
+    if (hasPersistedThrowsFor.contains(root.value)) {
+      throw StateError('plugin unavailable for ${root.value}');
+    }
+    if (hasPersistedFor != null) {
+      return hasPersistedFor![root.value] ?? true;
+    }
     return !released.any((r) => r.value == root.value);
   }
 

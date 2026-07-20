@@ -15,7 +15,9 @@ import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/messages/toast_delivery.dart';
 import 'package:tinytunes/core/routing/app_router.dart';
 import 'package:tinytunes/core/routing/app_routes.dart';
+import 'package:tinytunes/core/settings/package_info_provider.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tinytunes/features/library/application/library_providers.dart';
 import 'package:tinytunes/features/player/application/player_providers.dart';
 import 'package:tinytunes/features/player/application/tinytunes_audio_handler.dart';
@@ -66,6 +68,14 @@ Future<void> pumpApp(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         appDatabaseProvider.overrideWithValue(db),
+        packageInfoProvider.overrideWith(
+          (ref) async => PackageInfo(
+            appName: 'TinyTunes',
+            packageName: 'at.blumenlaube.tinytunes',
+            version: '0.6.0',
+            buildNumber: '6',
+          ),
+        ),
         localLibrarySourceProvider.overrideWithValue(
           librarySource ?? const _EmptyFakeLibrarySource(),
         ),
@@ -120,7 +130,7 @@ class _EmptyFakeLibrarySource implements LocalLibrarySource {
       '/tmp/empty.mp3';
 
   @override
-  Future<bool> hasPersistedAccess(MediaLocator root) async => false;
+  Future<bool> hasPersistedAccess(MediaLocator root) async => true;
 
   @override
   Future<List<MediaLocator>> listPersistedRoots() async => const [];

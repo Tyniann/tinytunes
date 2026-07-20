@@ -23,6 +23,9 @@ enum IngestPhase {
   /// No mutating op in flight.
   idle,
 
+  /// SAF / folder picker is open (busy; no scan banner or scanStarted).
+  picking,
+
   /// Add or re-scan walk/metadata in progress.
   scanning,
 
@@ -30,14 +33,49 @@ enum IngestPhase {
   forgetting,
 }
 
+/// One library root whose persisted grant is currently missing.
+///
+/// Purpose: Drive per-root home strips without a Drift revoked flag.
+class RevokedRootInfo {
+  /// Creates a revoked-root UI row.
+  const RevokedRootInfo({
+    required this.id,
+    required this.displayName,
+    required this.locator,
+  });
+
+  /// Drift `library_roots.id`.
+  final int id;
+
+  /// User-facing folder name for the strip.
+  final String displayName;
+
+  /// Opaque root locator (toast dedupe key).
+  final String locator;
+
+  @override
+  bool operator ==(Object other) =>
+      other is RevokedRootInfo &&
+      other.id == id &&
+      other.displayName == displayName &&
+      other.locator == locator;
+
+  @override
+  int get hashCode => Object.hash(id, displayName, locator);
+}
+
 /// Progress snapshot for home banner / action disablement.
 ///
-/// Purpose: Drive `Scanning… n` UI and single-flight button state.
+/// Purpose: Drive scan/forget strips, single-flight buttons, and revoked UI.
 class ScanProgress {
   /// Creates a progress snapshot.
-  const ScanProgress({required this.phase, required this.processedCount});
+  const ScanProgress({
+    required this.phase,
+    required this.processedCount,
+    this.revokedRoots = const [],
+  });
 
-  /// Idle progress.
+  /// Idle progress with no revoked roots.
   static const idle = ScanProgress(phase: IngestPhase.idle, processedCount: 0);
 
   /// Current mutating phase.
@@ -46,8 +84,24 @@ class ScanProgress {
   /// Audio files processed so far in this run.
   final int processedCount;
 
+  /// Roots currently missing persisted access (watchable UI list).
+  final List<RevokedRootInfo> revokedRoots;
+
   /// Whether Add/Re-scan/Forget should be disabled.
   bool get isBusy => phase != IngestPhase.idle;
+
+  /// Copies this snapshot with optional field overrides.
+  ScanProgress copyWith({
+    IngestPhase? phase,
+    int? processedCount,
+    List<RevokedRootInfo>? revokedRoots,
+  }) {
+    return ScanProgress(
+      phase: phase ?? this.phase,
+      processedCount: processedCount ?? this.processedCount,
+      revokedRoots: revokedRoots ?? this.revokedRoots,
+    );
+  }
 }
 
 /// Single-flight library ingest: add folder, re-scan, forget.
@@ -60,12 +114,14 @@ class LibraryIngestController extends _$LibraryIngestController {
   static const _metadataConcurrency = 2;
 
   bool _cancelRequested = false;
+
+  /// Once-per-session toast/message dedupe (separate from UI [ScanProgress.revokedRoots]).
   final Set<String> _revokedReportedLocators = {};
 
   @override
   ScanProgress build() => ScanProgress.idle;
 
-  /// Requests cancel of the active scan (ignored when idle/forgetting).
+  /// Requests cancel of the active scan (ignored when idle/picking/forgetting).
   void cancelScan() {
     _cancelRequested = true;
   }
@@ -80,12 +136,7 @@ class LibraryIngestController extends _$LibraryIngestController {
     final source = ref.read(localLibrarySourceProvider);
     final reporter = ref.read(messageReporterProvider);
 
-    _begin(IngestPhase.scanning);
-    reporter.reportInfo(
-      code: LibraryMessageCodes.scanStarted,
-      message: l10n.scanStarted,
-    );
-
+    _begin(IngestPhase.picking);
     try {
       final picked = await source.pickAndRetainRoot();
       if (picked == null) {
@@ -93,12 +144,19 @@ class LibraryIngestController extends _$LibraryIngestController {
         return;
       }
 
+      _begin(IngestPhase.scanning);
+      reporter.reportInfo(
+        code: LibraryMessageCodes.scanStarted,
+        message: l10n.scanStarted,
+      );
+
       final db = ref.read(appDatabaseProvider);
       final existing = await db.getRootByLocator(picked.value);
       if (existing != null) {
         await _rescanRoot(
           rootId: existing.id,
           rootLocator: MediaLocator(existing.locator),
+          displayName: existing.displayName,
           l10n: l10n,
           appendAllTouched: true,
         );
@@ -144,6 +202,7 @@ class LibraryIngestController extends _$LibraryIngestController {
     await _rescanRoot(
       rootId: root.id,
       rootLocator: MediaLocator(root.locator),
+      displayName: root.displayName,
       l10n: l10n,
     );
   }
@@ -168,6 +227,7 @@ class LibraryIngestController extends _$LibraryIngestController {
     try {
       final locator = MediaLocator(root.locator);
       await db.deleteRootCascade(rootId);
+      _clearRevokedRoot(rootId);
       try {
         await source.releaseRoot(locator);
         reporter.reportInfo(
@@ -186,33 +246,44 @@ class LibraryIngestController extends _$LibraryIngestController {
     }
   }
 
-  /// Reports revoked grants once per root locator per session.
+  /// Recomputes revoked UI strips; reports each newly revoked root once per session.
+  ///
+  /// Cold-start / explicit path only — no live OS grant watcher while open.
   Future<void> checkRevokedRoots({required LibraryIngestL10n l10n}) async {
     final db = ref.read(appDatabaseProvider);
     final source = ref.read(localLibrarySourceProvider);
     final reporter = ref.read(messageReporterProvider);
     final roots = await db.select(db.libraryRoots).get();
 
+    final nextRevoked = <RevokedRootInfo>[];
     for (final root in roots) {
-      if (_revokedReportedLocators.contains(root.locator)) continue;
       final bool ok;
       try {
         ok = await source.hasPersistedAccess(MediaLocator(root.locator));
       } on Object catch (error, stack) {
-        // Startup checks must never escape a post-frame callback. A
-        // MissingPluginException here usually means native code was changed
-        // but the app was only hot-reloaded instead of rebuilt.
+        // Startup checks must never escape a post-frame callback. Continue so
+        // later roots are still evaluated.
         debugPrint('persisted access check failed: $error\n$stack');
-        return;
+        continue;
       }
       if (!ok) {
-        _revokedReportedLocators.add(root.locator);
-        reporter.reportError(
-          code: LibraryMessageCodes.rootRevoked,
-          message: l10n.rootRevoked,
+        nextRevoked.add(
+          RevokedRootInfo(
+            id: root.id,
+            displayName: root.displayName,
+            locator: root.locator,
+          ),
         );
+        if (!_revokedReportedLocators.contains(root.locator)) {
+          _revokedReportedLocators.add(root.locator);
+          reporter.reportError(
+            code: LibraryMessageCodes.rootRevoked,
+            message: l10n.rootRevoked,
+          );
+        }
       }
     }
+    state = state.copyWith(revokedRoots: List.unmodifiable(nextRevoked));
   }
 
   Future<void> _scanNewRoot({
@@ -258,6 +329,7 @@ class LibraryIngestController extends _$LibraryIngestController {
   Future<void> _rescanRoot({
     required int rootId,
     required MediaLocator rootLocator,
+    required String displayName,
     required LibraryIngestL10n l10n,
     bool appendAllTouched = false,
   }) async {
@@ -266,13 +338,25 @@ class LibraryIngestController extends _$LibraryIngestController {
 
     final ok = await source.hasPersistedAccess(rootLocator);
     if (!ok) {
-      reporter.reportError(
-        code: LibraryMessageCodes.rootRevoked,
-        message: l10n.rootRevoked,
+      _markRevoked(
+        RevokedRootInfo(
+          id: rootId,
+          displayName: displayName,
+          locator: rootLocator.value,
+        ),
       );
+      if (!_revokedReportedLocators.contains(rootLocator.value)) {
+        _revokedReportedLocators.add(rootLocator.value);
+        reporter.reportError(
+          code: LibraryMessageCodes.rootRevoked,
+          message: l10n.rootRevoked,
+        );
+      }
       _finishIdle();
       return;
     }
+
+    _clearRevokedRoot(rootId);
 
     final outcome = await _walkAndUpsert(
       rootId: rootId,
@@ -364,7 +448,7 @@ class LibraryIngestController extends _$LibraryIngestController {
             ),
           );
           processed++;
-          state = ScanProgress(
+          state = state.copyWith(
             phase: IngestPhase.scanning,
             processedCount: processed,
           );
@@ -372,7 +456,6 @@ class LibraryIngestController extends _$LibraryIngestController {
       }
 
       try {
-        // Flush in DB batch sizes.
         for (var i = 0; i < companions.length; i += _batchSize) {
           final batch = companions.skip(i).take(_batchSize).toList();
           final result = await db.upsertTracksBatch(rootId, batch);
@@ -402,8 +485,6 @@ class LibraryIngestController extends _$LibraryIngestController {
         debugPrint('listChildren failed: $error\n$stack');
         failed = true;
         failureDetail = error.toString();
-        // Best-effort flush already-listed files so add-folder can keep a
-        // partial catalog; still no queue append / prune on failure.
         await flushBatch();
         break;
       }
@@ -455,7 +536,7 @@ class LibraryIngestController extends _$LibraryIngestController {
         fileNameHint: entry.name,
       );
       final meta = await reader.read(path);
-      // Discard artwork bytes immediately (never persist in Phase 2).
+      // Discard artwork bytes immediately (never persist until cover cache).
       return TrackMetadata(
         title: meta.title,
         artist: meta.artist,
@@ -471,12 +552,28 @@ class LibraryIngestController extends _$LibraryIngestController {
 
   void _begin(IngestPhase phase) {
     _cancelRequested = false;
-    state = ScanProgress(phase: phase, processedCount: 0);
+    state = state.copyWith(phase: phase, processedCount: 0);
   }
 
   void _finishIdle() {
     _cancelRequested = false;
-    state = ScanProgress.idle;
+    state = state.copyWith(phase: IngestPhase.idle, processedCount: 0);
+  }
+
+  void _markRevoked(RevokedRootInfo info) {
+    final without = state.revokedRoots.where((r) => r.id != info.id).toList();
+    state = state.copyWith(
+      revokedRoots: List.unmodifiable([...without, info]),
+    );
+  }
+
+  void _clearRevokedRoot(int rootId) {
+    if (!state.revokedRoots.any((r) => r.id == rootId)) return;
+    state = state.copyWith(
+      revokedRoots: List.unmodifiable(
+        state.revokedRoots.where((r) => r.id != rootId),
+      ),
+    );
   }
 }
 

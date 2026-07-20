@@ -31,7 +31,7 @@ class SessionMessage {
   /// Info vs error presentation.
   final SessionMessageSeverity severity;
 
-  /// Stable machine-oriented code (e.g. `demo.error`); not unique per instance.
+  /// Stable machine-oriented code (e.g. `library.scan.failed`); not unique per instance.
   final String code;
 
   /// Already-localized user-facing text.

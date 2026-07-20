@@ -18,15 +18,33 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsTooltip => 'Einstellungen';
 
   @override
-  String get queueEmpty =>
-      'Warteschlange ist leer. Ordner hinzufügen, um zu starten.';
+  String get queueEmpty => 'Warteschlange ist leer.';
+
+  @override
+  String get addFolderAction => 'Ordner hinzufügen';
 
   @override
   String get settingsTitle => 'Einstellungen';
 
   @override
-  String get settingsStubBody =>
-      'Der Designmodus kommt in einer späteren Phase.';
+  String get settingsAppearanceSection => 'Erscheinungsbild';
+
+  @override
+  String get settingsThemeSystem => 'System';
+
+  @override
+  String get settingsThemeLight => 'Hell';
+
+  @override
+  String get settingsThemeDark => 'Dunkel';
+
+  @override
+  String get settingsAboutSection => 'Über';
+
+  @override
+  String settingsAboutVersion(String version) {
+    return 'Version $version';
+  }
 
   @override
   String get messagesTitle => 'Nachrichten';
@@ -35,13 +53,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get messagesEmpty => 'Noch keine Nachrichten.';
 
   @override
-  String get addDemoMessage => 'Demo-Nachricht hinzufügen';
+  String get forgettingProgress => 'Ordner wird vergessen…';
 
   @override
-  String get demoInfoMessage => 'Demo-Info-Nachricht';
+  String revokedRootBanner(String folderName) {
+    return 'Zugriff verloren: $folderName';
+  }
 
   @override
-  String get demoErrorMessage => 'Demo-Fehler-Nachricht';
+  String get forgetRevokedRootAction => 'Vergessen';
 
   @override
   String get transportPrevious => 'Zurück';

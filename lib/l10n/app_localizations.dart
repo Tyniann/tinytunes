@@ -116,11 +116,17 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTooltip;
 
-  /// Empty state when the playlist queue has no entries.
+  /// Empty-state title when the playlist queue has no entries.
   ///
   /// In en, this message translates to:
-  /// **'Queue is empty. Add a folder to get started.'**
+  /// **'Queue is empty.'**
   String get queueEmpty;
+
+  /// Primary button on the empty queue state to add a music folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add folder'**
+  String get addFolderAction;
 
   /// Settings screen app bar title.
   ///
@@ -128,11 +134,41 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTitle;
 
-  /// Placeholder copy on the Settings stub screen.
+  /// Settings section header for theme mode.
   ///
   /// In en, this message translates to:
-  /// **'Theme mode comes in a later phase.'**
-  String get settingsStubBody;
+  /// **'Appearance'**
+  String get settingsAppearanceSection;
+
+  /// Theme mode option that follows the OS.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsThemeSystem;
+
+  /// Theme mode option for light appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsThemeLight;
+
+  /// Theme mode option for dark appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsThemeDark;
+
+  /// Settings section header for app about info.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAboutSection;
+
+  /// About row showing the app version string.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String settingsAboutVersion(String version);
 
   /// Message center app bar title.
   ///
@@ -146,23 +182,23 @@ abstract class AppLocalizations {
   /// **'No messages yet.'**
   String get messagesEmpty;
 
-  /// Button that reports demo info and error messages.
+  /// Banner while a forget-folder operation is in progress.
   ///
   /// In en, this message translates to:
-  /// **'Add demo message'**
-  String get addDemoMessage;
+  /// **'Forgetting folder…'**
+  String get forgettingProgress;
 
-  /// Localized text for the demo info report.
+  /// Home strip when a library root grant is revoked.
   ///
   /// In en, this message translates to:
-  /// **'Demo info message'**
-  String get demoInfoMessage;
+  /// **'Access lost: {folderName}'**
+  String revokedRootBanner(String folderName);
 
-  /// Localized text for the demo error report.
+  /// Button on a revoked-root strip to forget that folder.
   ///
   /// In en, this message translates to:
-  /// **'Demo error message'**
-  String get demoErrorMessage;
+  /// **'Forget'**
+  String get forgetRevokedRootAction;
 
   /// Semantics label for the previous transport control.
   ///

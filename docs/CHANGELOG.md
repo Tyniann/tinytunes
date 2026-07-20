@@ -19,6 +19,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.6.0] - 2026-07-20
+
+### Added
+
+- Fill Settings with theme mode (System / Light / Dark) and About (app name + version)
+- Add empty-queue **Add folder** CTA and per-root revoked-access home strips
+- Add `IngestPhase.picking` so folder pick is single-flight busy without a scan toast
+- Add forgetting progress strip and Cancel on multi-root folder picker
+- Add English locale fallback when the OS language is not `en`/`de`
+
+### Changed
+
+- Harden scan/cancel flow: defer `scanStarted` until after a successful SAF pick
+- Show human-readable Messages only (machine codes remain in the model)
+- Keep scan on the app isolate (measure-first); document device smoke checklist
+
+### Removed
+
+- Remove Messages demo button and Settings stub copy
+
+---
+
 ## [0.5.0] - 2026-07-20
 
 ### Added

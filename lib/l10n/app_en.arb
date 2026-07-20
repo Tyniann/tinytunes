@@ -12,17 +12,46 @@
   "@settingsTooltip": {
     "description": "App bar tooltip for Settings."
   },
-  "queueEmpty": "Queue is empty. Add a folder to get started.",
+  "queueEmpty": "Queue is empty.",
   "@queueEmpty": {
-    "description": "Empty state when the playlist queue has no entries."
+    "description": "Empty-state title when the playlist queue has no entries."
+  },
+  "addFolderAction": "Add folder",
+  "@addFolderAction": {
+    "description": "Primary button on the empty queue state to add a music folder."
   },
   "settingsTitle": "Settings",
   "@settingsTitle": {
     "description": "Settings screen app bar title."
   },
-  "settingsStubBody": "Theme mode comes in a later phase.",
-  "@settingsStubBody": {
-    "description": "Placeholder copy on the Settings stub screen."
+  "settingsAppearanceSection": "Appearance",
+  "@settingsAppearanceSection": {
+    "description": "Settings section header for theme mode."
+  },
+  "settingsThemeSystem": "System",
+  "@settingsThemeSystem": {
+    "description": "Theme mode option that follows the OS."
+  },
+  "settingsThemeLight": "Light",
+  "@settingsThemeLight": {
+    "description": "Theme mode option for light appearance."
+  },
+  "settingsThemeDark": "Dark",
+  "@settingsThemeDark": {
+    "description": "Theme mode option for dark appearance."
+  },
+  "settingsAboutSection": "About",
+  "@settingsAboutSection": {
+    "description": "Settings section header for app about info."
+  },
+  "settingsAboutVersion": "Version {version}",
+  "@settingsAboutVersion": {
+    "description": "About row showing the app version string.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
   },
   "messagesTitle": "Messages",
   "@messagesTitle": {
@@ -32,17 +61,22 @@
   "@messagesEmpty": {
     "description": "Empty state when the session message list has no entries."
   },
-  "addDemoMessage": "Add demo message",
-  "@addDemoMessage": {
-    "description": "Button that reports demo info and error messages."
+  "forgettingProgress": "Forgetting folder…",
+  "@forgettingProgress": {
+    "description": "Banner while a forget-folder operation is in progress."
   },
-  "demoInfoMessage": "Demo info message",
-  "@demoInfoMessage": {
-    "description": "Localized text for the demo info report."
+  "revokedRootBanner": "Access lost: {folderName}",
+  "@revokedRootBanner": {
+    "description": "Home strip when a library root grant is revoked.",
+    "placeholders": {
+      "folderName": {
+        "type": "String"
+      }
+    }
   },
-  "demoErrorMessage": "Demo error message",
-  "@demoErrorMessage": {
-    "description": "Localized text for the demo error report."
+  "forgetRevokedRootAction": "Forget",
+  "@forgetRevokedRootAction": {
+    "description": "Button on a revoked-root strip to forget that folder."
   },
   "transportPrevious": "Previous",
   "@transportPrevious": {

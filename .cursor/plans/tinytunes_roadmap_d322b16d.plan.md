@@ -19,7 +19,7 @@ todos:
     status: completed
   - id: phase-5
     content: "Phase 5: Android daily-driver hardening — Settings theme mode UI, progress, empty states, scale, tests"
-    status: pending
+    status: completed
   - id: phase-6
     content: "Phase 6: iOS adapter + playback parity (security-scoped bookmarks; no Drift model rewrite)"
     status: pending
@@ -34,8 +34,8 @@ isProject: false
 
 # TinyTunes high-level roadmap (hardened)
 
-**Current state (v0.5.0):** Phases 0–4 are implemented and device-verified on
-Android. Phase 5 (daily-driver hardening) is next.
+**Current state (v0.6.0):** Phases 0–5 are implemented and device-verified on
+Android. Phase 6 (iOS storage and playback parity) is next.
 
 ## Goals and constraints
 
@@ -86,7 +86,7 @@ flowchart LR
 
 **Why hard-delete (not “unavailable”):** Dead queue rows are worse UX for a Winamp-style list. The safety net is scan completeness: only prune after a full successful walk so a cancelled or permission-lost scan cannot wipe the library.
 
-**Playback / settings persistence:** Queue + playback state live in **Drift**. `shared_preferences` is settings-only (theme mode/scheme id, locale flags).
+**Playback / settings persistence:** Queue + playback state live in **Drift**. `shared_preferences` is settings-only (theme mode/scheme id). Locale follows the OS with an English fallback for unsupported languages (no in-app language prefs in v1).
 
 ---
 
@@ -254,10 +254,10 @@ with theme plumbing + test harness.
 - Feature-first folders: `lib/features/...`, `lib/shared/...`, `lib/core/...`.
 - `MaterialApp.router` + typed `go_router_builder` routes: `/`, `/settings`, `/messages`.
 - Playlist home shell established the app-bar routes; its body and transport
-  were subsequently filled by Phases 2–4. Settings remains a stub until Phase 5.
-- Material 3 + **theme architecture**: `AppThemeMode`, `ThemeCatalog` with `default` scheme seed `#88aa00`, prefs-backed providers; `theme` / `darkTheme` / `themeMode` wired. Settings screen can show a stub until Phase 5 mode UI.
+  were subsequently filled by Phases 2–4. Settings theme/About UI landed in Phase 5.
+- Material 3 + **theme architecture**: `AppThemeMode`, `ThemeCatalog` with `default` scheme seed `#88aa00`, prefs-backed providers; `theme` / `darkTheme` / `themeMode` wired.
 - Localization-aware shell.
-- Bounded in-memory message store + toast helper; badge/read behavior; demo report path.
+- Bounded in-memory message store + toast helper; badge/read behavior (Phase 1 demo report path removed in Phase 5).
 - `test/helpers/pump_app.dart` with `ProviderScope` + router overrides; fix scaffold widget test.
 - Bootstrap `docs/features/README.md` and `docs/CHANGELOG.md`.
 - Keep `CloudLibrarySource` as contract-only (no provider).
@@ -296,8 +296,8 @@ reworking local identity.
 - Remove queue row ≠ delete catalog. Clear queue ≠ forget roots. **Forget folder** removes root + catalog + related queue rows.
 - SAF-first: no broad storage permission unless a concrete API requires it.
 - Scan on the app isolate (KISS) with bounded metadata concurrency and batched
-  Drift writes; progress is “Scanning… n”. Worker/isolate optimization is
-  deferred to Phase 5 performance work.
+  Drift writes; progress is “Scanning… n”. Worker/isolate optimization deferred
+  until measure-first smoke proves jank (not required for Phase 5 exit).
 - Manual re-scan (not every cold start) unless later product change.
 - Feature docs for library ingest in this phase.
 
@@ -350,20 +350,21 @@ Repeat matrix on the single queue with reliable prev/next.
 
 ## Phase 5 — Android daily-driver hardening
 
-**Outcome:** Reliable personal use on a documented device/API matrix.
+**Status: Completed and Android device-verified. Outcome:** Reliable personal
+use on a documented device smoke checklist.
 
-- Harden the existing scan banner/cancellation and single-flight flow; improve
-  queue-empty, revoked-root, and missing/unplayable states.
+- Harden the existing scan banner/cancellation and single-flight flow
+  (`IngestPhase.picking`); improve queue-empty, revoked-root, and message UX.
 - Artwork cache cleanup begins only when cover caching is implemented. Message
-  history is already bounded; add clear-all / severity filter only if daily use
-  justifies it.
-- Settings filled for daily use: **theme mode** (System / Light / Dark), locale/about; queue actions stay on home. Scheme picker only if/when more than `default` exists (not required for daily driver).
-- Extend the existing DAO, scanner, pure navigator, player-controller, and
-  widget suites; add migration coverage when schema v2 exists and run a
-  large-library smoke on device.
-- Update feature docs/changelog as behavior hardens (not first-time docs dump).
+  history is already bounded; clear-all / severity filter deferred.
+- Settings filled for daily use: **theme mode** (System / Light / Dark) + About;
+  queue actions stay on home. No scheme picker (only `default`).
+- Extended ingest / home / settings / shell tests; large-library device smoke
+  passed. Schema stays v1 (no migration suite). Scan remains app-isolate
+  (measure-first; isolates only as a follow-up if jank appears).
+- Feature docs/changelog updated with the harden.
 
-**Exit:** You would actually use it day-to-day on Android.
+**Exit:** Day-to-day Android daily driver — met.
 
 ---
 

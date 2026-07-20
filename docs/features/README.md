@@ -4,10 +4,10 @@ Index of TinyTunes feature docs. Each major product module gets a kebab-case fil
 
 ## Documented features
 
-- [Message center](message-center.md) — session log, toast pipeline, unread badge
-- [Theming](theming.md) — mode + scheme catalog (`default` seed `#88AA00`)
-- [Library ingest](library-ingest.md) — local catalog, single queue, SAF scan / forget
+- [Theming](theming.md) — Settings theme mode + scheme catalog (`default` seed `#88AA00`)
+- [Library ingest](library-ingest.md) — local catalog, single queue, SAF scan / forget, revoked strips
 - [Player](player.md) — playback + background, Shuffle × Repeat matrix transport
+- [Message center](message-center.md) — session log, toast pipeline, unread badge
 
 Architecture decisions live in [`docs/adr/`](../adr/). Domain glossary: [`CONTEXT.md`](../../CONTEXT.md).
 

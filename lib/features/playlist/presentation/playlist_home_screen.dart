@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tinytunes/core/database/app_database.dart';
+import 'package:tinytunes/core/database/database_providers.dart';
 import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/routing/app_routes.dart';
 import 'package:tinytunes/features/library/application/library_ingest_controller.dart';
@@ -98,31 +99,79 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
       ),
       body: Column(
         children: [
-          if (progress.phase == IngestPhase.scanning)
-            Material(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(l10n.scanningProgress(progress.processedCount)),
-                    ),
-                    TextButton(
-                      onPressed: () => ref
-                          .read(libraryIngestControllerProvider.notifier)
-                          .cancelScan(),
-                      child: Text(l10n.cancelScan),
-                    ),
-                  ],
-                ),
+          for (final revoked in progress.revokedRoots)
+            _HomeStrip(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(l10n.revokedRootBanner(revoked.displayName)),
+                  ),
+                  TextButton(
+                    onPressed: busy
+                        ? null
+                        : () => _forgetRevokedRoot(revoked.id, l10n),
+                    child: Text(l10n.forgetRevokedRootAction),
+                  ),
+                ],
               ),
+            ),
+          if (progress.phase == IngestPhase.scanning)
+            _HomeStrip(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.scanningProgress(progress.processedCount),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => ref
+                        .read(libraryIngestControllerProvider.notifier)
+                        .cancelScan(),
+                    child: Text(l10n.cancelScan),
+                  ),
+                ],
+              ),
+            ),
+          if (progress.phase == IngestPhase.forgetting)
+            _HomeStrip(
+              child: Text(l10n.forgettingProgress),
             ),
           Expanded(
             child: queueAsync.when(
               data: (queue) {
                 if (queue.isEmpty) {
-                  return Center(child: Text(l10n.queueEmpty));
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.queueEmpty,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 16),
+                          FilledButton(
+                            onPressed: busy
+                                ? null
+                                : () {
+                                    ref
+                                        .read(
+                                          libraryIngestControllerProvider
+                                              .notifier,
+                                        )
+                                        .addFolder(
+                                          l10n: libraryIngestL10nFrom(l10n),
+                                        );
+                                  },
+                            child: Text(l10n.addFolderAction),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
                 }
                 return ListView.builder(
                   itemCount: queue.length,
@@ -163,6 +212,20 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
       ),
       bottomNavigationBar: const TransportChrome(),
     );
+  }
+
+  Future<void> _forgetRevokedRoot(int rootId, AppLocalizations l10n) async {
+    final ok = await _confirm(
+      title: l10n.forgetFolderTitle,
+      body: l10n.forgetFolderBody,
+      l10n: l10n,
+    );
+    if (ok && mounted) {
+      await ref.read(libraryIngestControllerProvider.notifier).forgetRoot(
+            rootId: rootId,
+            l10n: libraryIngestL10nFrom(l10n),
+          );
+    }
   }
 
   Future<void> _onMenuAction(
@@ -230,7 +293,8 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
   }
 
   Future<LibraryRoot?> _pickRoot(AppLocalizations l10n) async {
-    final roots = await ref.read(libraryRootsProvider.future);
+    final db = ref.read(appDatabaseProvider);
+    final roots = await db.select(db.libraryRoots).get();
     if (!mounted) return null;
     if (roots.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -250,7 +314,37 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
               onPressed: () => Navigator.of(context).pop(root),
               child: Text(root.displayName),
             ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.cancelAction),
+              ),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+/// Shared Material strip for revoked / scan / forget home chrome.
+///
+/// Purpose: Keep banner styling consistent without MaterialBanner.
+class _HomeStrip extends StatelessWidget {
+  const _HomeStrip({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: child,
       ),
     );
   }

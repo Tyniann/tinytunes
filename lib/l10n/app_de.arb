@@ -3,14 +3,34 @@
   "appTitle": "TinyTunes",
   "messagesTooltip": "Nachrichten",
   "settingsTooltip": "Einstellungen",
-  "queueEmpty": "Warteschlange ist leer. Ordner hinzufügen, um zu starten.",
+  "queueEmpty": "Warteschlange ist leer.",
+  "addFolderAction": "Ordner hinzufügen",
   "settingsTitle": "Einstellungen",
-  "settingsStubBody": "Der Designmodus kommt in einer späteren Phase.",
+  "settingsAppearanceSection": "Erscheinungsbild",
+  "settingsThemeSystem": "System",
+  "settingsThemeLight": "Hell",
+  "settingsThemeDark": "Dunkel",
+  "settingsAboutSection": "Über",
+  "settingsAboutVersion": "Version {version}",
+  "@settingsAboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "messagesTitle": "Nachrichten",
   "messagesEmpty": "Noch keine Nachrichten.",
-  "addDemoMessage": "Demo-Nachricht hinzufügen",
-  "demoInfoMessage": "Demo-Info-Nachricht",
-  "demoErrorMessage": "Demo-Fehler-Nachricht",
+  "forgettingProgress": "Ordner wird vergessen…",
+  "revokedRootBanner": "Zugriff verloren: {folderName}",
+  "@revokedRootBanner": {
+    "placeholders": {
+      "folderName": {
+        "type": "String"
+      }
+    }
+  },
+  "forgetRevokedRootAction": "Vergessen",
   "transportPrevious": "Zurück",
   "transportPlayPause": "Wiedergeben oder pausieren",
   "transportNext": "Weiter",

@@ -18,7 +18,7 @@ class PlaylistHomeRoute extends GoRouteData with $PlaylistHomeRoute {
   }
 }
 
-/// Typed route for the Settings stub (`/settings`).
+/// Typed route for Settings (`/settings`).
 @TypedGoRoute<SettingsRoute>(path: '/settings')
 class SettingsRoute extends GoRouteData with $SettingsRoute {
   /// Creates the Settings route.

@@ -166,15 +166,15 @@ final class ThemeCatalogProvider
 
 String _$themeCatalogHash() => r'857c7bcc85f3119f98e6ffaf2d2781c38e7da3e1';
 
-/// Persisted appearance mode with write API for tests and Phase 5 Settings.
+/// Persisted appearance mode with write API for Settings and tests.
 
 @ProviderFor(AppThemeModeController)
 final appThemeModeControllerProvider = AppThemeModeControllerProvider._();
 
-/// Persisted appearance mode with write API for tests and Phase 5 Settings.
+/// Persisted appearance mode with write API for Settings and tests.
 final class AppThemeModeControllerProvider
     extends $NotifierProvider<AppThemeModeController, AppThemeMode> {
-  /// Persisted appearance mode with write API for tests and Phase 5 Settings.
+  /// Persisted appearance mode with write API for Settings and tests.
   AppThemeModeControllerProvider._()
     : super(
         from: null,
@@ -205,7 +205,7 @@ final class AppThemeModeControllerProvider
 String _$appThemeModeControllerHash() =>
     r'01e82dced6ab56a9feec8ebad0119213e228c227';
 
-/// Persisted appearance mode with write API for tests and Phase 5 Settings.
+/// Persisted appearance mode with write API for Settings and tests.
 
 abstract class _$AppThemeModeController extends $Notifier<AppThemeMode> {
   AppThemeMode build();
