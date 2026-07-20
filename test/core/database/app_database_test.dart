@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tinytunes/core/database/app_database.dart';
+import 'package:tinytunes/core/database/catalog_dao.dart';
 
 void main() {
   late AppDatabase db;
@@ -59,5 +60,38 @@ void main() {
           ..where((t) => t.id.equals(1)))
         .getSingle();
     expect(state.currentQueueEntryId, isNull);
+  });
+
+  test('updatePlaybackModes does not touch entry or position', () async {
+    final rootId = await db.into(db.libraryRoots).insert(
+          LibraryRootsCompanion.insert(
+            locator: 'content://tree/root',
+            displayName: 'Music',
+            addedAt: DateTime.utc(2026, 1, 1),
+          ),
+        );
+    final trackId = await db.into(db.tracks).insert(
+          TracksCompanion.insert(
+            rootId: rootId,
+            sourceItemId: 'content://tree/root/doc/a.mp3',
+            locator: 'content://tree/root/doc/a.mp3',
+            displayName: 'a.mp3',
+          ),
+        );
+    final entryId = await db.into(db.queueEntries).insert(
+          QueueEntriesCompanion.insert(
+            trackId: trackId,
+            sortIndex: 0,
+          ),
+        );
+
+    await db.checkpoint(entryId: entryId, positionMs: 1234);
+    await db.updatePlaybackModes(shuffleEnabled: true, repeatMode: 'all');
+
+    final state = await db.getPlaybackState();
+    expect(state.shuffleEnabled, isTrue);
+    expect(state.repeatMode, 'all');
+    expect(state.currentQueueEntryId, entryId);
+    expect(state.positionMs, 1234);
   });
 }

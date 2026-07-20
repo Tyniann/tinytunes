@@ -51,6 +51,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transportNext => 'Next';
 
   @override
+  String get transportShuffle => 'Shuffle';
+
+  @override
+  String get transportRepeatOff => 'Repeat off';
+
+  @override
+  String get transportRepeatOne => 'Repeat one';
+
+  @override
+  String get transportRepeatAll => 'Repeat all';
+
+  @override
   String get addFolderTooltip => 'Add folder';
 
   @override

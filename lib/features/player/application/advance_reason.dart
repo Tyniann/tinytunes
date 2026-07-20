@@ -1,7 +1,7 @@
 /// Why [PlaybackController] advances past the current queue entry.
 ///
-/// Purpose: Single seam for Off/Off Phase 3 and Phase 4 matrix policies without
-/// changing [TinyTunesAudioHandler].
+/// Purpose: Single seam for the Shuffle × Repeat matrix without changing
+/// [TinyTunesAudioHandler].
 enum AdvanceReason {
   /// Natural end of the current track.
   completed,

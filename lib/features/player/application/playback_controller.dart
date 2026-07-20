@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' hide RepeatMode;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
@@ -12,20 +12,24 @@ import 'package:tinytunes/core/messages/session_message.dart';
 import 'package:tinytunes/features/library/application/library_providers.dart';
 import 'package:tinytunes/features/player/application/advance_reason.dart';
 import 'package:tinytunes/features/player/application/just_audio_playback_engine.dart';
+import 'package:tinytunes/features/player/application/navigation_action.dart';
 import 'package:tinytunes/features/player/application/playback_engine.dart';
 import 'package:tinytunes/features/player/application/playback_ui_state.dart';
 import 'package:tinytunes/features/player/application/player_l10n.dart';
 import 'package:tinytunes/features/player/application/player_message_codes.dart';
 import 'package:tinytunes/features/player/application/player_providers.dart';
+import 'package:tinytunes/features/player/application/queue_navigator.dart';
+import 'package:tinytunes/features/player/application/repeat_mode.dart';
+import 'package:tinytunes/features/player/application/shuffle_session.dart';
 import 'package:tinytunes/features/player/application/tinytunes_audio_handler.dart';
 
 part 'playback_controller.g.dart';
 
-/// Application-lifetime Off/Off playback controller.
+/// Application-lifetime playback controller (Shuffle × Repeat matrix).
 ///
 /// Purpose: Own the single [PlaybackEngine], Drift resume checkpoints, queue
-/// mutation skip, and session noisy/interrupt policy; feed the thin
-/// [TinyTunesAudioHandler].
+/// mutation skip, session noisy/interrupt policy, and in-memory shuffle
+/// session; feed the thin [TinyTunesAudioHandler].
 /// Usage Context: Eagerly read from `main` after handler override; home transport
 /// and row taps call public intents.
 @Riverpod(keepAlive: true)
@@ -36,6 +40,7 @@ class PlaybackController extends _$PlaybackController
   static const _maxConsecutiveUnplayable = 5;
 
   late PlaybackEngine _engine;
+  late QueueNavigator _navigator;
   TinyTunesAudioHandler? _handler;
   _PlaybackLifecycleObserver? _lifecycleObserver;
 
@@ -45,8 +50,14 @@ class PlaybackController extends _$PlaybackController
   bool _sessionConfigured = false;
   bool _toastsReady = false;
   bool _initialized = false;
+  bool _handlingCompletion = false;
   int _consecutiveUnplayable = 0;
   DateTime? _lastCheckpointAt;
+  Future<void> _modesWriteTail = Future<void>.value();
+
+  bool _shuffleEnabled = false;
+  RepeatMode _repeatMode = RepeatMode.off;
+  ShuffleSession _session = ShuffleSession.empty;
 
   List<QueueTrackView> _queue = const [];
   PlayerL10n _l10n = const PlayerL10n.english();
@@ -64,6 +75,7 @@ class PlaybackController extends _$PlaybackController
     if (!_initialized) {
       _initialized = true;
       _engine = ref.read(playbackEngineProvider);
+      _navigator = QueueNavigator(random: ref.read(playbackRandomProvider));
       if (_engine is JustAudioPlaybackEngine) {
         (_engine as JustAudioPlaybackEngine).attachListeners();
       }
@@ -92,6 +104,38 @@ class PlaybackController extends _$PlaybackController
     _l10n = l10n;
   }
 
+  /// Enables or disables shuffle and rebuilds the in-memory session.
+  Future<void> setShuffleEnabled(bool enabled) async {
+    if (_shuffleEnabled == enabled) return;
+    _shuffleEnabled = enabled;
+    state = state.copyWith(shuffleEnabled: enabled);
+    if (!enabled) {
+      _session = ShuffleSession.empty;
+    } else {
+      _rebuildSessionAfterModeChange(headId: state.currentQueueEntryId);
+    }
+    await _persistModes();
+  }
+
+  /// Cycles Repeat Off → One → All and adjusts the in-memory session.
+  Future<void> cycleRepeatMode() async {
+    final next = _repeatMode.cycle();
+    _repeatMode = next;
+    state = state.copyWith(repeatMode: next);
+
+    if (_shuffleEnabled) {
+      if (next == RepeatMode.off) {
+        // Leaving All/One into Off while shuffle on → rebuild perm.
+        _rebuildSessionAfterModeChange(headId: state.currentQueueEntryId);
+      } else {
+        // Entering All or One → empty history, clear perm.
+        _session = ShuffleSession.empty;
+      }
+    }
+
+    await _persistModes();
+  }
+
   /// Plays [queueEntryId], or toggles pause when it is already current.
   Future<void> playEntry(int queueEntryId) async {
     if (state.currentQueueEntryId == queueEntryId) {
@@ -100,7 +144,25 @@ class PlaybackController extends _$PlaybackController
     }
     final view = _viewFor(queueEntryId);
     if (view == null) return;
-    await _loadAndPlay(view, position: Duration.zero, autoplay: true);
+
+    ShuffleSession? pending;
+    if (_shuffleEnabled && _repeatMode == RepeatMode.off) {
+      pending = ShuffleSession.rebuildFromHead(
+        headId: queueEntryId,
+        queueIds: _queueIds,
+        random: ref.read(playbackRandomProvider),
+      );
+    } else if (_shuffleEnabled) {
+      final prior = state.currentQueueEntryId;
+      pending = ShuffleSession(history: [..._session.history, ?prior]);
+    }
+
+    await _loadAndPlay(
+      view,
+      position: Duration.zero,
+      autoplay: true,
+      commitSession: pending,
+    );
   }
 
   /// Toggles play/pause for the current item.
@@ -124,12 +186,11 @@ class PlaybackController extends _$PlaybackController
     _pushHandlerState(playing: _engine.playing);
   }
 
-  /// Off/Off next (no wrap).
-  Future<void> next() => advanceAfterCurrentGone(
-        reason: AdvanceReason.manualNext,
-      );
+  /// Advances per the Shuffle × Repeat matrix (manual Next).
+  Future<void> next() =>
+      advanceAfterCurrentGone(reason: AdvanceReason.manualNext);
 
-  /// Off/Off previous with 3s restart rule.
+  /// Previous with 3s restart rule, then matrix policy.
   Future<void> previous() async {
     final currentId = state.currentQueueEntryId;
     if (currentId == null) return;
@@ -139,37 +200,51 @@ class PlaybackController extends _$PlaybackController
       return;
     }
 
-    final index = _queue.indexWhere((e) => e.queueEntryId == currentId);
-    if (index <= 0) {
-      await seekTo(Duration.zero);
-      return;
-    }
-
-    await _loadAndPlay(
-      _queue[index - 1],
-      position: Duration.zero,
-      autoplay: true,
+    final action = _navigator.previous(
+      shuffleEnabled: _shuffleEnabled,
+      repeatMode: _repeatMode,
+      queueIds: _queueIds,
+      session: _session,
+      currentId: currentId,
     );
+    await _applyNavigationAction(action);
   }
 
-  /// Shared advance seam for Phase 3 Off/Off (Phase 4 swaps policy later).
+  /// Shared advance seam for complete / next / remove / unplayable.
   Future<void> advanceAfterCurrentGone({
     required AdvanceReason reason,
     int? preferredSuccessorId,
+    int? failedEntryId,
   }) async {
-    switch (reason) {
-      case AdvanceReason.completed:
-        await _advanceCompleted();
-      case AdvanceReason.manualNext:
-        await _advanceManualNext();
-      case AdvanceReason.currentRemoved:
-        await _advanceToSuccessor(
-          preferredSuccessorId,
-          autoplay: true,
+    if (reason == AdvanceReason.unplayable) {
+      _consecutiveUnplayable++;
+      if (_consecutiveUnplayable >= _maxConsecutiveUnplayable) {
+        _report(
+          code: PlayerMessageCodes.skipBoundReached,
+          message: _l10n.skipBoundReached,
+          error: true,
         );
-      case AdvanceReason.unplayable:
-        await _advanceUnplayable(preferredSuccessorId);
+        await _engine.pause();
+        state = state.copyWith(playing: false, position: _engine.position);
+        await _checkpoint(force: true);
+        _pushHandlerState(playing: false);
+        _consecutiveUnplayable = 0;
+        return;
+      }
     }
+
+    final action = _navigator.resolve(
+      shuffleEnabled: _shuffleEnabled,
+      repeatMode: _repeatMode,
+      queueIds: _queueIds,
+      session: _session,
+      currentId: state.currentQueueEntryId,
+      reason: reason,
+      preferredSuccessorId: preferredSuccessorId,
+      failedEntryId: failedEntryId ?? state.currentQueueEntryId,
+    );
+
+    await _applyNavigationAction(action);
   }
 
   @override
@@ -205,6 +280,9 @@ class PlaybackController extends _$PlaybackController
     await _checkpoint(force: true);
     _pushHandlerState(playing: false);
   }
+
+  List<int> get _queueIds =>
+      _queue.map((e) => e.queueEntryId).toList(growable: false);
 
   void _attachEngineListeners() {
     _completedSub = _engine.completedStream.listen((_) {
@@ -265,9 +343,22 @@ class PlaybackController extends _$PlaybackController
     _restoreStarted = true;
 
     final db = ref.read(appDatabaseProvider);
+    // 1. Load queue
     _queue = await db.getOrderedQueue();
+    // 2. Read modes + checkpoint
     final playback = await db.getPlaybackState();
+    // 3. Apply modes to controller + UI
+    _shuffleEnabled = playback.shuffleEnabled;
+    _repeatMode = RepeatMode.fromStorage(playback.repeatMode);
+    state = state.copyWith(
+      shuffleEnabled: _shuffleEnabled,
+      repeatMode: _repeatMode,
+    );
+    // 4. Rebuild/clear session per locked rules
+    _rebuildSessionAfterModeChange(headId: playback.currentQueueEntryId);
+
     final entryId = playback.currentQueueEntryId;
+    // 5. Load paused track if still present; if missing clear entry only — keep modes
     if (entryId == null) return;
 
     final view = _viewFor(entryId);
@@ -290,22 +381,71 @@ class PlaybackController extends _$PlaybackController
     );
   }
 
+  /// Rebuilds in-memory shuffle session after modes are applied (restore / toggles).
+  void _rebuildSessionAfterModeChange({required int? headId}) {
+    if (!_shuffleEnabled) {
+      _session = ShuffleSession.empty;
+      return;
+    }
+    if (_repeatMode == RepeatMode.off) {
+      _session = ShuffleSession.rebuildFromHead(
+        headId: headId,
+        queueIds: _queueIds,
+        random: ref.read(playbackRandomProvider),
+      );
+      return;
+    }
+    // Shuffle+All / Shuffle+One: empty history on enter / restore.
+    _session = ShuffleSession.empty;
+  }
+
+  /// Serializes mode snapshots so rapid taps cannot persist an older pair last.
+  Future<void> _persistModes() {
+    final shuffle = _shuffleEnabled;
+    final repeat = _repeatMode;
+    final database = ref.read(appDatabaseProvider);
+    final write = _modesWriteTail.then(
+      (_) => database.updatePlaybackModes(
+        shuffleEnabled: shuffle,
+        repeatMode: repeat.storageValue,
+      ),
+    );
+    _modesWriteTail = write.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+    return write;
+  }
+
   Future<void> _onQueueChanged(List<QueueTrackView> next) async {
     final previous = _queue;
     final currentId = state.currentQueueEntryId;
+    final oldSession = _session;
     _queue = next;
 
-    if (currentId == null) return;
-
     if (next.isEmpty) {
-      await _engine.stop();
-      await _clearNowPlaying();
+      _session = ShuffleSession.empty;
+      if (currentId != null) {
+        await _engine.stop();
+        await _clearNowPlaying();
+      }
+      return;
+    }
+
+    if (currentId == null) {
+      _syncSessionWithQueue(previous: previous);
       return;
     }
 
     final stillThere = next.any((e) => e.queueEntryId == currentId);
-    if (stillThere) return;
+    if (stillThere) {
+      // Always prune/append even when current stays — never early-return first.
+      _syncSessionWithQueue(previous: previous);
+      return;
+    }
 
+    // Current removed: navigate from old-session snapshot, then prune via action.
+    _session = oldSession;
     final successor = _successorFromSuffix(
       oldQueue: previous,
       vanishedId: currentId,
@@ -315,6 +455,18 @@ class PlaybackController extends _$PlaybackController
       reason: AdvanceReason.currentRemoved,
       preferredSuccessorId: successor,
     );
+  }
+
+  /// Prunes removed ids and appends new ones to the Shuffle+Off permutation.
+  void _syncSessionWithQueue({required List<QueueTrackView> previous}) {
+    final living = _queue.map((e) => e.queueEntryId).toSet();
+    final prevIds = previous.map((e) => e.queueEntryId).toSet();
+    final added = living.difference(prevIds);
+    var session = _session.pruned(living);
+    if (_shuffleEnabled && _repeatMode == RepeatMode.off) {
+      session = session.appended(added);
+    }
+    _session = session;
   }
 
   int? _successorFromSuffix({
@@ -335,111 +487,71 @@ class PlaybackController extends _$PlaybackController
   }
 
   Future<void> _onCompleted() async {
-    if (_generation != _loadedGeneration) return;
-    await advanceAfterCurrentGone(reason: AdvanceReason.completed);
+    if (_generation != _loadedGeneration || _handlingCompletion) return;
+    _handlingCompletion = true;
+    try {
+      await advanceAfterCurrentGone(reason: AdvanceReason.completed);
+    } finally {
+      _handlingCompletion = false;
+    }
   }
 
-  Future<void> _advanceCompleted() async {
-    final currentId = state.currentQueueEntryId;
-    if (currentId == null) return;
-    final index = _queue.indexWhere((e) => e.queueEntryId == currentId);
-    if (index < 0) return;
-
-    if (index >= _queue.length - 1) {
-      final end = _engine.duration ?? _engine.position;
-      await _engine.pause();
-      await _engine.seek(end);
-      state = state.copyWith(
-        playing: false,
-        position: end,
-        duration: _engine.duration,
-      );
-      await _checkpoint(force: true);
-      _pushHandlerState(playing: false);
-      return;
+  Future<void> _applyNavigationAction(NavigationAction action) async {
+    switch (action.kind) {
+      case NavigationKind.noop:
+        _session = action.proposedSession;
+        return;
+      case NavigationKind.seekZero:
+        _session = action.proposedSession;
+        await _engine.seek(Duration.zero);
+        state = state.copyWith(position: Duration.zero);
+        if (action.autoplay) {
+          await _engine.play();
+          state = state.copyWith(playing: true);
+          _pushHandlerState(playing: true);
+        }
+        await _checkpoint(force: true);
+        return;
+      case NavigationKind.stopAtEnd:
+        _session = action.proposedSession;
+        final end = _engine.duration ?? _engine.position;
+        await _engine.pause();
+        await _engine.seek(end);
+        state = state.copyWith(
+          playing: false,
+          position: end,
+          duration: _engine.duration,
+        );
+        await _checkpoint(force: true);
+        _pushHandlerState(playing: false);
+        return;
+      case NavigationKind.clear:
+        _session = action.proposedSession;
+        await _engine.stop();
+        await _clearNowPlaying();
+        return;
+      case NavigationKind.play:
+        final targetId = action.targetEntryId;
+        if (targetId == null) {
+          _session = action.proposedSession;
+          await _engine.stop();
+          await _clearNowPlaying();
+          return;
+        }
+        final view = _viewFor(targetId);
+        if (view == null) {
+          _session = action.proposedSession;
+          await _engine.stop();
+          await _clearNowPlaying();
+          return;
+        }
+        await _loadAndPlay(
+          view,
+          position: Duration.zero,
+          autoplay: action.autoplay,
+          commitSession: action.proposedSession,
+        );
     }
-
-    await _loadAndPlay(
-      _queue[index + 1],
-      position: Duration.zero,
-      autoplay: true,
-    );
-  }
-
-  Future<void> _advanceManualNext() async {
-    final currentId = state.currentQueueEntryId;
-    if (currentId == null) return;
-    final index = _queue.indexWhere((e) => e.queueEntryId == currentId);
-    if (index < 0 || index >= _queue.length - 1) return;
-    await _loadAndPlay(
-      _queue[index + 1],
-      position: Duration.zero,
-      autoplay: true,
-    );
-  }
-
-  Future<void> _advanceToSuccessor(
-    int? preferredSuccessorId, {
-    required bool autoplay,
-  }) async {
-    if (preferredSuccessorId == null) {
-      await _engine.stop();
-      await _clearNowPlaying();
-      return;
-    }
-    final view = _viewFor(preferredSuccessorId);
-    if (view == null) {
-      await _engine.stop();
-      await _clearNowPlaying();
-      return;
-    }
-    await _loadAndPlay(view, position: Duration.zero, autoplay: autoplay);
-  }
-
-  Future<void> _advanceUnplayable(int? preferredSuccessorId) async {
-    _consecutiveUnplayable++;
-    if (_consecutiveUnplayable >= _maxConsecutiveUnplayable) {
-      _report(
-        code: PlayerMessageCodes.skipBoundReached,
-        message: _l10n.skipBoundReached,
-        error: true,
-      );
-      await _engine.pause();
-      state = state.copyWith(playing: false, position: _engine.position);
-      await _checkpoint(force: true);
-      _pushHandlerState(playing: false);
-      _consecutiveUnplayable = 0;
-      return;
-    }
-
-    // Only the explicit successor after the failed candidate — do not fall
-    // back to next-after-current (that re-selects the failed row).
-    if (preferredSuccessorId == null) {
-      await _engine.pause();
-      state = state.copyWith(playing: false, position: _engine.position);
-      await _checkpoint(force: true);
-      _pushHandlerState(playing: false);
-      return;
-    }
-
-    final view = _viewFor(preferredSuccessorId);
-    if (view == null) {
-      await _engine.pause();
-      state = state.copyWith(playing: false, position: _engine.position);
-      await _checkpoint(force: true);
-      _pushHandlerState(playing: false);
-      return;
-    }
-    await _loadAndPlay(view, position: Duration.zero, autoplay: true);
-  }
-
-  int? _nextAfter(int? entryId) {
-    if (entryId == null) {
-      return _queue.isEmpty ? null : _queue.first.queueEntryId;
-    }
-    final index = _queue.indexWhere((e) => e.queueEntryId == entryId);
-    if (index < 0 || index >= _queue.length - 1) return null;
-    return _queue[index + 1].queueEntryId;
   }
 
   Future<void> _loadAndPlay(
@@ -447,6 +559,7 @@ class PlaybackController extends _$PlaybackController
     required Duration position,
     required bool autoplay,
     bool sessionOnlyErrors = false,
+    ShuffleSession? commitSession,
   }) async {
     final gen = ++_generation;
 
@@ -464,7 +577,7 @@ class PlaybackController extends _$PlaybackController
       );
       await advanceAfterCurrentGone(
         reason: AdvanceReason.unplayable,
-        preferredSuccessorId: _nextAfter(view.queueEntryId),
+        failedEntryId: view.queueEntryId,
       );
       return;
     }
@@ -481,6 +594,11 @@ class PlaybackController extends _$PlaybackController
 
       await _engine.seek(position);
       if (gen != _generation) return;
+
+      // Commit session only after successful setUri.
+      if (commitSession != null) {
+        _session = commitSession;
+      }
 
       _loadedGeneration = gen;
       _handler?.publishMediaItem(tag);
@@ -509,7 +627,7 @@ class PlaybackController extends _$PlaybackController
       );
       await advanceAfterCurrentGone(
         reason: AdvanceReason.unplayable,
-        preferredSuccessorId: _nextAfter(view.queueEntryId),
+        failedEntryId: view.queueEntryId,
       );
     }
   }
@@ -522,13 +640,18 @@ class PlaybackController extends _$PlaybackController
   }
 
   Future<void> _clearNowPlaying() async {
-    state = PlaybackUiState.idle;
+    // Preserve shuffle/repeat preferences — modes are not part of now-playing.
+    state = state.copyWith(
+      clearCurrent: true,
+      playing: false,
+      position: Duration.zero,
+      clearDuration: true,
+    );
     _handler?.publishMediaItem(null);
     _pushHandlerState(playing: false, processing: AudioProcessingState.idle);
-    await ref.read(appDatabaseProvider).checkpoint(
-          entryId: null,
-          positionMs: 0,
-        );
+    await ref
+        .read(appDatabaseProvider)
+        .checkpoint(entryId: null, positionMs: 0);
   }
 
   Future<void> _checkpoint({required bool force}) async {
@@ -541,7 +664,9 @@ class PlaybackController extends _$PlaybackController
       return;
     }
     _lastCheckpointAt = now;
-    await ref.read(appDatabaseProvider).checkpoint(
+    await ref
+        .read(appDatabaseProvider)
+        .checkpoint(
           entryId: entryId,
           positionMs: _engine.position.inMilliseconds,
         );
@@ -565,7 +690,9 @@ class PlaybackController extends _$PlaybackController
     bool sessionOnly = false,
   }) {
     if (sessionOnly || !_toastsReady) {
-      ref.read(sessionMessagesProvider.notifier).add(
+      ref
+          .read(sessionMessagesProvider.notifier)
+          .add(
             severity: error
                 ? SessionMessageSeverity.error
                 : SessionMessageSeverity.info,

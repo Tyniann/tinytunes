@@ -17,10 +17,10 @@ abstract class PlaybackRemoteCommands {
   /// Seek within the current item.
   Future<void> remoteSeek(Duration position);
 
-  /// Skip to next (Off/Off).
+  /// Skip to next (Shuffle × Repeat matrix).
   Future<void> remoteSkipToNext();
 
-  /// Skip to previous (Off/Off + 3s rule).
+  /// Skip to previous (3s rule + matrix).
   Future<void> remoteSkipToPrevious();
 }
 

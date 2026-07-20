@@ -53,6 +53,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transportNext => 'Weiter';
 
   @override
+  String get transportShuffle => 'Zufallswiedergabe';
+
+  @override
+  String get transportRepeatOff => 'Wiederholung aus';
+
+  @override
+  String get transportRepeatOne => 'Titel wiederholen';
+
+  @override
+  String get transportRepeatAll => 'Alle wiederholen';
+
+  @override
   String get addFolderTooltip => 'Ordner hinzufügen';
 
   @override

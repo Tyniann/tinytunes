@@ -16,14 +16,21 @@ class JustAudioPlaybackEngine implements PlaybackEngine {
   final AudioPlayer _player;
   final _completedController = StreamController<void>.broadcast();
   StreamSubscription<PlaybackEvent>? _eventSub;
+  bool _wasCompleted = false;
 
-  /// Wires completion detection once after construction.
+  /// Wires edge-triggered completion detection once after construction.
+  ///
+  /// Purpose: Emit once per transition into `completed`; [AudioPlayer] may
+  /// publish several events while remaining completed, which would otherwise
+  /// create a Repeat One seek/play loop and exhaust device memory.
   void attachListeners() {
     _eventSub?.cancel();
     _eventSub = _player.playbackEventStream.listen((event) {
-      if (event.processingState == ProcessingState.completed) {
+      final isCompleted = event.processingState == ProcessingState.completed;
+      if (isCompleted && !_wasCompleted) {
         _completedController.add(null);
       }
+      _wasCompleted = isCompleted;
     });
   }
 

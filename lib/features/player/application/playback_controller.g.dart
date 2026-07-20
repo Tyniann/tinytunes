@@ -8,31 +8,31 @@ part of 'playback_controller.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Application-lifetime Off/Off playback controller.
+/// Application-lifetime playback controller (Shuffle × Repeat matrix).
 ///
 /// Purpose: Own the single [PlaybackEngine], Drift resume checkpoints, queue
-/// mutation skip, and session noisy/interrupt policy; feed the thin
-/// [TinyTunesAudioHandler].
+/// mutation skip, session noisy/interrupt policy, and in-memory shuffle
+/// session; feed the thin [TinyTunesAudioHandler].
 /// Usage Context: Eagerly read from `main` after handler override; home transport
 /// and row taps call public intents.
 
 @ProviderFor(PlaybackController)
 final playbackControllerProvider = PlaybackControllerProvider._();
 
-/// Application-lifetime Off/Off playback controller.
+/// Application-lifetime playback controller (Shuffle × Repeat matrix).
 ///
 /// Purpose: Own the single [PlaybackEngine], Drift resume checkpoints, queue
-/// mutation skip, and session noisy/interrupt policy; feed the thin
-/// [TinyTunesAudioHandler].
+/// mutation skip, session noisy/interrupt policy, and in-memory shuffle
+/// session; feed the thin [TinyTunesAudioHandler].
 /// Usage Context: Eagerly read from `main` after handler override; home transport
 /// and row taps call public intents.
 final class PlaybackControllerProvider
     extends $NotifierProvider<PlaybackController, PlaybackUiState> {
-  /// Application-lifetime Off/Off playback controller.
+  /// Application-lifetime playback controller (Shuffle × Repeat matrix).
   ///
   /// Purpose: Own the single [PlaybackEngine], Drift resume checkpoints, queue
-  /// mutation skip, and session noisy/interrupt policy; feed the thin
-  /// [TinyTunesAudioHandler].
+  /// mutation skip, session noisy/interrupt policy, and in-memory shuffle
+  /// session; feed the thin [TinyTunesAudioHandler].
   /// Usage Context: Eagerly read from `main` after handler override; home transport
   /// and row taps call public intents.
   PlaybackControllerProvider._()
@@ -63,13 +63,13 @@ final class PlaybackControllerProvider
 }
 
 String _$playbackControllerHash() =>
-    r'be8fe59bbe715dccb846a4d1c915ad3c02604e77';
+    r'36eca32034f61187e515de134917353ae25ad170';
 
-/// Application-lifetime Off/Off playback controller.
+/// Application-lifetime playback controller (Shuffle × Repeat matrix).
 ///
 /// Purpose: Own the single [PlaybackEngine], Drift resume checkpoints, queue
-/// mutation skip, and session noisy/interrupt policy; feed the thin
-/// [TinyTunesAudioHandler].
+/// mutation skip, session noisy/interrupt policy, and in-memory shuffle
+/// session; feed the thin [TinyTunesAudioHandler].
 /// Usage Context: Eagerly read from `main` after handler override; home transport
 /// and row taps call public intents.
 

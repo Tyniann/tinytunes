@@ -19,6 +19,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.5.0] - 2026-07-20
+
+### Added
+
+- Add Shuffle × Repeat matrix (`QueueNavigator`) with transport toggles on home chrome
+- Add in-memory shuffle session (permutation for Shuffle+Off; history for Shuffle+All/One)
+- Persist `shuffleEnabled` / `repeatMode` via `CatalogDao.updatePlaybackModes`
+
+### Changed
+
+- Extend `PlaybackController` so complete / next / previous / remove / unplayable all use the matrix
+- Restore applies modes even when there is no current track; clear/stop preserve modes
+- Document intentional modes-only cold start (shuffle order/history reset on process death)
+
+### Fixed
+
+- Prevent duplicate `just_audio` completion events from creating a Repeat One
+  seek/play storm that exhausts the Android heap
+- Serialize rapid shuffle/repeat persistence and align unplayable end-of-queue
+  handling with the Phase 4 navigation contract
+
+### Removed
+
+### Security
+
+---
+
 ## [0.4.0] - 2026-07-19
 
 ### Added

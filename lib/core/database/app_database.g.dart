@@ -1538,10 +1538,16 @@ class PlaybackStateData extends DataClass
   /// Resume position in milliseconds.
   final int positionMs;
 
-  /// Shuffle toggle placeholder for Phase 4.
+  /// Whether shuffle is on (`true`) or off (`false`).
+  ///
+  /// Purpose: Persist the transport toggle across process death; permutation /
+  /// history stay in-memory only.
   final bool shuffleEnabled;
 
-  /// Repeat mode placeholder (`off` / `one` / `all`) for Phase 4.
+  /// Repeat cycle value: `off` / `one` / `all`.
+  ///
+  /// Purpose: Persist the transport toggle; unknown stored values fall back to
+  /// `off` when read by the player layer.
   final String repeatMode;
   const PlaybackStateData({
     required this.id,

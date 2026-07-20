@@ -106,11 +106,17 @@ class PlaybackState extends Table {
   /// Resume position in milliseconds.
   IntColumn get positionMs => integer().withDefault(const Constant(0))();
 
-  /// Shuffle toggle placeholder for Phase 4.
+  /// Whether shuffle is on (`true`) or off (`false`).
+  ///
+  /// Purpose: Persist the transport toggle across process death; permutation /
+  /// history stay in-memory only.
   BoolColumn get shuffleEnabled =>
       boolean().withDefault(const Constant(false))();
 
-  /// Repeat mode placeholder (`off` / `one` / `all`) for Phase 4.
+  /// Repeat cycle value: `off` / `one` / `all`.
+  ///
+  /// Purpose: Persist the transport toggle; unknown stored values fall back to
+  /// `off` when read by the player layer.
   TextColumn get repeatMode => text().withDefault(const Constant('off'))();
 
   @override

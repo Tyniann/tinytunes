@@ -291,4 +291,20 @@ extension CatalogDao on AppDatabase {
       ),
     );
   }
+
+  /// Writes shuffle/repeat toggles only — never touches entry or position.
+  ///
+  /// Purpose: Persist transport modes independently of the resume checkpoint so
+  /// clear/stop can keep modes while wiping now-playing fields.
+  Future<void> updatePlaybackModes({
+    required bool shuffleEnabled,
+    required String repeatMode,
+  }) {
+    return (update(playbackState)..where((t) => t.id.equals(1))).write(
+      PlaybackStateCompanion(
+        shuffleEnabled: Value(shuffleEnabled),
+        repeatMode: Value(repeatMode),
+      ),
+    );
+  }
 }

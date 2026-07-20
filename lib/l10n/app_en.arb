@@ -56,6 +56,22 @@
   "@transportNext": {
     "description": "Semantics label for the next transport control."
   },
+  "transportShuffle": "Shuffle",
+  "@transportShuffle": {
+    "description": "Semantics label for the shuffle toggle."
+  },
+  "transportRepeatOff": "Repeat off",
+  "@transportRepeatOff": {
+    "description": "Semantics label when repeat is off."
+  },
+  "transportRepeatOne": "Repeat one",
+  "@transportRepeatOne": {
+    "description": "Semantics label when repeat one is active."
+  },
+  "transportRepeatAll": "Repeat all",
+  "@transportRepeatAll": {
+    "description": "Semantics label when repeat all is active."
+  },
   "addFolderTooltip": "Add folder",
   "@addFolderTooltip": {
     "description": "Tooltip for adding a music folder to the library."

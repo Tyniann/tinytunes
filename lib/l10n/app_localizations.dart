@@ -182,6 +182,30 @@ abstract class AppLocalizations {
   /// **'Next'**
   String get transportNext;
 
+  /// Semantics label for the shuffle toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle'**
+  String get transportShuffle;
+
+  /// Semantics label when repeat is off.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat off'**
+  String get transportRepeatOff;
+
+  /// Semantics label when repeat one is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat one'**
+  String get transportRepeatOne;
+
+  /// Semantics label when repeat all is active.
+  ///
+  /// In en, this message translates to:
+  /// **'Repeat all'**
+  String get transportRepeatAll;
+
   /// Tooltip for adding a music folder to the library.
   ///
   /// In en, this message translates to:

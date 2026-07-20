@@ -4,8 +4,8 @@
 
 Foreground and background playback for the single Winamp-style queue. Uses
 `just_audio` for decoding and a thin `audio_service` handler for lock-screen /
-notification controls. Phase 3 hardcodes Shuffle Off / Repeat Off; Phase 4 will
-extend navigation behind the same handler.
+notification controls. Navigation implements the full Shuffle × Repeat matrix
+via pure `QueueNavigator`; the handler stays a thin façade.
 
 ## Location
 
@@ -13,6 +13,9 @@ extend navigation behind the same handler.
 - **Main Screen:** Transport chrome on `lib/features/playlist/presentation/playlist_home_screen.dart`
 - **Related Files:**
   - `lib/features/player/application/playback_controller.dart`
+  - `lib/features/player/application/queue_navigator.dart`
+  - `lib/features/player/application/shuffle_session.dart`
+  - `lib/features/player/application/repeat_mode.dart`
   - `lib/features/player/application/tinytunes_audio_handler.dart`
   - `lib/features/player/application/playback_engine.dart`
   - `lib/features/player/application/just_audio_playback_engine.dart`
@@ -34,31 +37,59 @@ registration and media-session wiring coexist.
 ### Transport / home
 
 - Row tap plays an entry; tap current toggles pause.
-- Transport: previous / play-pause / next + seek bar (position/duration).
+- Transport: **Shuffle | Prev | Play/Pause | Next | Repeat** + seek bar.
+- Shuffle and Repeat are always enabled (never greyed); Prev/Play/Next need a current track.
+- Queue list stays **canonical** `sortIndex` order (shuffle never reorders the list).
 - Current row highlight via `ColorScheme`.
 - No cover art (`artworkCacheRef` unused).
 
-### Off/Off navigation (Phase 3)
+### Shuffle × Repeat matrix
 
-| Event | Behavior |
-| --- | --- |
-| Complete (not last) | Autoplay next by `sortIndex` |
-| Complete (last) | Keep entry, position ≈ end, paused |
-| Next at last | No-op |
-| Prev | If position > 3s → seek 0; else previous; no wrap |
-| Remove / forget current | Successor = old suffix ∩ new queue; **autoplay** |
-| Clear queue | Stop; clear checkpoint; no autoplay |
-| Unplayable | Report + skip to next after candidate; bound N=5 |
+| Shuffle | Repeat | Complete | Next | Previous (after 3s rule) |
+| --- | --- | --- | --- | --- |
+| Off | Off | next canonical / stop@last | same; no-op@last | prev canonical; seek0@first |
+| Off | All | next; wrap to first | same | prev; wrap to last |
+| Off | One | seek0 + replay | advance canonical; wrap at end | prev canonical; seek0 at first |
+| On | Off | next in perm / stop@last | same; no-op@last | prev in perm; seek0@first |
+| On | All | random excl. current (`len>1`); push history | same | pop history; else seek0 |
+| On | One | seek0 + replay | random + push history | pop history; else seek0 |
 
-Shared seam: `advanceAfterCurrentGone({required AdvanceReason reason})` with
-`completed` / `manualNext` / `currentRemoved` / `unplayable`.
+**Session model (in-memory only):**
+
+- Shuffle+Off: permutation + index (`rebuildFromHead` = current/tap as head + shuffled rest).
+- Shuffle+All / One: history stack only (no permutation); empty history when entering those modes.
+- Modes (`shuffleEnabled`, `repeatMode`) persist in Drift; **order/history intentionally reset** on process death.
+
+**Row tap:**
+
+- Shuffle Off: play tapped.
+- Shuffle+Off: play tapped; rebuild perm with tapped as head.
+- Shuffle+All / One: play tapped; push prior current onto history.
+
+**Queue edits:**
+
+- Always prune removed ids from session; append new ids to perm when Shuffle+Off.
+- Remove current / unplayable go through `QueueNavigator` (not canonical-only shortcuts).
+- Clear / stop clear now-playing but **keep modes**.
+
+| Reason | Shuffle Off | Shuffle+Off | Shuffle+All / One |
+| --- | --- | --- | --- |
+| Current removed | Canonical suffix; Repeat All wraps; Repeat One cannot loop a removed row | Next living entry after the removed slot in the old permutation | Random living entry excluding the removed row |
+| Unplayable | Same successor as Next from the failed row; Repeat All/One wrap | Next living permutation entry; never retry the failed row | Random living entry excluding the failed row |
+
+When no successor exists, playback stops and now-playing/checkpoint are cleared;
+shuffle and repeat modes remain unchanged.
+
+Shared seam: `advanceAfterCurrentGone` with `completed` / `manualNext` /
+`currentRemoved` / `unplayable`. Proposed session commits only after successful
+`setUri`.
 
 ### Persist / resume
 
-- Drift `playback_state` singleton via atomic `checkpoint({entryId, positionMs})`.
-- Commit in-memory current / `MediaItem` / checkpoint **only after successful `setUri`**.
-- Cold start: restore paused from controller `build` (once-flag); session-only
-  messages until toasts are ready.
+- Drift `playback_state` singleton: `checkpoint({entryId, positionMs})` and
+  `updatePlaybackModes({shuffleEnabled, repeatMode})`.
+- Cold start: load queue → apply modes (even if no current) → rebuild/clear
+  session → load paused track if still present.
 - Throttled position writes (~2s); flush on pause/seek/noisy/interrupt and app
   paused/detached.
 
@@ -70,8 +101,7 @@ Shared seam: `advanceAfterCurrentGone({required AdvanceReason reason})` with
   `super.stop()`) so the foreground service and notification dismiss promptly.
   Background playback continues while the app is only minimized.
 - `just_audio` `play()` is started without awaiting track completion so
-  `audio_service` publishes `playing=true` immediately (keeps the media
-  session / silent media notification alive under background).
+  `audio_service` publishes `playing=true` immediately.
 
 ### Identity
 
@@ -80,8 +110,8 @@ Shared seam: `advanceAfterCurrentGone({required AdvanceReason reason})` with
 
 ## Data Model
 
-Uses existing `playback_state` (no migration): `currentQueueEntryId`, `positionMs`,
-plus unused Phase 4 placeholders `shuffleEnabled` / `repeatMode`.
+`playback_state` (schema v1, no migration): `currentQueueEntryId`, `positionMs`,
+`shuffleEnabled`, `repeatMode`. No permutation/history blobs.
 
 ## User Interface
 
@@ -100,4 +130,4 @@ play, pause, seek, skip previous/next via the handler façade.
 - [Message center](message-center.md) — player error/info codes
 
 ---
-*Last updated: 2026-07-19*
+*Last updated: 2026-07-20*

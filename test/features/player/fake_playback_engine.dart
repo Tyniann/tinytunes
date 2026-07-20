@@ -15,6 +15,9 @@ class FakePlaybackEngine implements PlaybackEngine {
   bool failNextSetUri = false;
   int setUriCount = 0;
 
+  /// Number of seek commands received by the fake engine.
+  int seekCount = 0;
+
   Duration _position = Duration.zero;
   Duration? _duration = const Duration(minutes: 3);
   bool _playing = false;
@@ -51,6 +54,7 @@ class FakePlaybackEngine implements PlaybackEngine {
 
   @override
   Future<void> seek(Duration position) async {
+    seekCount++;
     _position = position;
     _positionController.add(position);
   }

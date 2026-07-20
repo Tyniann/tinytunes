@@ -3,7 +3,7 @@ name: TinyTunes Roadmap
 overview: "Hardened phased roadmap for TinyTunes: Android daily driver first, URI-first local library, separate catalog vs Winamp queue, playback+background as one slice, Shuffle×Repeat matrix, extensible theme catalog (seed #88aa00), cloud late."
 todos:
   - id: phase-0
-    content: "Phase 0: Feasibility gate — codegen proof + Android SAF/metadata/playback device spike; choose storage adapter"
+    content: "Phase 0: Feasibility gate — codegen proof + Android device spike; MethodChannel SAF adapter selected"
     status: completed
   - id: phase-1
     content: "Phase 1: App shell — routes, messages/toasts, theme plumbing (mode + scheme catalog, seed #88aa00), test harness, docs index, CloudLibrarySource stub"
@@ -12,11 +12,11 @@ todos:
     content: "Phase 2: Local catalog + single queue — Drift schema, URI-first scan, forget-root, docs"
     status: completed
   - id: phase-3
-    content: "Phase 3: Playback + background as one slice — PlaybackService, just_audio_background, persist/resume paused"
-    status: pending
+    content: "Phase 3: Playback + background — PlaybackController, direct audio_service handler, persist/resume paused"
+    status: completed
   - id: phase-4
     content: "Phase 4: Shuffle + Repeat matrix (Off/One/All), transport toggles, queue manage polish"
-    status: pending
+    status: completed
   - id: phase-5
     content: "Phase 5: Android daily-driver hardening — Settings theme mode UI, progress, empty states, scale, tests"
     status: pending
@@ -34,6 +34,9 @@ isProject: false
 
 # TinyTunes high-level roadmap (hardened)
 
+**Current state (v0.5.0):** Phases 0–4 are implemented and device-verified on
+Android. Phase 5 (daily-driver hardening) is next.
+
 ## Goals and constraints
 
 - **First milestone:** Personal Android daily driver (local folders + background + shuffle), not store-ready.
@@ -41,7 +44,7 @@ isProject: false
 - **Catalog vs queue:** Separate Drift entities — indexed library roots/tracks vs ordered queue entries (locked).
 - **Platforms:** Android first; iOS implements the same locator/source contracts later (not “path assumptions + late fixes”).
 - **Cloud:** Minimal `CloudLibrarySource` **contract stub early**; one provider + implementation only in the cloud phase. Read-only forever (list/download/cache; never remote delete/write/rename).
-- **Stack:** Follow `[.cursor/rules/00-allgemeine-projektregeln.mdc](.cursor/rules/00-allgemeine-projektregeln.mdc)`. `[pubspec.yaml](pubspec.yaml)` pins deps; `[lib/main.dart](lib/main.dart)` is still a minimal shell — routing, Drift, features, audio, and file access are unimplemented.
+- **Stack:** Follow `[.cursor/rules/00-allgemeine-projektregeln.mdc](.cursor/rules/00-allgemeine-projektregeln.mdc)`. `[pubspec.yaml](pubspec.yaml)` pins deps. `[lib/main.dart](lib/main.dart)` now bootstraps `AudioService`, Drift-backed providers, eager playback attachment, and the routed app shell.
 - **Navigation:** No drawer / bottom nav — playlist home + app-bar Settings and Messages (see IA).
 
 ```mermaid
@@ -71,9 +74,9 @@ flowchart LR
 | Forget folder                | Explicit action: drop root + its catalog tracks + related queue entries                                                                                                  |
 | Cold-start resume            | Restore track + position; start **paused**                                                                                                                               |
 | Messages                     | Bounded **in-memory session** store (no Drift persistence for v1)                                                                                                        |
-| Playback phases              | **One slice:** foreground + `just_audio_background` together                                                                                                             |
+| Playback phases              | **One slice:** `just_audio` + `audio_session` + direct `audio_service` with custom `TinyTunesAudioHandler`                                                              |
 | Shuffle / Repeat             | Two transport controls — see **Playback modes** below (full matrix in Phase 4)                                                                                           |
-| SAF failure                  | If `file_picker` cannot retain durable tree access → **small native SAF adapter**                                                                                        |
+| Android folder access        | Narrow MethodChannel SAF adapter (`AndroidLocalLibrarySource` + `SafLibraryPlugin`); `file_picker` is not used for durable roots                                      |
 | Re-scan missing files        | After a **complete successful** re-scan: **hard-delete** missing catalog tracks and prune related queue entries. Partial/failed/cancelled scans must **not** mass-delete |
 | Theme mode (v1)              | **System / Light / Dark** in Settings                                                                                                                                    |
 | Theme schemes                | **Catalog** of named schemes; each scheme supplies light + dark `ThemeData`. v1 ships only `default`                                                                     |
@@ -116,7 +119,9 @@ No greying out — every combination has defined behavior.
 - Turning **Shuffle off** restores **canonical** queue order; keep current track if still in the queue.
 - **Previous:** walk permutation / history stack (Shuffle+All uses play history — not a new random jump).
 - Queue edits: append new imports at end of canonical order (and of permutation when Shuffle+Off); Shuffle+All uses the updated set for the next pick.
-- Persist `shuffleEnabled` + `repeatMode` (+ permutation/seed/history as needed) in Drift `playback_state`; restore on cold start.
+- Persist `currentQueueEntryId`, `positionMs`, `shuffleEnabled`, and `repeatMode`
+  in Drift `playback_state`. Shuffle permutation/history are session-only and
+  intentionally reset on process death.
 
 ```mermaid
 flowchart TB
@@ -125,7 +130,7 @@ flowchart TB
     RepeatBtn[Repeat Off One All]
   end
   controls --> Matrix[Combination matrix]
-  Matrix --> Player[PlaybackService]
+  Matrix --> Player[PlaybackController plus QueueNavigator]
 ```
 
 
@@ -163,7 +168,7 @@ flowchart LR
 
 - `AppThemeMode` enum + prefs read/write (Riverpod).
 - `ThemeCatalog` / `AppThemeScheme` — maps `schemeId` → factory that builds light and dark `ThemeData` from a seed (Material 3 `ColorScheme.fromSeed`).
-- v1: one entry `default` with seed `**Color(0xFF88AA00)**`.
+- v1: one entry `default` with seed `Color(0xFF88AA00)`.
 - `MaterialApp.router` uses `theme` / `darkTheme` / `themeMode` from the resolver — **never** hard-code colors in feature widgets; use `Theme.of(context)` / color scheme tokens.
 - Later schemes = new catalog entries (no feature rewrite). Full Winamp-style **skins** (alternate layouts) stay out of scope; this architecture does not block adding a separate skin layer later if ever needed.
 
@@ -226,11 +231,15 @@ flowchart TB
 
 ## Phase 0 — Feasibility and dependency gate
 
-**Outcome:** Prove the stack and durable Android folder access before building product UI on sand.
+**Status: Completed. Outcome:** The stack and durable Android folder access
+were proven before product UI work.
 
 - Prove `build_runner` generates Riverpod, Freezed, Drift, JSON, and typed routes in one clean run; analyze + tests. Prefer a disposable smoke fixture over an empty production DB. **Repin packages** if analyzer overrides cannot produce clean codegen.
 - **Android device spike:** select folder → retain access after process death/reboot → recursive enumerate → read tags/artwork for one file → play that file.
-- Choose storage approach from spike results: retainable SAF via `file_picker` if it actually works, else **narrow native SAF adapter** (locked fallback). Do not bake plain `File` paths into the domain model.
+- Storage decision: the spike showed `file_picker` 11.x cannot retain/list
+  durable trees, so TinyTunes ships a **narrow native MethodChannel SAF
+  adapter** (ADR 0001). Domain identity remains opaque `MediaLocator` values,
+  never plain filesystem paths.
 - Define contracts (no heavy UI): `MediaLocator`, `LocalLibrarySource`, `TrackMetadataReader`, and minimal read-only `CloudLibrarySource` stub. Local adapter resolves opaque items to a playback URI and, if needed, a temporary readable path/stream for tag extraction (bounded, deleted after use).
 
 **Exit:** Clean codegen/analyze/test + documented Android device proof for durable access, metadata, and playback. Storage adapter direction chosen.
@@ -239,11 +248,13 @@ flowchart TB
 
 ## Phase 1 — App shell and shared infrastructure
 
-**Outcome:** Locked IA shell + frozen message/toast pipeline + theme plumbing + test harness.
+**Status: Completed. Outcome:** Locked IA shell + frozen message/toast pipeline
+with theme plumbing + test harness.
 
 - Feature-first folders: `lib/features/...`, `lib/shared/...`, `lib/core/...`.
 - `MaterialApp.router` + typed `go_router_builder` routes: `/`, `/settings`, `/messages`.
-- Playlist home shell: app bar messages + settings; placeholder body/transport.
+- Playlist home shell established the app-bar routes; its body and transport
+  were subsequently filled by Phases 2–4. Settings remains a stub until Phase 5.
 - Material 3 + **theme architecture**: `AppThemeMode`, `ThemeCatalog` with `default` scheme seed `#88aa00`, prefs-backed providers; `theme` / `darkTheme` / `themeMode` wired. Settings screen can show a stub until Phase 5 mode UI.
 - Localization-aware shell.
 - Bounded in-memory message store + toast helper; badge/read behavior; demo report path.
@@ -257,16 +268,21 @@ flowchart TB
 
 ## Phase 2 — Local catalog and single queue
 
-**Outcome:** Folders become a durable catalog and a Winamp queue that survives restart.
+**Status: Completed. Outcome:** Folders form a durable catalog and Winamp queue
+that survive restart.
 
 ### Schema v1 (Drift)
 
-- `library_roots` — opaque root locator, display name, platform metadata
-- `tracks` — `(rootId, sourceItemId)` unique; source locator; relative/display path; size/modified; tag fields; artwork cache ref
+- `library_roots` — opaque root locator, display name, `sourceKind`, `addedAt`
+- `tracks` — `(rootId, sourceItemId)` unique; opaque locator, display name,
+  nullable title/artist/album; `sizeBytes`, `modifiedAt`, and `artworkCacheRef`
+  are reserved and currently null
 - `queue_entries` — ordered links to `tracks` (order lives here, not on tracks)
-- `playback_state` — singleton: current queue entry/track, positionMs, `shuffleEnabled`, `repeatMode`, permutation/seed/history as needed (filled by Phase 3–4)
+- `playback_state` — singleton: `currentQueueEntryId`, `positionMs`,
+  `shuffleEnabled`, `repeatMode`; no permutation/history columns
 
-Optional early: `track.source` / locator kind enum so cloud cache entries do not force a later migration.
+`sourceKind` shipped on roots and tracks so later cloud entries do not require
+reworking local identity.
 
 ### Semantics
 
@@ -279,7 +295,9 @@ Optional early: `track.source` / locator kind enum so cloud cache entries do not
   mass-delete.
 - Remove queue row ≠ delete catalog. Clear queue ≠ forget roots. **Forget folder** removes root + catalog + related queue rows.
 - SAF-first: no broad storage permission unless a concrete API requires it.
-- Scan off UI thread (isolate/chunked) with bounded metadata concurrency and batched writes; progress messages (“Scanning… n/m”).
+- Scan on the app isolate (KISS) with bounded metadata concurrency and batched
+  Drift writes; progress is “Scanning… n”. Worker/isolate optimization is
+  deferred to Phase 5 performance work.
 - Manual re-scan (not every cold start) unless later product change.
 - Feature docs for library ingest in this phase.
 
@@ -291,14 +309,22 @@ revoked access is reported; queue order persists.
 
 ## Phase 3 — Playback + background (one vertical slice)
 
-**Outcome:** Hear music in foreground and background without a later `main()` rewrite.
+**Status: Completed. Outcome:** Foreground/background playback shipped without
+a later `main()` rewrite.
 
-- `JustAudioBackground.init()` before `runApp`; configure `audio_session`; Android manifest service / notification / wake-lock as required.
-- One application-lifetime non-`autoDispose` player via `PlaybackService` / controller; every source carries stable track id + `MediaItem` metadata from day one.
-- UI: row tap to play, play/pause, prev/next, seek, current-row highlight; cover optional.
+- `AudioService.init` creates a thin `TinyTunesAudioHandler` before `runApp`;
+  the provider container overrides the handler and eagerly attaches
+  `PlaybackController`. `just_audio_background` is not used.
+- One application-lifetime `PlaybackController` owns
+  `JustAudioPlaybackEngine` and `audio_session`; every source carries stable
+  track id + `MediaItem` metadata.
+- UI: row tap to play, play/pause, prev/next, seek, current-row highlight.
+  Cover UI/cache is not implemented; `artworkCacheRef` remains unused.
 - Lock-screen / notification controls; headset noisy + interruption policy.
 - Persist playback state in Drift on track change / seek / pause (throttled position); cold start restores **paused** if item still available.
-- Missing current file: toast + message center + skip to next (basic); edge polish in Phase 5.
+- Missing/unplayable tracks report through toast + message center and advance
+  through the bounded `AdvanceReason.unplayable` path; Phase 5 owns further UX
+  polish.
 - Feature docs for player in this phase.
 
 **Exit:** Foreground + background, controls, interruptions, and process recreation pass on a physical Android device.
@@ -307,15 +333,18 @@ revoked access is reported; queue order persists.
 
 ## Phase 4 — Shuffle, Repeat, and queue management polish
 
-**Outcome:** Full Shuffle × Repeat matrix on the single queue; reliable prev/next.
+**Status: Completed and Android device-verified. Outcome:** Full Shuffle ×
+Repeat matrix on the single queue with reliable prev/next.
 
 - Transport chrome: **Shuffle** toggle + **Repeat** cycle (Off / One / All) — see [Playback modes](#playback-modes-locked--shuffle--repeat).
 - Implement matrix behaviors exactly (permutation + stop; with-replacement infinite; Repeat One + Next advances then loops).
 - Keep **canonical** queue order separate from shuffle permutation / play history.
-- Persist mode + order/history in `playback_state`; cold start restores both toggles.
-- Destructive confirmations for clear / forget folder as needed. No drag-reorder unless daily use demands it.
+- Persist `shuffleEnabled` + `repeatMode` in Drift `playback_state`; restore toggles on cold start.
+  Shuffle permutation / play history are **in-memory only** (intentionally reset on process death).
+- Clear queue and Forget folder have destructive confirmations. No drag-reorder.
 
-**Exit:** All six Shuffle×Repeat combinations match the matrix; prev/next and queue edits behave as locked; modes survive process death.
+**Exit:** All six Shuffle×Repeat combinations match the matrix; prev/next and queue edits behave as locked;
+**toggles + checkpoint survive process death; shuffle order/history intentionally reset.**
 
 ---
 
@@ -323,10 +352,15 @@ revoked access is reported; queue order persists.
 
 **Outcome:** Reliable personal use on a documented device/API matrix.
 
-- Scan progress/cancellation UX; empty / revoked / missing-file states.
-- Artwork-cache cleanup; message history bound already enforced — add clear-all / severity filter if useful.
+- Harden the existing scan banner/cancellation and single-flight flow; improve
+  queue-empty, revoked-root, and missing/unplayable states.
+- Artwork cache cleanup begins only when cover caching is implemented. Message
+  history is already bounded; add clear-all / severity filter only if daily use
+  justifies it.
 - Settings filled for daily use: **theme mode** (System / Light / Dark), locale/about; queue actions stay on home. Scheme picker only if/when more than `default` exists (not required for daily driver).
-- Expand tests: DAO/migrations, scanner with fakes, player controller with fake adapter, widget tests with overrides; large-library smoke on device.
+- Extend the existing DAO, scanner, pure navigator, player-controller, and
+  widget suites; add migration coverage when schema v2 exists and run a
+  large-library smoke on device.
 - Update feature docs/changelog as behavior hardens (not first-time docs dump).
 
 **Exit:** You would actually use it day-to-day on Android.

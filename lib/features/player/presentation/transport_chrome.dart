@@ -1,12 +1,13 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide RepeatMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tinytunes/features/player/application/playback_controller.dart';
 import 'package:tinytunes/features/player/application/player_l10n_mapper.dart';
+import 'package:tinytunes/features/player/application/repeat_mode.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 
-/// Home transport: prev / play-pause / next + seek bar.
+/// Home transport: shuffle / prev / play-pause / next / repeat + seek bar.
 ///
-/// Purpose: Replace Phase 2 inert chrome with live Off/Off controls.
+/// Purpose: Expose the Shuffle × Repeat matrix on playlist home chrome.
 /// Usage Context: [PlaylistHomeScreen] bottom bar; watches
 /// [playbackControllerProvider].
 /// Key Params: none — reads controller from Riverpod.
@@ -47,6 +48,7 @@ class _TransportChromeState extends ConsumerState<TransportChrome> {
     final positionMs = _seeking
         ? (_seekValue ?? playback.position.inMilliseconds.toDouble())
         : playback.position.inMilliseconds.toDouble().clamp(0, maxMs > 0 ? maxMs : 0);
+    final scheme = Theme.of(context).colorScheme;
 
     return Material(
       elevation: 3,
@@ -99,6 +101,17 @@ class _TransportChromeState extends ConsumerState<TransportChrome> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   IconButton(
+                    isSelected: playback.shuffleEnabled,
+                    onPressed: () => controller.setShuffleEnabled(
+                      !playback.shuffleEnabled,
+                    ),
+                    tooltip: l10n.transportShuffle,
+                    icon: Icon(
+                      Icons.shuffle,
+                      color: playback.shuffleEnabled ? scheme.primary : null,
+                    ),
+                  ),
+                  IconButton(
                     onPressed: hasCurrent ? () => controller.previous() : null,
                     tooltip: l10n.transportPrevious,
                     icon: const Icon(Icons.skip_previous),
@@ -115,6 +128,23 @@ class _TransportChromeState extends ConsumerState<TransportChrome> {
                     onPressed: hasCurrent ? () => controller.next() : null,
                     tooltip: l10n.transportNext,
                     icon: const Icon(Icons.skip_next),
+                  ),
+                  IconButton(
+                    isSelected: playback.repeatMode != RepeatMode.off,
+                    onPressed: () => controller.cycleRepeatMode(),
+                    tooltip: switch (playback.repeatMode) {
+                      RepeatMode.off => l10n.transportRepeatOff,
+                      RepeatMode.one => l10n.transportRepeatOne,
+                      RepeatMode.all => l10n.transportRepeatAll,
+                    },
+                    icon: Icon(
+                      playback.repeatMode == RepeatMode.one
+                          ? Icons.repeat_one
+                          : Icons.repeat,
+                      color: playback.repeatMode == RepeatMode.off
+                          ? null
+                          : scheme.primary,
+                    ),
                   ),
                 ],
               ),

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +16,8 @@ import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:tinytunes/features/library/application/library_providers.dart';
 import 'package:tinytunes/features/player/application/playback_controller.dart';
 import 'package:tinytunes/features/player/application/player_providers.dart';
+import 'package:tinytunes/features/player/application/repeat_mode.dart';
+import 'package:tinytunes/features/player/application/shuffle_session.dart';
 import 'package:tinytunes/features/player/application/tinytunes_audio_handler.dart';
 
 import 'fake_playback_engine.dart';
@@ -43,6 +47,7 @@ void main() {
         trackMetadataReaderProvider.overrideWithValue(
           const _EmptyFakeMetadataReader(),
         ),
+        playbackRandomProvider.overrideWithValue(Random(1)),
       ],
     );
   });
@@ -73,13 +78,34 @@ void main() {
     return queue.map((e) => e.queueEntryId).toList();
   }
 
+  Future<int> appendTrack(String suffix) async {
+    final root = (await db.select(db.libraryRoots).get()).single;
+    final result = await db.upsertTracksBatch(root.id, [
+      TracksCompanion.insert(
+        rootId: root.id,
+        sourceItemId: 'extra-$suffix',
+        locator: 'content://item/extra-$suffix',
+        displayName: 'extra-$suffix.mp3',
+        title: Value('Extra $suffix'),
+      ),
+    ]);
+    await db.appendTrackIds(result.insertedIds);
+    final queue = await db.getOrderedQueue();
+    return queue
+        .singleWhere((entry) => entry.trackId == result.insertedIds.single)
+        .queueEntryId;
+  }
+
   test('playEntry loads and plays; tap current toggles pause', () async {
     final ids = await seedQueue(2);
     final controller = container.read(playbackControllerProvider.notifier);
     await Future<void>.delayed(Duration.zero);
 
     await controller.playEntry(ids[0]);
-    expect(container.read(playbackControllerProvider).currentQueueEntryId, ids[0]);
+    expect(
+      container.read(playbackControllerProvider).currentQueueEntryId,
+      ids[0],
+    );
     expect(container.read(playbackControllerProvider).playing, isTrue);
     expect(engine.setUriCount, 1);
 
@@ -94,12 +120,18 @@ void main() {
 
     await controller.playEntry(ids[0]);
     await controller.next();
-    expect(container.read(playbackControllerProvider).currentQueueEntryId, ids[1]);
+    expect(
+      container.read(playbackControllerProvider).currentQueueEntryId,
+      ids[1],
+    );
 
     final setUriBefore = engine.setUriCount;
     await controller.next();
     expect(engine.setUriCount, setUriBefore);
-    expect(container.read(playbackControllerProvider).currentQueueEntryId, ids[1]);
+    expect(
+      container.read(playbackControllerProvider).currentQueueEntryId,
+      ids[1],
+    );
   });
 
   test('previous uses 3s rule then prior track', () async {
@@ -111,10 +143,16 @@ void main() {
     await controller.seekTo(const Duration(seconds: 10));
     await controller.previous();
     expect(engine.position, Duration.zero);
-    expect(container.read(playbackControllerProvider).currentQueueEntryId, ids[1]);
+    expect(
+      container.read(playbackControllerProvider).currentQueueEntryId,
+      ids[1],
+    );
 
     await controller.previous();
-    expect(container.read(playbackControllerProvider).currentQueueEntryId, ids[0]);
+    expect(
+      container.read(playbackControllerProvider).currentQueueEntryId,
+      ids[0],
+    );
   });
 
   test('completed on last keeps id paused at end', () async {
@@ -174,28 +212,31 @@ void main() {
     expect(playback.currentQueueEntryId, isNull);
   });
 
-  test('failed setUri does not commit; keeps prior when no successor', () async {
+  test('failed setUri with no successor clears now-playing', () async {
     final ids = await seedQueue(2);
     final controller = container.read(playbackControllerProvider.notifier);
     await Future<void>.delayed(Duration.zero);
 
     await controller.playEntry(ids[0]);
-    expect(container.read(playbackControllerProvider).currentQueueEntryId, ids[0]);
+    expect(
+      container.read(playbackControllerProvider).currentQueueEntryId,
+      ids[0],
+    );
 
     engine.failNextSetUri = true;
     await controller.playEntry(ids[1]);
     await Future<void>.delayed(Duration.zero);
 
     final ui = container.read(playbackControllerProvider);
-    expect(ui.currentQueueEntryId, ids[0]);
+    expect(ui.currentQueueEntryId, isNull);
     expect(ui.playing, isFalse);
+    expect((await db.getPlaybackState()).currentQueueEntryId, isNull);
   });
 
   test('restoreOnLaunch loads paused from checkpoint', () async {
     final ids = await seedQueue(1);
     await db.checkpoint(entryId: ids[0], positionMs: 5000);
 
-    // New container to trigger restore
     container.dispose();
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -213,6 +254,7 @@ void main() {
         trackMetadataReaderProvider.overrideWithValue(
           const _EmptyFakeMetadataReader(),
         ),
+        playbackRandomProvider.overrideWithValue(Random(1)),
       ],
     );
 
@@ -223,6 +265,375 @@ void main() {
     expect(ui.currentQueueEntryId, ids[0]);
     expect(ui.playing, isFalse);
     expect(engine.position, const Duration(milliseconds: 5000));
+  });
+
+  test('setShuffleEnabled and cycleRepeatMode persist to Drift', () async {
+    await seedQueue(1);
+    final controller = container.read(playbackControllerProvider.notifier);
+    await Future<void>.delayed(Duration.zero);
+
+    await controller.setShuffleEnabled(true);
+    await controller.cycleRepeatMode(); // off → one
+    await controller.cycleRepeatMode(); // one → all
+
+    final ui = container.read(playbackControllerProvider);
+    expect(ui.shuffleEnabled, isTrue);
+    expect(ui.repeatMode, RepeatMode.all);
+
+    final playback = await db.getPlaybackState();
+    expect(playback.shuffleEnabled, isTrue);
+    expect(playback.repeatMode, 'all');
+  });
+
+  test('rapid mode changes persist the latest controller snapshot', () async {
+    await seedQueue(2);
+    final controller = container.read(playbackControllerProvider.notifier);
+    await Future<void>.delayed(Duration.zero);
+
+    final writes = [
+      controller.setShuffleEnabled(true),
+      controller.cycleRepeatMode(), // one
+      controller.setShuffleEnabled(false),
+      controller.cycleRepeatMode(), // all
+    ];
+    await Future.wait(writes);
+
+    final ui = container.read(playbackControllerProvider);
+    final playback = await db.getPlaybackState();
+    expect(ui.shuffleEnabled, isFalse);
+    expect(ui.repeatMode, RepeatMode.all);
+    expect(playback.shuffleEnabled, ui.shuffleEnabled);
+    expect(playback.repeatMode, ui.repeatMode.storageValue);
+  });
+
+  test('clear queue and remoteStop preserve modes', () async {
+    final ids = await seedQueue(2);
+    final controller = container.read(playbackControllerProvider.notifier);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    await controller.setShuffleEnabled(true);
+    await controller.cycleRepeatMode(); // one
+    await controller.playEntry(ids[0]);
+    await db.clearQueue();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    var ui = container.read(playbackControllerProvider);
+    expect(ui.currentQueueEntryId, isNull);
+    expect(ui.shuffleEnabled, isTrue);
+    expect(ui.repeatMode, RepeatMode.one);
+
+    await db.appendTrackIds(
+      (await db.select(db.tracks).get()).map((t) => t.id).toList(),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    final ids2 = (await db.getOrderedQueue())
+        .map((e) => e.queueEntryId)
+        .toList();
+    expect(ids2, isNotEmpty);
+    await controller.playEntry(ids2.first);
+    await controller.remoteStop();
+
+    ui = container.read(playbackControllerProvider);
+    expect(ui.currentQueueEntryId, isNull);
+    expect(ui.shuffleEnabled, isTrue);
+    expect(ui.repeatMode, RepeatMode.one);
+    final playback = await db.getPlaybackState();
+    expect(playback.shuffleEnabled, isTrue);
+    expect(playback.repeatMode, 'one');
+  });
+
+  test('restore with null current still applies modes', () async {
+    await db.updatePlaybackModes(shuffleEnabled: true, repeatMode: 'all');
+
+    container.dispose();
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    engine = FakePlaybackEngine();
+    container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        appDatabaseProvider.overrideWithValue(db),
+        audioHandlerProvider.overrideWithValue(TinyTunesAudioHandler()),
+        playbackEngineProvider.overrideWithValue(engine),
+        toastDeliveryProvider.overrideWithValue(const NoopToastDelivery()),
+        localLibrarySourceProvider.overrideWithValue(
+          const _ResolvingFakeLibrarySource(),
+        ),
+        trackMetadataReaderProvider.overrideWithValue(
+          const _EmptyFakeMetadataReader(),
+        ),
+        playbackRandomProvider.overrideWithValue(Random(1)),
+      ],
+    );
+
+    container.read(playbackControllerProvider.notifier);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    final ui = container.read(playbackControllerProvider);
+    expect(ui.currentQueueEntryId, isNull);
+    expect(ui.shuffleEnabled, isTrue);
+    expect(ui.repeatMode, RepeatMode.all);
+  });
+
+  test(
+    'restore with missing current clears checkpoint but keeps modes',
+    () async {
+      await seedQueue(1);
+      await db.updatePlaybackModes(shuffleEnabled: true, repeatMode: 'one');
+      await db.customStatement('PRAGMA foreign_keys = OFF');
+      await (db.update(
+        db.playbackState,
+      )..where((row) => row.id.equals(1))).write(
+        const PlaybackStateCompanion(
+          currentQueueEntryId: Value(999),
+          positionMs: Value(1234),
+        ),
+      );
+      await db.customStatement('PRAGMA foreign_keys = ON');
+
+      container.dispose();
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      engine = FakePlaybackEngine();
+      container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          appDatabaseProvider.overrideWithValue(db),
+          audioHandlerProvider.overrideWithValue(TinyTunesAudioHandler()),
+          playbackEngineProvider.overrideWithValue(engine),
+          toastDeliveryProvider.overrideWithValue(const NoopToastDelivery()),
+          localLibrarySourceProvider.overrideWithValue(
+            const _ResolvingFakeLibrarySource(),
+          ),
+          trackMetadataReaderProvider.overrideWithValue(
+            const _EmptyFakeMetadataReader(),
+          ),
+          playbackRandomProvider.overrideWithValue(Random(1)),
+        ],
+      );
+
+      container.read(playbackControllerProvider.notifier);
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      final ui = container.read(playbackControllerProvider);
+      final playback = await db.getPlaybackState();
+      expect(ui.currentQueueEntryId, isNull);
+      expect(ui.shuffleEnabled, isTrue);
+      expect(ui.repeatMode, RepeatMode.one);
+      expect(playback.currentQueueEntryId, isNull);
+      expect(playback.positionMs, 0);
+      expect(playback.shuffleEnabled, isTrue);
+      expect(playback.repeatMode, 'one');
+    },
+  );
+
+  test('Repeat One complete seeks zero without new setUri', () async {
+    final ids = await seedQueue(2);
+    final controller = container.read(playbackControllerProvider.notifier);
+    await Future<void>.delayed(Duration.zero);
+
+    await controller.cycleRepeatMode(); // one
+    await controller.playEntry(ids[0]);
+    await controller.seekTo(const Duration(seconds: 5));
+    final setUriBefore = engine.setUriCount;
+
+    engine.emitCompleted();
+    await Future<void>.delayed(Duration.zero);
+
+    final ui = container.read(playbackControllerProvider);
+    expect(ui.currentQueueEntryId, ids[0]);
+    expect(engine.setUriCount, setUriBefore);
+    expect(engine.position, Duration.zero);
+    expect(ui.playing, isTrue);
+  });
+
+  test(
+    'Repeat One ignores duplicate completion events while handling',
+    () async {
+      final ids = await seedQueue(1);
+      final controller = container.read(playbackControllerProvider.notifier);
+      await Future<void>.delayed(Duration.zero);
+
+      await controller.cycleRepeatMode(); // one
+      await controller.playEntry(ids[0]);
+      final seekCountBefore = engine.seekCount;
+
+      engine
+        ..emitCompleted()
+        ..emitCompleted();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(engine.seekCount, seekCountBefore + 1);
+      expect(
+        container.read(playbackControllerProvider).currentQueueEntryId,
+        ids[0],
+      );
+    },
+  );
+
+  test('Shuffle+Off remove current uses perm successor not suffix', () async {
+    final ids = await seedQueue(3);
+    final controller = container.read(playbackControllerProvider.notifier);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+
+    await controller.playEntry(ids[0]);
+    await controller.setShuffleEnabled(true);
+
+    final expected = ShuffleSession.rebuildFromHead(
+      headId: ids[0],
+      queueIds: ids,
+      random: Random(1),
+    );
+    expect(expected.permutation.first, ids[0]);
+    final expectedSuccessor = expected.permutation[1];
+
+    await db.removeQueueEntry(ids[0]);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    final ui = container.read(playbackControllerProvider);
+    expect(ui.currentQueueEntryId, expectedSuccessor);
+  });
+
+  test(
+    'Shuffle+Off prunes non-current and appends new entry to perm',
+    () async {
+      final ids = await seedQueue(4);
+      final controller = container.read(playbackControllerProvider.notifier);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      await controller.playEntry(ids[0]);
+      await controller.setShuffleEnabled(true);
+
+      final expectedInitial = ShuffleSession.rebuildFromHead(
+        headId: ids[0],
+        queueIds: ids,
+        random: Random(1),
+      ).permutation;
+      final removedId = expectedInitial[1];
+      await db.removeQueueEntry(removedId);
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+      final appendedId = await appendTrack('perm-tail');
+      await Future<void>.delayed(const Duration(milliseconds: 30));
+
+      final expectedOrder = [
+        for (final id in expectedInitial)
+          if (id != removedId) id,
+        appendedId,
+      ];
+      final observed = <int>[ids[0]];
+      for (var i = 1; i < expectedOrder.length; i++) {
+        await controller.next();
+        observed.add(
+          container.read(playbackControllerProvider).currentQueueEntryId!,
+        );
+      }
+
+      expect(observed, expectedOrder);
+      final setUriBefore = engine.setUriCount;
+      await controller.next();
+      expect(engine.setUriCount, setUriBefore);
+    },
+  );
+
+  test(
+    'Shuffle+Off unplayable skips by perm rather than canonical order',
+    () async {
+      final ids = await seedQueue(4);
+      final controller = container.read(playbackControllerProvider.notifier);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+
+      await controller.playEntry(ids[0]);
+      await controller.setShuffleEnabled(true);
+      final perm = ShuffleSession.rebuildFromHead(
+        headId: ids[0],
+        queueIds: ids,
+        random: Random(1),
+      ).permutation;
+      final failedId = perm[1];
+      final expectedSuccessor = perm[2];
+
+      engine.failNextSetUri = true;
+      await controller.next();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(failedId, isNot(expectedSuccessor));
+      expect(
+        container.read(playbackControllerProvider).currentQueueEntryId,
+        expectedSuccessor,
+      );
+    },
+  );
+
+  test('Shuffle+All row tap records history for Previous', () async {
+    final ids = await seedQueue(3);
+    final controller = container.read(playbackControllerProvider.notifier);
+    await Future<void>.delayed(Duration.zero);
+
+    await controller.setShuffleEnabled(true);
+    await controller.cycleRepeatMode(); // one
+    await controller.cycleRepeatMode(); // all
+    await controller.playEntry(ids[0]);
+    await controller.playEntry(ids[2]);
+    await controller.previous();
+
+    expect(
+      container.read(playbackControllerProvider).currentQueueEntryId,
+      ids[0],
+    );
+  });
+
+  test(
+    'mode cycle All to Off while shuffle on keeps playing current',
+    () async {
+      final ids = await seedQueue(3);
+      final controller = container.read(playbackControllerProvider.notifier);
+      await Future<void>.delayed(Duration.zero);
+
+      await controller.setShuffleEnabled(true);
+      await controller.cycleRepeatMode(); // one
+      await controller.cycleRepeatMode(); // all
+      await controller.playEntry(ids[1]);
+      await controller.cycleRepeatMode(); // all → off
+
+      final ui = container.read(playbackControllerProvider);
+      expect(ui.shuffleEnabled, isTrue);
+      expect(ui.repeatMode, RepeatMode.off);
+      expect(ui.currentQueueEntryId, ids[1]);
+
+      final random = Random(1);
+      ShuffleSession.rebuildFromHead(
+        headId: null,
+        queueIds: ids,
+        random: random,
+      );
+      final expectedAfterTransition = ShuffleSession.rebuildFromHead(
+        headId: ids[1],
+        queueIds: ids,
+        random: random,
+      ).permutation[1];
+      await controller.next();
+      expect(
+        container.read(playbackControllerProvider).currentQueueEntryId,
+        expectedAfterTransition,
+      );
+    },
+  );
+
+  test('single-track Shuffle+All next re-picks same entry', () async {
+    final ids = await seedQueue(1);
+    final controller = container.read(playbackControllerProvider.notifier);
+    await Future<void>.delayed(Duration.zero);
+
+    await controller.setShuffleEnabled(true);
+    await controller.cycleRepeatMode(); // one
+    await controller.cycleRepeatMode(); // all
+    await controller.playEntry(ids[0]);
+    await controller.next();
+
+    expect(
+      container.read(playbackControllerProvider).currentQueueEntryId,
+      ids[0],
+    );
   });
 }
 
@@ -244,8 +655,7 @@ class _ResolvingFakeLibrarySource implements LocalLibrarySource {
   Future<String> materializeReadablePath(
     MediaLocator item, {
     String? fileNameHint,
-  }) async =>
-      '/tmp/x.mp3';
+  }) async => '/tmp/x.mp3';
 
   @override
   Future<bool> hasPersistedAccess(MediaLocator root) async => true;

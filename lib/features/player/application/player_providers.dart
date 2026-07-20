@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tinytunes/features/player/application/just_audio_playback_engine.dart';
@@ -16,6 +18,10 @@ final audioHandlerProvider = Provider<TinyTunesAudioHandler>((ref) {
     '(or a test fake).',
   );
 });
+
+/// [Random] for shuffle picks; tests override with a seeded instance.
+@Riverpod(keepAlive: true)
+Random playbackRandom(Ref ref) => Random();
 
 /// Application-lifetime [PlaybackEngine]; tests override with a fake.
 @Riverpod(keepAlive: true)
