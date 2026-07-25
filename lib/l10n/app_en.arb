@@ -106,6 +106,14 @@
   "@transportRepeatAll": {
     "description": "Semantics label when repeat all is active."
   },
+  "transportVolumeExpand": "Show volume",
+  "@transportVolumeExpand": {
+    "description": "Tooltip to expand the system volume slider."
+  },
+  "transportVolumeCollapse": "Hide volume",
+  "@transportVolumeCollapse": {
+    "description": "Tooltip to collapse the system volume slider."
+  },
   "addFolderTooltip": "Add folder",
   "@addFolderTooltip": {
     "description": "Tooltip for adding a music folder to the library."

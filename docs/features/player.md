@@ -20,6 +20,9 @@ via pure `QueueNavigator`; the handler stays a thin façade.
   - `lib/features/player/application/playback_engine.dart`
   - `lib/features/player/application/just_audio_playback_engine.dart`
   - `lib/features/player/presentation/transport_chrome.dart`
+  - `lib/features/player/application/system_volume_source.dart`
+  - `lib/features/player/application/device_system_volume_source.dart`
+  - `lib/features/player/application/player_providers.dart`
   - `lib/main.dart` (bootstrap: `AudioService.init` → handler override → eager controller)
 
 ## Functionality
@@ -37,7 +40,8 @@ registration and media-session wiring coexist.
 ### Transport / home
 
 - Row tap plays an entry; tap current toggles pause.
-- Transport: **Shuffle | Prev | Play/Pause | Next | Repeat** + seek bar.
+- Transport: **Shuffle | Prev | Play/Pause | Next | Repeat** + seek bar +
+  expandable system-volume slider (speaker toggle left of seek).
 - Shuffle and Repeat are always enabled (never greyed); Prev/Play/Next need a current track.
 - Queue list stays **canonical** `sortIndex` order (shuffle never reorders the list).
 - Current row highlight via `ColorScheme`.
@@ -115,14 +119,17 @@ Shared seam: `advanceAfterCurrentGone` with `completed` / `manualNext` /
 
 ## User Interface
 
-Playlist home list + bottom `TransportChrome`. Lock-screen / notification expose
-play, pause, seek, skip previous/next via the handler façade.
+Playlist home list + bottom `TransportChrome`. Speaker icon left of the seek bar
+expands/collapses a system-volume slider row (OS media volume via
+`volume_controller`; hardware buttons stay in sync). Lock-screen / notification
+expose play, pause, seek, skip previous/next via the handler façade.
 
 ## Dependencies
 
 - `just_audio`
 - `audio_service` (direct; **not** `just_audio_background`)
 - `audio_session`
+- `volume_controller` (system / media volume for transport chrome)
 
 ## Related Features
 
@@ -130,4 +137,4 @@ play, pause, seek, skip previous/next via the handler façade.
 - [Message center](message-center.md) — player error/info codes
 
 ---
-*Last updated: 2026-07-20*
+*Last updated: 2026-07-25*
