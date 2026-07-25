@@ -242,6 +242,18 @@ abstract class AppLocalizations {
   /// **'Repeat all'**
   String get transportRepeatAll;
 
+  /// Tooltip to expand the system volume slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Show volume'**
+  String get transportVolumeExpand;
+
+  /// Tooltip to collapse the system volume slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide volume'**
+  String get transportVolumeCollapse;
+
   /// Tooltip for adding a music folder to the library.
   ///
   /// In en, this message translates to:

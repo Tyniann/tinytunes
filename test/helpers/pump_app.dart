@@ -20,13 +20,16 @@ import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tinytunes/features/library/application/library_providers.dart';
 import 'package:tinytunes/features/player/application/player_providers.dart';
+import 'package:tinytunes/features/player/application/system_volume_source.dart';
 import 'package:tinytunes/features/player/application/tinytunes_audio_handler.dart';
 import 'package:tinytunes/features/playlist/application/playlist_providers.dart';
 import 'package:tinytunes/main.dart';
 
 import '../features/player/fake_playback_engine.dart';
+import '../features/player/fake_system_volume_source.dart';
 
 export '../features/player/fake_playback_engine.dart';
+export '../features/player/fake_system_volume_source.dart';
 
 /// Pumps [TinyTunesApp] with mock prefs, in-memory DB, fake library/player, noop toasts.
 ///
@@ -42,6 +45,7 @@ Future<void> pumpApp(
   AppDatabase? database,
   LocalLibrarySource? librarySource,
   FakePlaybackEngine? playbackEngine,
+  SystemVolumeSource? systemVolumeSource,
   bool liveQueueStreams = false,
 }) async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
@@ -49,6 +53,7 @@ Future<void> pumpApp(
   final prefs = await SharedPreferences.getInstance();
   final db = database ?? AppDatabase.memory();
   final engine = playbackEngine ?? FakePlaybackEngine();
+  final volume = systemVolumeSource ?? FakeSystemVolumeSource();
   final handler = TinyTunesAudioHandler();
 
   final streamOverrides = <Override>[
@@ -85,6 +90,7 @@ Future<void> pumpApp(
         toastDeliveryProvider.overrideWithValue(const NoopToastDelivery()),
         audioHandlerProvider.overrideWithValue(handler),
         playbackEngineProvider.overrideWithValue(engine),
+        systemVolumeSourceProvider.overrideWithValue(volume),
         appRouterProvider.overrideWithValue(
           GoRouter(
             navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'test-root'),
@@ -126,8 +132,7 @@ class _EmptyFakeLibrarySource implements LocalLibrarySource {
   Future<String> materializeReadablePath(
     MediaLocator item, {
     String? fileNameHint,
-  }) async =>
-      '/tmp/empty.mp3';
+  }) async => '/tmp/empty.mp3';
 
   @override
   Future<bool> hasPersistedAccess(MediaLocator root) async => true;

@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Expandable system-volume slider on transport chrome (speaker toggle; OS media volume)
+
 ### Changed
 
 ### Fixed

@@ -85,6 +85,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get transportRepeatAll => 'Alle wiederholen';
 
   @override
+  String get transportVolumeExpand => 'Lautstärke anzeigen';
+
+  @override
+  String get transportVolumeCollapse => 'Lautstärke ausblenden';
+
+  @override
   String get addFolderTooltip => 'Ordner hinzufügen';
 
   @override

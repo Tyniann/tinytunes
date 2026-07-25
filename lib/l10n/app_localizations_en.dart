@@ -85,6 +85,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transportRepeatAll => 'Repeat all';
 
   @override
+  String get transportVolumeExpand => 'Show volume';
+
+  @override
+  String get transportVolumeCollapse => 'Hide volume';
+
+  @override
   String get addFolderTooltip => 'Add folder';
 
   @override
