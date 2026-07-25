@@ -45,6 +45,8 @@ registration and media-session wiring coexist.
 - Shuffle and Repeat are always enabled (never greyed); Prev/Play/Next need a current track.
 - Queue list stays **canonical** `sortIndex` order (shuffle never reorders the list).
 - Current row highlight via `ColorScheme`.
+- When `currentQueueEntryId` changes and the row is outside the viewport, the
+  list animates to center that row (next / previous / shuffle / natural advance).
 - No cover art (`artworkCacheRef` unused).
 
 ### Shuffle × Repeat matrix

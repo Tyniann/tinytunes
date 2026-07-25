@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - Expandable system-volume slider on transport chrome (speaker toggle; OS media volume)
+- Auto-center the current queue row when playback jumps outside the viewport
 
 ### Changed
 

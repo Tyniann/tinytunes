@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tinytunes/core/database/app_database.dart';
@@ -14,7 +16,8 @@ import 'package:tinytunes/l10n/app_localizations.dart';
 /// Playlist home: queue list, library actions, live transport.
 ///
 /// Purpose: Primary IA surface for the single Winamp-style queue, folder
-/// ingest, and Phase 3 playback controls.
+/// ingest, and Phase 3 playback controls. Centers the current row when
+/// playback jumps outside the viewport (next / previous / shuffle / complete).
 /// Usage Context: Route `/` via [PlaylistHomeRoute].
 class PlaylistHomeScreen extends ConsumerStatefulWidget {
   /// Creates the playlist home screen.
@@ -25,16 +28,27 @@ class PlaylistHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
+  /// Fixed [ListView] extent so off-screen current rows can be centered by index.
+  static const double _queueItemExtent = 72;
+
+  final ScrollController _queueScrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
-      ref.read(libraryIngestControllerProvider.notifier).checkRevokedRoots(
-            l10n: libraryIngestL10nFrom(l10n),
-          );
+      ref
+          .read(libraryIngestControllerProvider.notifier)
+          .checkRevokedRoots(l10n: libraryIngestL10nFrom(l10n));
     });
+  }
+
+  @override
+  void dispose() {
+    _queueScrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -47,6 +61,14 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
     final busy = progress.isBusy;
     final scheme = Theme.of(context).colorScheme;
 
+    ref.listen(
+      playbackControllerProvider.select((s) => s.currentQueueEntryId),
+      (previous, next) {
+        if (next == null || next == previous) return;
+        _scheduleCenterOnCurrent(next);
+      },
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
@@ -56,9 +78,9 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
             onPressed: busy
                 ? null
                 : () {
-                    ref.read(libraryIngestControllerProvider.notifier).addFolder(
-                          l10n: libraryIngestL10nFrom(l10n),
-                        );
+                    ref
+                        .read(libraryIngestControllerProvider.notifier)
+                        .addFolder(l10n: libraryIngestL10nFrom(l10n));
                   },
             icon: const Icon(Icons.create_new_folder_outlined),
           ),
@@ -120,9 +142,7 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      l10n.scanningProgress(progress.processedCount),
-                    ),
+                    child: Text(l10n.scanningProgress(progress.processedCount)),
                   ),
                   TextButton(
                     onPressed: () => ref
@@ -134,9 +154,7 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
               ),
             ),
           if (progress.phase == IngestPhase.forgetting)
-            _HomeStrip(
-              child: Text(l10n.forgettingProgress),
-            ),
+            _HomeStrip(child: Text(l10n.forgettingProgress)),
           Expanded(
             child: queueAsync.when(
               data: (queue) {
@@ -174,6 +192,8 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
                   );
                 }
                 return ListView.builder(
+                  controller: _queueScrollController,
+                  itemExtent: _queueItemExtent,
                   itemCount: queue.length,
                   itemBuilder: (context, index) {
                     final row = queue[index];
@@ -196,8 +216,8 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
                         onPressed: busy
                             ? null
                             : () => ref
-                                .read(queueActionsProvider)
-                                .removeEntry(row.queueEntryId),
+                                  .read(queueActionsProvider)
+                                  .removeEntry(row.queueEntryId),
                         icon: const Icon(Icons.remove_circle_outline),
                       ),
                     );
@@ -214,6 +234,49 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
     );
   }
 
+  /// Centers the queue row for [entryId] when it is outside the viewport.
+  ///
+  /// Purpose: Keep shuffle / next / previous jumps discoverable without manual
+  /// scrolling; no-ops when the row is already on screen.
+  void _scheduleCenterOnCurrent(int entryId) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_centerOnCurrentIfNeeded(entryId));
+    });
+  }
+
+  Future<void> _centerOnCurrentIfNeeded(int entryId) async {
+    if (!_queueScrollController.hasClients) return;
+    final queue = ref.read(orderedQueueProvider).asData?.value;
+    if (queue == null || queue.isEmpty) return;
+    final index = queue.indexWhere((row) => row.queueEntryId == entryId);
+    if (index < 0) return;
+    if (_isIndexVisible(index)) return;
+
+    final position = _queueScrollController.position;
+    final itemCenter = index * _queueItemExtent + _queueItemExtent / 2;
+    final target = (itemCenter - position.viewportDimension / 2).clamp(
+      0.0,
+      position.maxScrollExtent,
+    );
+    await _queueScrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  /// Whether the fixed-extent row at [index] intersects the current viewport.
+  bool _isIndexVisible(int index) {
+    if (!_queueScrollController.hasClients) return false;
+    final position = _queueScrollController.position;
+    final itemTop = index * _queueItemExtent;
+    final itemBottom = itemTop + _queueItemExtent;
+    final viewTop = position.pixels;
+    final viewBottom = viewTop + position.viewportDimension;
+    return itemBottom > viewTop && itemTop < viewBottom;
+  }
+
   Future<void> _forgetRevokedRoot(int rootId, AppLocalizations l10n) async {
     final ok = await _confirm(
       title: l10n.forgetFolderTitle,
@@ -221,10 +284,9 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
       l10n: l10n,
     );
     if (ok && mounted) {
-      await ref.read(libraryIngestControllerProvider.notifier).forgetRoot(
-            rootId: rootId,
-            l10n: libraryIngestL10nFrom(l10n),
-          );
+      await ref
+          .read(libraryIngestControllerProvider.notifier)
+          .forgetRoot(rootId: rootId, l10n: libraryIngestL10nFrom(l10n));
     }
   }
 
@@ -245,10 +307,9 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
       case _PlaylistMenuAction.rescan:
         final root = await _pickRoot(l10n);
         if (root != null && mounted) {
-          await ref.read(libraryIngestControllerProvider.notifier).rescanRoot(
-                rootId: root.id,
-                l10n: libraryIngestL10nFrom(l10n),
-              );
+          await ref
+              .read(libraryIngestControllerProvider.notifier)
+              .rescanRoot(rootId: root.id, l10n: libraryIngestL10nFrom(l10n));
         }
       case _PlaylistMenuAction.forget:
         final root = await _pickRoot(l10n);
@@ -259,10 +320,9 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
           l10n: l10n,
         );
         if (ok && mounted) {
-          await ref.read(libraryIngestControllerProvider.notifier).forgetRoot(
-                rootId: root.id,
-                l10n: libraryIngestL10nFrom(l10n),
-              );
+          await ref
+              .read(libraryIngestControllerProvider.notifier)
+              .forgetRoot(rootId: root.id, l10n: libraryIngestL10nFrom(l10n));
         }
     }
   }
@@ -297,9 +357,9 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
     final roots = await db.select(db.libraryRoots).get();
     if (!mounted) return null;
     if (roots.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.noLibraryFolders)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.noLibraryFolders)));
       return null;
     }
     if (roots.length == 1) return roots.single;
