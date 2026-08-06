@@ -1,6 +1,6 @@
 # TinyTunes
 
-Simple, local-first Android music player. Add folders, queue tracks, play in the
+Simple, no-nonsense, local-first Android music player. Add folders, queue tracks, play in the
 background. Optional **Google Drive** support is read-only (list / download /
 cache — never write to Drive).
 
@@ -12,7 +12,7 @@ cache — never write to Drive).
 | License | [MIT](LICENSE) |
 | Privacy | https://blumenlaube.at/apps/tinytunes/privacy-policy.html |
 | Platforms | Android first (iOS later) |
-| Latest release | [v0.7.1](https://github.com/Tyniann/tinytunes/releases/tag/v0.7.1) |
+| Latest release | [v0.8.0](https://github.com/Tyniann/tinytunes/releases/tag/v0.8.0) |
 
 ## Google Drive = bring your own OAuth (BYO)
 
