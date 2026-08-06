@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Add GDPR-oriented privacy policy under `docs/legal/` + live URL on blumenlaube.at
 - Add public README (BYO Google OAuth), MIT license, signing/OAuth docs
 - Set TinyTunes TT logo as Android launcher icon (`flutter_launcher_icons`)
+- Expandable system-volume slider on transport chrome (speaker toggle; OS media volume)
+- Auto-center the current queue row when playback jumps outside the viewport
 
 ### Changed
 
