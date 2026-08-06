@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tinytunes/core/cloud/cloud_cache_budget.dart';
+import 'package:tinytunes/core/cloud/cloud_providers.dart';
+import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/settings/package_info_provider.dart';
 import 'package:tinytunes/core/theme/app_theme_mode.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
+import 'package:tinytunes/shared/widgets/google_branding.dart';
 
-/// Daily-driver Settings: theme mode and About.
+/// Daily-driver Settings: theme, Google Drive account/cache, and About.
 ///
-/// Purpose: Let the user pick System/Light/Dark and see app name + version.
+/// Purpose: Let the user pick System/Light/Dark, manage Drive sign-in and cloud
+/// cache budget, and see app name + version.
 /// Usage Context: Route `/settings` via [SettingsRoute].
-/// Key Params: none — reads [appThemeModeControllerProvider] and
-/// [packageInfoProvider].
 class SettingsScreen extends ConsumerWidget {
   /// Creates the Settings screen.
   const SettingsScreen({super.key});
@@ -20,14 +23,14 @@ class SettingsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final mode = ref.watch(appThemeModeControllerProvider);
     final packageInfo = ref.watch(packageInfoProvider);
+    final drive = ref.watch(googleDriveSessionControllerProvider);
+    final driveCtrl = ref.read(googleDriveSessionControllerProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListView(
         children: [
-          ListTile(
-            title: Text(l10n.settingsAppearanceSection),
-          ),
+          ListTile(title: Text(l10n.settingsAppearanceSection)),
           RadioGroup<AppThemeMode>(
             groupValue: mode,
             onChanged: (value) {
@@ -53,8 +56,42 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(),
           ListTile(
-            title: Text(l10n.settingsAboutSection),
+            leading: const GoogleDriveMark(size: 28),
+            title: Text(l10n.settingsGoogleDriveSection),
           ),
+          if (drive.account != null)
+            ListTile(
+              title: Text(
+                l10n.settingsGoogleDriveSignedInAs(drive.account!.email),
+              ),
+            ),
+          if (!drive.isSignedIn)
+            SignInWithGoogleButton(
+              label: l10n.settingsGoogleDriveSignIn,
+              enabled: !drive.busy,
+              onPressed: driveCtrl.signIn,
+            )
+          else
+            ListTile(
+              title: Text(l10n.settingsGoogleDriveSignOut),
+              enabled: !drive.busy,
+              onTap: driveCtrl.signOut,
+            ),
+          _CloudCacheBudgetSlider(enabled: !drive.busy),
+          ListTile(
+            title: Text(l10n.settingsCloudCacheClear),
+            enabled: !drive.busy,
+            onTap: () => _confirmClearCloudCache(context, ref, l10n),
+          ),
+          if (drive.lastError != null)
+            ListTile(
+              title: Text(
+                drive.lastError!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          const Divider(),
+          ListTile(title: Text(l10n.settingsAboutSection)),
           packageInfo.when(
             data: (info) => ListTile(
               title: Text(
@@ -70,6 +107,97 @@ class SettingsScreen extends ConsumerWidget {
               title: Text(l10n.appTitle),
               subtitle: Text(l10n.settingsAboutVersion('—')),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmClearCloudCache(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.settingsCloudCacheClearTitle),
+        content: Text(l10n.settingsCloudCacheClearBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancelAction),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.settingsCloudCacheClear),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    await ref
+        .read(googleDriveSessionControllerProvider.notifier)
+        .clearCloudCache();
+    ref
+        .read(messageReporterProvider)
+        .reportInfo(
+          code: 'cloud.cache.cleared',
+          message: l10n.settingsCloudCacheCleared,
+        );
+  }
+}
+
+/// Cloud cache budget slider that commits on finger-up only.
+///
+/// Purpose: Avoid prefs writes / LRU eviction on every drag tick.
+/// Usage Context: Settings Google Drive section.
+class _CloudCacheBudgetSlider extends ConsumerStatefulWidget {
+  const _CloudCacheBudgetSlider({required this.enabled});
+
+  final bool enabled;
+
+  @override
+  ConsumerState<_CloudCacheBudgetSlider> createState() =>
+      _CloudCacheBudgetSliderState();
+}
+
+class _CloudCacheBudgetSliderState
+    extends ConsumerState<_CloudCacheBudgetSlider> {
+  int? _draftBytes;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final persisted = ref.watch(cloudCacheBudgetControllerProvider);
+    final value = _draftBytes ?? persisted;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.settingsCloudCacheLimit(CloudCacheBudget.formatGbLabel(value)),
+          ),
+          Slider(
+            min: CloudCacheBudget.minBytes.toDouble(),
+            max: CloudCacheBudget.maxBytes.toDouble(),
+            divisions: CloudCacheBudget.sliderDivisions,
+            value: value.toDouble(),
+            onChanged: widget.enabled
+                ? (v) => setState(() => _draftBytes = v.round())
+                : null,
+            onChangeEnd: widget.enabled
+                ? (v) async {
+                    final snapped = CloudCacheBudget.clampAndSnap(v.round());
+                    await ref
+                        .read(cloudCacheBudgetControllerProvider.notifier)
+                        .setBudgetBytes(snapped);
+                    if (mounted) setState(() => _draftBytes = null);
+                  }
+                : null,
           ),
         ],
       ),

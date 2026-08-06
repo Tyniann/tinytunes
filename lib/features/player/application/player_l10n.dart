@@ -14,11 +14,10 @@ class PlayerL10n {
 
   /// English defaults for unit tests and pre-UI restore.
   const PlayerL10n.english()
-      : fileMissing = 'Track file is missing or inaccessible.',
-        loadFailed = 'Could not load track for playback.',
-        restoreSkipped = 'Previous track is no longer in the queue.',
-        skipBoundReached =
-            'Stopped after several unplayable tracks in a row.';
+    : fileMissing = 'Track file is missing or inaccessible.',
+      loadFailed = 'Could not load track for playback.',
+      restoreSkipped = 'Previous track is no longer in the queue.',
+      skipBoundReached = 'Stopped after several unplayable tracks in a row.';
 
   /// `player.file.missing` toast/body.
   final String fileMissing;

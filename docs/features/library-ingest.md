@@ -11,8 +11,9 @@ Indexes user-picked local music folders into a durable **catalog** and a single 
 - **Related Files:**
   - `library_ingest_controller.dart` — single-flight add / re-scan / forget
   - `catalog_dao.dart` — thin Drift accessors
-  - `app_database.dart` / `tables.dart` — schema v1
+  - `app_database.dart` / `tables.dart` — schema v2 (`cloud_cache_entries`)
   - Android adapter: `lib/core/library/android/android_local_library_source.dart`
+  - Cloud: [`docs/features/cloud-library.md`](cloud-library.md)
   - ADR: [`docs/adr/0001-android-local-library-access.md`](../adr/0001-android-local-library-access.md)
 
 ## Functionality

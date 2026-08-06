@@ -9,9 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- Expandable system-volume slider on transport chrome (speaker toggle; OS media volume)
-- Auto-center the current queue row when playback jumps outside the viewport
-
 ### Changed
 
 ### Fixed
@@ -19,6 +16,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Removed
 
 ### Security
+
+---
+
+## [0.7.1] - 2026-08-06
+
+### Added
+
+- Add Google Drive read-only cloud library (Android): OAuth, folder ingest, download-then-play cache, Settings budget / Clear / sign-out wipe (ADR 0002)
+- Add library source picker (This device / Google Drive) with official Drive brand mark
+- Fill cloud track tags on play-path download / cache hit (list-only ingest; no tag-only downloads)
+- Add GDPR-oriented privacy policy under `docs/legal/` + live URL on blumenlaube.at
+- Add public README (BYO Google OAuth), MIT license, signing/OAuth docs
+- Set TinyTunes TT logo as Android launcher icon (`flutter_launcher_icons`)
+
+### Changed
+
+- Bump app version to `0.7.1+8`
+- Drive folder browser shows audio files (not only subfolders); empty state only when truly empty
+
+### Removed
+
+- Remove temporary download-for-tags during cloud folder ingest
 
 ---
 

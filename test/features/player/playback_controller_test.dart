@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tinytunes/core/cloud/cloud_providers.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
@@ -20,6 +21,7 @@ import 'package:tinytunes/features/player/application/repeat_mode.dart';
 import 'package:tinytunes/features/player/application/shuffle_session.dart';
 import 'package:tinytunes/features/player/application/tinytunes_audio_handler.dart';
 
+import '../../core/cloud/fake_cloud_library_source.dart';
 import 'fake_playback_engine.dart';
 
 void main() {
@@ -43,6 +45,9 @@ void main() {
         toastDeliveryProvider.overrideWithValue(const NoopToastDelivery()),
         localLibrarySourceProvider.overrideWithValue(
           const _ResolvingFakeLibrarySource(),
+        ),
+        cloudLibrarySourceProvider.overrideWith(
+          (ref) async => FakeCloudLibrarySource(),
         ),
         trackMetadataReaderProvider.overrideWithValue(
           const _EmptyFakeMetadataReader(),
@@ -251,6 +256,9 @@ void main() {
         localLibrarySourceProvider.overrideWithValue(
           const _ResolvingFakeLibrarySource(),
         ),
+        cloudLibrarySourceProvider.overrideWith(
+          (ref) async => FakeCloudLibrarySource(),
+        ),
         trackMetadataReaderProvider.overrideWithValue(
           const _EmptyFakeMetadataReader(),
         ),
@@ -359,6 +367,9 @@ void main() {
         localLibrarySourceProvider.overrideWithValue(
           const _ResolvingFakeLibrarySource(),
         ),
+        cloudLibrarySourceProvider.overrideWith(
+          (ref) async => FakeCloudLibrarySource(),
+        ),
         trackMetadataReaderProvider.overrideWithValue(
           const _EmptyFakeMetadataReader(),
         ),
@@ -404,6 +415,9 @@ void main() {
           toastDeliveryProvider.overrideWithValue(const NoopToastDelivery()),
           localLibrarySourceProvider.overrideWithValue(
             const _ResolvingFakeLibrarySource(),
+          ),
+          cloudLibrarySourceProvider.overrideWith(
+            (ref) async => FakeCloudLibrarySource(),
           ),
           trackMetadataReaderProvider.overrideWithValue(
             const _EmptyFakeMetadataReader(),

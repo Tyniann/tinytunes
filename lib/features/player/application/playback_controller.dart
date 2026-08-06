@@ -4,9 +4,9 @@ import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:flutter/widgets.dart' hide RepeatMode;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:tinytunes/core/cloud/cloud_providers.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
-import 'package:tinytunes/core/library/media_locator.dart';
 import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/messages/session_message.dart';
 import 'package:tinytunes/features/library/application/library_providers.dart';
@@ -14,6 +14,7 @@ import 'package:tinytunes/features/player/application/advance_reason.dart';
 import 'package:tinytunes/features/player/application/just_audio_playback_engine.dart';
 import 'package:tinytunes/features/player/application/navigation_action.dart';
 import 'package:tinytunes/features/player/application/playback_engine.dart';
+import 'package:tinytunes/features/player/application/playback_uri_resolver.dart';
 import 'package:tinytunes/features/player/application/playback_ui_state.dart';
 import 'package:tinytunes/features/player/application/player_l10n.dart';
 import 'package:tinytunes/features/player/application/player_message_codes.dart';
@@ -565,10 +566,41 @@ class PlaybackController extends _$PlaybackController
 
     Uri uri;
     try {
-      final source = ref.read(localLibrarySourceProvider);
-      uri = await source.resolvePlaybackUri(MediaLocator(view.locator));
+      final cloud = await ref.read(cloudLibrarySourceProvider.future);
+      if (gen != _generation) return;
+      final resolver = PlaybackUriResolver(
+        localSource: ref.read(localLibrarySourceProvider),
+        cloudSource: cloud,
+        cacheStore: ref.read(cloudCacheStoreProvider),
+        db: ref.read(appDatabaseProvider),
+        metadataReader: ref.read(trackMetadataReaderProvider),
+        budgetBytes: ref.read(cloudCacheBudgetControllerProvider),
+      );
+      final queuedIds = await ref.read(appDatabaseProvider).queuedTrackIds();
+      if (gen != _generation) return;
+      uri = await resolver.resolve(
+        view,
+        queuedTrackIds: queuedIds,
+        onDownloadStarted: () {
+          if (gen == _generation) {
+            state = state.copyWith(downloading: true, downloadProgress: 0);
+          }
+        },
+        onDownloadProgress: (received, total) {
+          if (gen != _generation) return;
+          final progress = total > 0
+              ? (received / total).clamp(0.0, 1.0)
+              : null;
+          state = state.copyWith(
+            downloading: true,
+            downloadProgress: progress,
+            clearDownloadProgress: progress == null,
+          );
+        },
+      );
     } on Object {
       if (gen != _generation) return;
+      state = state.copyWith(downloading: false, clearDownloadProgress: true);
       _report(
         code: PlayerMessageCodes.fileMissing,
         message: _l10n.fileMissing,
@@ -581,6 +613,9 @@ class PlaybackController extends _$PlaybackController
       );
       return;
     }
+
+    if (gen != _generation) return;
+    state = state.copyWith(downloading: false, clearDownloadProgress: true);
 
     try {
       final tag = MediaItem(
@@ -646,6 +681,8 @@ class PlaybackController extends _$PlaybackController
       playing: false,
       position: Duration.zero,
       clearDuration: true,
+      downloading: false,
+      clearDownloadProgress: true,
     );
     _handler?.publishMediaItem(null);
     _pushHandlerState(playing: false, processing: AudioProcessingState.idle);

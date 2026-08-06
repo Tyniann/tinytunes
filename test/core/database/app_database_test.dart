@@ -94,4 +94,35 @@ void main() {
     expect(state.currentQueueEntryId, entryId);
     expect(state.positionMs, 1234);
   });
+  test('schema v2 creates cloud_cache_entries', () async {
+    final rootId = await db.into(db.libraryRoots).insert(
+          LibraryRootsCompanion.insert(
+            locator: 'gdrive:rootFolder',
+            displayName: 'Cloud',
+            sourceKind: const Value('cloud'),
+            addedAt: DateTime.utc(2026, 1, 1),
+          ),
+        );
+    final trackId = await db.into(db.tracks).insert(
+          TracksCompanion.insert(
+            rootId: rootId,
+            sourceItemId: 'gdrive:file1',
+            locator: 'gdrive:file1',
+            displayName: 'a.mp3',
+            sourceKind: const Value('cloud'),
+          ),
+        );
+    await db.into(db.cloudCacheEntries).insert(
+          CloudCacheEntriesCompanion.insert(
+            trackId: Value(trackId),
+            remoteLocator: 'gdrive:file1',
+            localPath: '/tmp/a.mp3',
+            sizeBytes: 10,
+            lastAccessedAt: DateTime.utc(2026, 1, 2),
+          ),
+        );
+    final rows = await db.select(db.cloudCacheEntries).get();
+    expect(rows, hasLength(1));
+    expect(rows.single.trackId, trackId);
+  });
 }

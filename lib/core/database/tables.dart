@@ -122,3 +122,31 @@ class PlaybackState extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+/// Local on-disk cache row for a cloud catalog [Tracks] id.
+///
+/// Purpose: Track downloaded Drive files for playback, LRU eviction, and
+/// Forget / Clear / queue-remove cleanup without mutating remote content.
+class CloudCacheEntries extends Table {
+  /// Catalog track this cache file belongs to.
+  IntColumn get trackId => integer().references(
+        Tracks,
+        #id,
+        onDelete: KeyAction.cascade,
+      )();
+
+  /// Remote `gdrive:` [MediaLocator] string for the cached item.
+  TextColumn get remoteLocator => text().unique()();
+
+  /// Absolute local filesystem path of the cached file.
+  TextColumn get localPath => text()();
+
+  /// Cached file size in bytes.
+  IntColumn get sizeBytes => integer()();
+
+  /// Last play / download access time (UTC) for LRU eviction.
+  DateTimeColumn get lastAccessedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {trackId};
+}

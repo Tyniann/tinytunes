@@ -170,6 +170,60 @@ abstract class AppLocalizations {
   /// **'Version {version}'**
   String settingsAboutVersion(String version);
 
+  /// Settings section for Google Drive sign-in (Phase 7).
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive'**
+  String get settingsGoogleDriveSection;
+
+  /// Button to start Google Sign-In for Drive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get settingsGoogleDriveSignIn;
+
+  /// Button to sign out of Google Drive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get settingsGoogleDriveSignOut;
+
+  /// Shows the signed-in Google account email.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {email}'**
+  String settingsGoogleDriveSignedInAs(String email);
+
+  /// Settings label above the cloud cache budget slider.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud cache limit: {size}'**
+  String settingsCloudCacheLimit(String size);
+
+  /// Settings action to delete downloaded Drive cache files.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cloud cache'**
+  String get settingsCloudCacheClear;
+
+  /// Confirmation dialog title for clearing cloud cache.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cloud cache?'**
+  String get settingsCloudCacheClearTitle;
+
+  /// Confirmation dialog body for clearing cloud cache.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes downloaded cloud files on this device. Your Drive library and playlist stay intact.'**
+  String get settingsCloudCacheClearBody;
+
+  /// Info after Clear cloud cache succeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud cache cleared.'**
+  String get settingsCloudCacheCleared;
+
   /// Message center app bar title.
   ///
   /// In en, this message translates to:
@@ -259,6 +313,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add folder'**
   String get addFolderTooltip;
+
+  /// Dialog title when choosing local vs Google Drive.
+  ///
+  /// In en, this message translates to:
+  /// **'Add music from'**
+  String get addLibrarySourceTitle;
+
+  /// Picker option for local SAF folder import.
+  ///
+  /// In en, this message translates to:
+  /// **'This device'**
+  String get addLibrarySourceLocal;
+
+  /// Picker option for Google Drive folder import.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Drive'**
+  String get addLibrarySourceGoogleDrive;
 
   /// Tooltip for the playlist overflow menu.
   ///
@@ -392,6 +464,60 @@ abstract class AppLocalizations {
   /// **'Folder removed locally, but access release failed.'**
   String get libraryForgetFailed;
 
+  /// Message when Add cloud folder is used while signed out.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to Google Drive in Settings first.'**
+  String get libraryCloudSignInRequired;
+
+  /// App bar tooltip for adding a Google Drive folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Add cloud folder'**
+  String get addCloudFolderTooltip;
+
+  /// Title of the Drive folder browser dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose Drive folder'**
+  String get driveFolderBrowserTitle;
+
+  /// Confirms the current Drive folder as the cloud root.
+  ///
+  /// In en, this message translates to:
+  /// **'Select this folder'**
+  String get driveFolderBrowserSelect;
+
+  /// Empty state when the current Drive folder has no subfolders or audio files.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder is empty.'**
+  String get driveFolderBrowserEmpty;
+
+  /// Dialog title after picking a Drive folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Also load subfolders?'**
+  String get driveIncludeSubfoldersTitle;
+
+  /// Dialog body explaining recursive vs flat cloud import.
+  ///
+  /// In en, this message translates to:
+  /// **'Include nested folders like local Add folder, or only files in this folder.'**
+  String get driveIncludeSubfoldersBody;
+
+  /// Positive choice for recursive Drive import.
+  ///
+  /// In en, this message translates to:
+  /// **'Include subfolders'**
+  String get driveIncludeSubfoldersYes;
+
+  /// Choice for flat Drive import.
+  ///
+  /// In en, this message translates to:
+  /// **'This folder only'**
+  String get driveIncludeSubfoldersNo;
+
   /// Subtitle when a track has no artist tag.
   ///
   /// In en, this message translates to:
@@ -403,6 +529,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Track file is missing or inaccessible.'**
   String get playerFileMissing;
+
+  /// Home strip while a cloud track downloads before play.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading…'**
+  String get cloudDownloading;
 
   /// Message when the audio engine fails to load a source.
   ///

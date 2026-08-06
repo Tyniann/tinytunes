@@ -36,6 +36,7 @@ class QueueTrackView {
     this.title,
     this.artist,
     this.album,
+    this.sourceKind = 'local',
   });
 
   /// `queue_entries.id`.
@@ -61,6 +62,9 @@ class QueueTrackView {
 
   /// Optional tag album.
   final String? album;
+
+  /// Catalog origin (`local` / `cloud`).
+  final String sourceKind;
 
   /// Prefer tag title, else [displayName].
   String get listTitle =>
@@ -156,11 +160,16 @@ extension CatalogDao on AppDatabase {
             TracksCompanion(
               displayName: row.displayName,
               locator: row.locator,
+              // Absent tag fields (cloud list-only re-scan) must not wipe play-path tags.
               title: row.title,
               artist: row.artist,
               album: row.album,
-              sizeBytes: const Value(null),
-              modifiedAt: const Value(null),
+              sizeBytes: row.sizeBytes.present
+                  ? row.sizeBytes
+                  : const Value.absent(),
+              modifiedAt: row.modifiedAt.present
+                  ? row.modifiedAt
+                  : const Value.absent(),
               artworkCacheRef: const Value(null),
               sourceKind: row.sourceKind.present
                   ? row.sourceKind
@@ -173,6 +182,22 @@ extension CatalogDao on AppDatabase {
     });
 
     return UpsertTracksResult(insertedIds: inserted, updatedIds: updated);
+  }
+
+  /// Writes tag fields for an existing [trackId] (cloud play-path enrichment).
+  Future<void> updateTrackTags({
+    required int trackId,
+    String? title,
+    String? artist,
+    String? album,
+  }) {
+    return (update(tracks)..where((t) => t.id.equals(trackId))).write(
+      TracksCompanion(
+        title: Value(title),
+        artist: Value(artist),
+        album: Value(album),
+      ),
+    );
   }
 
   /// Hard-deletes catalog tracks under [rootId] whose source ids are not in [seen].
@@ -224,6 +249,20 @@ extension CatalogDao on AppDatabase {
     await delete(queueEntries).go();
   }
 
+  /// Returns the catalog track id for [entryId], or `null` if missing.
+  Future<int?> trackIdForQueueEntry(int entryId) async {
+    final row = await (select(
+      queueEntries,
+    )..where((t) => t.id.equals(entryId))).getSingleOrNull();
+    return row?.trackId;
+  }
+
+  /// Returns every catalog track id currently linked from the queue.
+  Future<Set<int>> queuedTrackIds() async {
+    final rows = await select(queueEntries).get();
+    return rows.map((r) => r.trackId).toSet();
+  }
+
   /// Watches the queue joined with track fields, ordered by [sortIndex].
   Stream<List<QueueTrackView>> watchOrderedQueue() {
     final query = select(queueEntries).join([
@@ -255,6 +294,7 @@ extension CatalogDao on AppDatabase {
             title: track.title,
             artist: track.artist,
             album: track.album,
+            sourceKind: track.sourceKind,
           );
         })
         .toList(growable: false);
@@ -270,8 +310,7 @@ extension CatalogDao on AppDatabase {
 
   /// Watches the singleton `playback_state` row (`id = 1`).
   Stream<PlaybackStateData> watchPlaybackState() {
-    return (select(playbackState)..where((t) => t.id.equals(1)))
-        .watchSingle();
+    return (select(playbackState)..where((t) => t.id.equals(1))).watchSingle();
   }
 
   /// One-shot read of the singleton `playback_state` row.
@@ -280,10 +319,7 @@ extension CatalogDao on AppDatabase {
   }
 
   /// Atomically writes resume fields on the singleton playback row.
-  Future<void> checkpoint({
-    int? entryId,
-    required int positionMs,
-  }) {
+  Future<void> checkpoint({int? entryId, required int positionMs}) {
     return (update(playbackState)..where((t) => t.id.equals(1))).write(
       PlaybackStateCompanion(
         currentQueueEntryId: Value(entryId),

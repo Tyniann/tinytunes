@@ -48,6 +48,7 @@ registration and media-session wiring coexist.
 - When `currentQueueEntryId` changes and the row is outside the viewport, the
   list animates to center that row (next / previous / shuffle / natural advance).
 - No cover art (`artworkCacheRef` unused).
+- Cloud tracks resolve via `PlaybackUriResolver` (download-then-play + cache); see [cloud-library.md](cloud-library.md).
 
 ### Shuffle × Repeat matrix
 

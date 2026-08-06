@@ -1759,6 +1759,384 @@ class PlaybackStateCompanion extends UpdateCompanion<PlaybackStateData> {
   }
 }
 
+class $CloudCacheEntriesTable extends CloudCacheEntries
+    with TableInfo<$CloudCacheEntriesTable, CloudCacheEntry> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CloudCacheEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _trackIdMeta = const VerificationMeta(
+    'trackId',
+  );
+  @override
+  late final GeneratedColumn<int> trackId = GeneratedColumn<int>(
+    'track_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tracks (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _remoteLocatorMeta = const VerificationMeta(
+    'remoteLocator',
+  );
+  @override
+  late final GeneratedColumn<String> remoteLocator = GeneratedColumn<String>(
+    'remote_locator',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _localPathMeta = const VerificationMeta(
+    'localPath',
+  );
+  @override
+  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
+    'local_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sizeBytesMeta = const VerificationMeta(
+    'sizeBytes',
+  );
+  @override
+  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
+    'size_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastAccessedAtMeta = const VerificationMeta(
+    'lastAccessedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastAccessedAt =
+      GeneratedColumn<DateTime>(
+        'last_accessed_at',
+        aliasedName,
+        false,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: true,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    trackId,
+    remoteLocator,
+    localPath,
+    sizeBytes,
+    lastAccessedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cloud_cache_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CloudCacheEntry> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('track_id')) {
+      context.handle(
+        _trackIdMeta,
+        trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta),
+      );
+    }
+    if (data.containsKey('remote_locator')) {
+      context.handle(
+        _remoteLocatorMeta,
+        remoteLocator.isAcceptableOrUnknown(
+          data['remote_locator']!,
+          _remoteLocatorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_remoteLocatorMeta);
+    }
+    if (data.containsKey('local_path')) {
+      context.handle(
+        _localPathMeta,
+        localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_localPathMeta);
+    }
+    if (data.containsKey('size_bytes')) {
+      context.handle(
+        _sizeBytesMeta,
+        sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sizeBytesMeta);
+    }
+    if (data.containsKey('last_accessed_at')) {
+      context.handle(
+        _lastAccessedAtMeta,
+        lastAccessedAt.isAcceptableOrUnknown(
+          data['last_accessed_at']!,
+          _lastAccessedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_lastAccessedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {trackId};
+  @override
+  CloudCacheEntry map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CloudCacheEntry(
+      trackId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}track_id'],
+      )!,
+      remoteLocator: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_locator'],
+      )!,
+      localPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_path'],
+      )!,
+      sizeBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size_bytes'],
+      )!,
+      lastAccessedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_accessed_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CloudCacheEntriesTable createAlias(String alias) {
+    return $CloudCacheEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class CloudCacheEntry extends DataClass implements Insertable<CloudCacheEntry> {
+  /// Catalog track this cache file belongs to.
+  final int trackId;
+
+  /// Remote `gdrive:` [MediaLocator] string for the cached item.
+  final String remoteLocator;
+
+  /// Absolute local filesystem path of the cached file.
+  final String localPath;
+
+  /// Cached file size in bytes.
+  final int sizeBytes;
+
+  /// Last play / download access time (UTC) for LRU eviction.
+  final DateTime lastAccessedAt;
+  const CloudCacheEntry({
+    required this.trackId,
+    required this.remoteLocator,
+    required this.localPath,
+    required this.sizeBytes,
+    required this.lastAccessedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['track_id'] = Variable<int>(trackId);
+    map['remote_locator'] = Variable<String>(remoteLocator);
+    map['local_path'] = Variable<String>(localPath);
+    map['size_bytes'] = Variable<int>(sizeBytes);
+    map['last_accessed_at'] = Variable<DateTime>(lastAccessedAt);
+    return map;
+  }
+
+  CloudCacheEntriesCompanion toCompanion(bool nullToAbsent) {
+    return CloudCacheEntriesCompanion(
+      trackId: Value(trackId),
+      remoteLocator: Value(remoteLocator),
+      localPath: Value(localPath),
+      sizeBytes: Value(sizeBytes),
+      lastAccessedAt: Value(lastAccessedAt),
+    );
+  }
+
+  factory CloudCacheEntry.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CloudCacheEntry(
+      trackId: serializer.fromJson<int>(json['trackId']),
+      remoteLocator: serializer.fromJson<String>(json['remoteLocator']),
+      localPath: serializer.fromJson<String>(json['localPath']),
+      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
+      lastAccessedAt: serializer.fromJson<DateTime>(json['lastAccessedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'trackId': serializer.toJson<int>(trackId),
+      'remoteLocator': serializer.toJson<String>(remoteLocator),
+      'localPath': serializer.toJson<String>(localPath),
+      'sizeBytes': serializer.toJson<int>(sizeBytes),
+      'lastAccessedAt': serializer.toJson<DateTime>(lastAccessedAt),
+    };
+  }
+
+  CloudCacheEntry copyWith({
+    int? trackId,
+    String? remoteLocator,
+    String? localPath,
+    int? sizeBytes,
+    DateTime? lastAccessedAt,
+  }) => CloudCacheEntry(
+    trackId: trackId ?? this.trackId,
+    remoteLocator: remoteLocator ?? this.remoteLocator,
+    localPath: localPath ?? this.localPath,
+    sizeBytes: sizeBytes ?? this.sizeBytes,
+    lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
+  );
+  CloudCacheEntry copyWithCompanion(CloudCacheEntriesCompanion data) {
+    return CloudCacheEntry(
+      trackId: data.trackId.present ? data.trackId.value : this.trackId,
+      remoteLocator: data.remoteLocator.present
+          ? data.remoteLocator.value
+          : this.remoteLocator,
+      localPath: data.localPath.present ? data.localPath.value : this.localPath,
+      sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
+      lastAccessedAt: data.lastAccessedAt.present
+          ? data.lastAccessedAt.value
+          : this.lastAccessedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CloudCacheEntry(')
+          ..write('trackId: $trackId, ')
+          ..write('remoteLocator: $remoteLocator, ')
+          ..write('localPath: $localPath, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('lastAccessedAt: $lastAccessedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(trackId, remoteLocator, localPath, sizeBytes, lastAccessedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CloudCacheEntry &&
+          other.trackId == this.trackId &&
+          other.remoteLocator == this.remoteLocator &&
+          other.localPath == this.localPath &&
+          other.sizeBytes == this.sizeBytes &&
+          other.lastAccessedAt == this.lastAccessedAt);
+}
+
+class CloudCacheEntriesCompanion extends UpdateCompanion<CloudCacheEntry> {
+  final Value<int> trackId;
+  final Value<String> remoteLocator;
+  final Value<String> localPath;
+  final Value<int> sizeBytes;
+  final Value<DateTime> lastAccessedAt;
+  const CloudCacheEntriesCompanion({
+    this.trackId = const Value.absent(),
+    this.remoteLocator = const Value.absent(),
+    this.localPath = const Value.absent(),
+    this.sizeBytes = const Value.absent(),
+    this.lastAccessedAt = const Value.absent(),
+  });
+  CloudCacheEntriesCompanion.insert({
+    this.trackId = const Value.absent(),
+    required String remoteLocator,
+    required String localPath,
+    required int sizeBytes,
+    required DateTime lastAccessedAt,
+  }) : remoteLocator = Value(remoteLocator),
+       localPath = Value(localPath),
+       sizeBytes = Value(sizeBytes),
+       lastAccessedAt = Value(lastAccessedAt);
+  static Insertable<CloudCacheEntry> custom({
+    Expression<int>? trackId,
+    Expression<String>? remoteLocator,
+    Expression<String>? localPath,
+    Expression<int>? sizeBytes,
+    Expression<DateTime>? lastAccessedAt,
+  }) {
+    return RawValuesInsertable({
+      if (trackId != null) 'track_id': trackId,
+      if (remoteLocator != null) 'remote_locator': remoteLocator,
+      if (localPath != null) 'local_path': localPath,
+      if (sizeBytes != null) 'size_bytes': sizeBytes,
+      if (lastAccessedAt != null) 'last_accessed_at': lastAccessedAt,
+    });
+  }
+
+  CloudCacheEntriesCompanion copyWith({
+    Value<int>? trackId,
+    Value<String>? remoteLocator,
+    Value<String>? localPath,
+    Value<int>? sizeBytes,
+    Value<DateTime>? lastAccessedAt,
+  }) {
+    return CloudCacheEntriesCompanion(
+      trackId: trackId ?? this.trackId,
+      remoteLocator: remoteLocator ?? this.remoteLocator,
+      localPath: localPath ?? this.localPath,
+      sizeBytes: sizeBytes ?? this.sizeBytes,
+      lastAccessedAt: lastAccessedAt ?? this.lastAccessedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (trackId.present) {
+      map['track_id'] = Variable<int>(trackId.value);
+    }
+    if (remoteLocator.present) {
+      map['remote_locator'] = Variable<String>(remoteLocator.value);
+    }
+    if (localPath.present) {
+      map['local_path'] = Variable<String>(localPath.value);
+    }
+    if (sizeBytes.present) {
+      map['size_bytes'] = Variable<int>(sizeBytes.value);
+    }
+    if (lastAccessedAt.present) {
+      map['last_accessed_at'] = Variable<DateTime>(lastAccessedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CloudCacheEntriesCompanion(')
+          ..write('trackId: $trackId, ')
+          ..write('remoteLocator: $remoteLocator, ')
+          ..write('localPath: $localPath, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('lastAccessedAt: $lastAccessedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1766,6 +2144,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TracksTable tracks = $TracksTable(this);
   late final $QueueEntriesTable queueEntries = $QueueEntriesTable(this);
   late final $PlaybackStateTable playbackState = $PlaybackStateTable(this);
+  late final $CloudCacheEntriesTable cloudCacheEntries =
+      $CloudCacheEntriesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1775,6 +2155,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     tracks,
     queueEntries,
     playbackState,
+    cloudCacheEntries,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -1798,6 +2179,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('playback_state', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'tracks',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('cloud_cache_entries', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -2171,6 +2559,27 @@ final class $$TracksTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$CloudCacheEntriesTable, List<CloudCacheEntry>>
+  _cloudCacheEntriesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.cloudCacheEntries,
+        aliasName: 'tracks__id__cloud_cache_entries__track_id',
+      );
+
+  $$CloudCacheEntriesTableProcessedTableManager get cloudCacheEntriesRefs {
+    final manager = $$CloudCacheEntriesTableTableManager(
+      $_db,
+      $_db.cloudCacheEntries,
+    ).filter((f) => f.trackId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _cloudCacheEntriesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$TracksTableFilterComposer
@@ -2276,6 +2685,31 @@ class $$TracksTableFilterComposer
           }) => $$QueueEntriesTableFilterComposer(
             $db: $db,
             $table: $db.queueEntries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> cloudCacheEntriesRefs(
+    Expression<bool> Function($$CloudCacheEntriesTableFilterComposer f) f,
+  ) {
+    final $$CloudCacheEntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.cloudCacheEntries,
+      getReferencedColumn: (t) => t.trackId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CloudCacheEntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.cloudCacheEntries,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2473,6 +2907,32 @@ class $$TracksTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> cloudCacheEntriesRefs<T extends Object>(
+    Expression<T> Function($$CloudCacheEntriesTableAnnotationComposer a) f,
+  ) {
+    final $$CloudCacheEntriesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.cloudCacheEntries,
+          getReferencedColumn: (t) => t.trackId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$CloudCacheEntriesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.cloudCacheEntries,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
 }
 
 class $$TracksTableTableManager
@@ -2488,7 +2948,11 @@ class $$TracksTableTableManager
           $$TracksTableUpdateCompanionBuilder,
           (Track, $$TracksTableReferences),
           Track,
-          PrefetchHooks Function({bool rootId, bool queueEntriesRefs})
+          PrefetchHooks Function({
+            bool rootId,
+            bool queueEntriesRefs,
+            bool cloudCacheEntriesRefs,
+          })
         > {
   $$TracksTableTableManager(_$AppDatabase db, $TracksTable table)
     : super(
@@ -2563,62 +3027,98 @@ class $$TracksTableTableManager
                     (e.readTable(table), $$TracksTableReferences(db, table, e)),
               )
               .toList(),
-          prefetchHooksCallback: ({rootId = false, queueEntriesRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (queueEntriesRefs) db.queueEntries],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (rootId) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.rootId,
-                                referencedTable: $$TracksTableReferences
-                                    ._rootIdTable(db),
-                                referencedColumn: $$TracksTableReferences
-                                    ._rootIdTable(db)
-                                    .id,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({
+                rootId = false,
+                queueEntriesRefs = false,
+                cloudCacheEntriesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (queueEntriesRefs) db.queueEntries,
+                    if (cloudCacheEntriesRefs) db.cloudCacheEntries,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (rootId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.rootId,
+                                    referencedTable: $$TracksTableReferences
+                                        ._rootIdTable(db),
+                                    referencedColumn: $$TracksTableReferences
+                                        ._rootIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (queueEntriesRefs)
+                        await $_getPrefetchedData<
+                          Track,
+                          $TracksTable,
+                          QueueEntry
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TracksTableReferences
+                              ._queueEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TracksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).queueEntriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.trackId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (cloudCacheEntriesRefs)
+                        await $_getPrefetchedData<
+                          Track,
+                          $TracksTable,
+                          CloudCacheEntry
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TracksTableReferences
+                              ._cloudCacheEntriesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TracksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).cloudCacheEntriesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.trackId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (queueEntriesRefs)
-                    await $_getPrefetchedData<Track, $TracksTable, QueueEntry>(
-                      currentTable: table,
-                      referencedTable: $$TracksTableReferences
-                          ._queueEntriesRefsTable(db),
-                      managerFromTypedResult: (p0) => $$TracksTableReferences(
-                        db,
-                        table,
-                        p0,
-                      ).queueEntriesRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where((e) => e.trackId == item.id),
-                      typedResults: items,
-                    ),
-                ];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -2635,7 +3135,11 @@ typedef $$TracksTableProcessedTableManager =
       $$TracksTableUpdateCompanionBuilder,
       (Track, $$TracksTableReferences),
       Track,
-      PrefetchHooks Function({bool rootId, bool queueEntriesRefs})
+      PrefetchHooks Function({
+        bool rootId,
+        bool queueEntriesRefs,
+        bool cloudCacheEntriesRefs,
+      })
     >;
 typedef $$QueueEntriesTableCreateCompanionBuilder =
     QueueEntriesCompanion Function({
@@ -3328,6 +3832,337 @@ typedef $$PlaybackStateTableProcessedTableManager =
       PlaybackStateData,
       PrefetchHooks Function({bool currentQueueEntryId})
     >;
+typedef $$CloudCacheEntriesTableCreateCompanionBuilder =
+    CloudCacheEntriesCompanion Function({
+      Value<int> trackId,
+      required String remoteLocator,
+      required String localPath,
+      required int sizeBytes,
+      required DateTime lastAccessedAt,
+    });
+typedef $$CloudCacheEntriesTableUpdateCompanionBuilder =
+    CloudCacheEntriesCompanion Function({
+      Value<int> trackId,
+      Value<String> remoteLocator,
+      Value<String> localPath,
+      Value<int> sizeBytes,
+      Value<DateTime> lastAccessedAt,
+    });
+
+final class $$CloudCacheEntriesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $CloudCacheEntriesTable,
+          CloudCacheEntry
+        > {
+  $$CloudCacheEntriesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $TracksTable _trackIdTable(_$AppDatabase db) =>
+      db.tracks.createAlias('cloud_cache_entries__track_id__tracks__id');
+
+  $$TracksTableProcessedTableManager get trackId {
+    final $_column = $_itemColumn<int>('track_id')!;
+
+    final manager = $$TracksTableTableManager(
+      $_db,
+      $_db.tracks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_trackIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CloudCacheEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $CloudCacheEntriesTable> {
+  $$CloudCacheEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get remoteLocator => $composableBuilder(
+    column: $table.remoteLocator,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localPath => $composableBuilder(
+    column: $table.localPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sizeBytes => $composableBuilder(
+    column: $table.sizeBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastAccessedAt => $composableBuilder(
+    column: $table.lastAccessedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$TracksTableFilterComposer get trackId {
+    final $$TracksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.trackId,
+      referencedTable: $db.tracks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TracksTableFilterComposer(
+            $db: $db,
+            $table: $db.tracks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CloudCacheEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CloudCacheEntriesTable> {
+  $$CloudCacheEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get remoteLocator => $composableBuilder(
+    column: $table.remoteLocator,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localPath => $composableBuilder(
+    column: $table.localPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sizeBytes => $composableBuilder(
+    column: $table.sizeBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastAccessedAt => $composableBuilder(
+    column: $table.lastAccessedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TracksTableOrderingComposer get trackId {
+    final $$TracksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.trackId,
+      referencedTable: $db.tracks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TracksTableOrderingComposer(
+            $db: $db,
+            $table: $db.tracks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CloudCacheEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CloudCacheEntriesTable> {
+  $$CloudCacheEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get remoteLocator => $composableBuilder(
+    column: $table.remoteLocator,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get localPath =>
+      $composableBuilder(column: $table.localPath, builder: (column) => column);
+
+  GeneratedColumn<int> get sizeBytes =>
+      $composableBuilder(column: $table.sizeBytes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastAccessedAt => $composableBuilder(
+    column: $table.lastAccessedAt,
+    builder: (column) => column,
+  );
+
+  $$TracksTableAnnotationComposer get trackId {
+    final $$TracksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.trackId,
+      referencedTable: $db.tracks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TracksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tracks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CloudCacheEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CloudCacheEntriesTable,
+          CloudCacheEntry,
+          $$CloudCacheEntriesTableFilterComposer,
+          $$CloudCacheEntriesTableOrderingComposer,
+          $$CloudCacheEntriesTableAnnotationComposer,
+          $$CloudCacheEntriesTableCreateCompanionBuilder,
+          $$CloudCacheEntriesTableUpdateCompanionBuilder,
+          (CloudCacheEntry, $$CloudCacheEntriesTableReferences),
+          CloudCacheEntry,
+          PrefetchHooks Function({bool trackId})
+        > {
+  $$CloudCacheEntriesTableTableManager(
+    _$AppDatabase db,
+    $CloudCacheEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CloudCacheEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CloudCacheEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CloudCacheEntriesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> trackId = const Value.absent(),
+                Value<String> remoteLocator = const Value.absent(),
+                Value<String> localPath = const Value.absent(),
+                Value<int> sizeBytes = const Value.absent(),
+                Value<DateTime> lastAccessedAt = const Value.absent(),
+              }) => CloudCacheEntriesCompanion(
+                trackId: trackId,
+                remoteLocator: remoteLocator,
+                localPath: localPath,
+                sizeBytes: sizeBytes,
+                lastAccessedAt: lastAccessedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> trackId = const Value.absent(),
+                required String remoteLocator,
+                required String localPath,
+                required int sizeBytes,
+                required DateTime lastAccessedAt,
+              }) => CloudCacheEntriesCompanion.insert(
+                trackId: trackId,
+                remoteLocator: remoteLocator,
+                localPath: localPath,
+                sizeBytes: sizeBytes,
+                lastAccessedAt: lastAccessedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CloudCacheEntriesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({trackId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (trackId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.trackId,
+                                referencedTable:
+                                    $$CloudCacheEntriesTableReferences
+                                        ._trackIdTable(db),
+                                referencedColumn:
+                                    $$CloudCacheEntriesTableReferences
+                                        ._trackIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$CloudCacheEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CloudCacheEntriesTable,
+      CloudCacheEntry,
+      $$CloudCacheEntriesTableFilterComposer,
+      $$CloudCacheEntriesTableOrderingComposer,
+      $$CloudCacheEntriesTableAnnotationComposer,
+      $$CloudCacheEntriesTableCreateCompanionBuilder,
+      $$CloudCacheEntriesTableUpdateCompanionBuilder,
+      (CloudCacheEntry, $$CloudCacheEntriesTableReferences),
+      CloudCacheEntry,
+      PrefetchHooks Function({bool trackId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3340,4 +4175,6 @@ class $AppDatabaseManager {
       $$QueueEntriesTableTableManager(_db, _db.queueEntries);
   $$PlaybackStateTableTableManager get playbackState =>
       $$PlaybackStateTableTableManager(_db, _db.playbackState);
+  $$CloudCacheEntriesTableTableManager get cloudCacheEntries =>
+      $$CloudCacheEntriesTableTableManager(_db, _db.cloudCacheEntries);
 }

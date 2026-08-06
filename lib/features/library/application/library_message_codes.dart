@@ -22,4 +22,7 @@ abstract final class LibraryMessageCodes {
 
   /// Grant release failed after DB delete.
   static const forgetFailed = 'library.forget.failed';
+
+  /// Cloud add attempted while signed out of Google.
+  static const cloudSignInRequired = 'library.cloud.sign_in_required';
 }

@@ -13,5 +13,6 @@ class MainActivity : AudioServiceActivity() {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         flutterEngine.plugins.add(SafLibraryPlugin())
+        flutterEngine.plugins.add(StoragePlugin())
     }
 }

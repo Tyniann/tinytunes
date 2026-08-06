@@ -63,7 +63,7 @@ final class PlaybackControllerProvider
 }
 
 String _$playbackControllerHash() =>
-    r'a3556c15eaf91f3886607f436b13f1aa80c24ba5';
+    r'd7776015228878974006943a06cfd8116d6887b8';
 
 /// Application-lifetime playback controller (Shuffle × Repeat matrix).
 ///

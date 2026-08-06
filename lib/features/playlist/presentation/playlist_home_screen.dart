@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tinytunes/core/cloud/cloud_providers.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
 import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/routing/app_routes.dart';
 import 'package:tinytunes/features/library/application/library_ingest_controller.dart';
 import 'package:tinytunes/features/library/application/library_ingest_l10n_mapper.dart';
+import 'package:tinytunes/features/library/presentation/drive_folder_browser_dialog.dart';
+import 'package:tinytunes/features/library/presentation/library_source_picker_dialog.dart';
 import 'package:tinytunes/features/player/application/playback_controller.dart';
 import 'package:tinytunes/features/player/presentation/transport_chrome.dart';
 import 'package:tinytunes/features/playlist/application/playlist_providers.dart';
@@ -75,13 +78,7 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
         actions: [
           IconButton(
             tooltip: l10n.addFolderTooltip,
-            onPressed: busy
-                ? null
-                : () {
-                    ref
-                        .read(libraryIngestControllerProvider.notifier)
-                        .addFolder(l10n: libraryIngestL10nFrom(l10n));
-                  },
+            onPressed: busy ? null : () => _onAddFolder(l10n),
             icon: const Icon(Icons.create_new_folder_outlined),
           ),
           PopupMenuButton<_PlaylistMenuAction>(
@@ -155,6 +152,18 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
             ),
           if (progress.phase == IngestPhase.forgetting)
             _HomeStrip(child: Text(l10n.forgettingProgress)),
+          if (playback.downloading)
+            _HomeStrip(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(l10n.cloudDownloading),
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(value: playback.downloadProgress),
+                ],
+              ),
+            ),
           Expanded(
             child: queueAsync.when(
               data: (queue) {
@@ -172,18 +181,7 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
                           ),
                           const SizedBox(height: 16),
                           FilledButton(
-                            onPressed: busy
-                                ? null
-                                : () {
-                                    ref
-                                        .read(
-                                          libraryIngestControllerProvider
-                                              .notifier,
-                                        )
-                                        .addFolder(
-                                          l10n: libraryIngestL10nFrom(l10n),
-                                        );
-                                  },
+                            onPressed: busy ? null : () => _onAddFolder(l10n),
                             child: Text(l10n.addFolderAction),
                           ),
                         ],
@@ -275,6 +273,30 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
     final viewTop = position.pixels;
     final viewBottom = viewTop + position.viewportDimension;
     return itemBottom > viewTop && itemTop < viewBottom;
+  }
+
+  Future<void> _onAddFolder(AppLocalizations l10n) async {
+    final choice = await showLibrarySourcePicker(context: context);
+    if (!mounted || choice == null) return;
+    switch (choice) {
+      case LibrarySourceChoice.local:
+        await ref
+            .read(libraryIngestControllerProvider.notifier)
+            .addFolder(l10n: libraryIngestL10nFrom(l10n));
+      case LibrarySourceChoice.googleDrive:
+        await _addCloudFolder(l10n);
+    }
+  }
+
+  Future<void> _addCloudFolder(AppLocalizations l10n) async {
+    final cloud = await ref.read(cloudLibrarySourceProvider.future);
+    if (!mounted) return;
+    await ref
+        .read(libraryIngestControllerProvider.notifier)
+        .addCloudFolder(
+          l10n: libraryIngestL10nFrom(l10n),
+          pick: () => showDriveFolderPicker(context: context, cloud: cloud),
+        );
   }
 
   Future<void> _forgetRevokedRoot(int rootId, AppLocalizations l10n) async {

@@ -13,6 +13,8 @@ class PlaybackUiState {
     this.duration,
     this.shuffleEnabled = false,
     this.repeatMode = RepeatMode.off,
+    this.downloading = false,
+    this.downloadProgress,
   });
 
   /// Idle / nothing loaded (modes default Off until restore or toggles).
@@ -36,6 +38,12 @@ class PlaybackUiState {
   /// Repeat transport cycle value.
   final RepeatMode repeatMode;
 
+  /// Whether a cloud track download is in progress before play.
+  final bool downloading;
+
+  /// Download fraction `0..1` when total size is known; `null` → indeterminate.
+  final double? downloadProgress;
+
   /// Copy with selective overrides.
   PlaybackUiState copyWith({
     int? currentQueueEntryId,
@@ -46,15 +54,23 @@ class PlaybackUiState {
     bool clearDuration = false,
     bool? shuffleEnabled,
     RepeatMode? repeatMode,
+    bool? downloading,
+    double? downloadProgress,
+    bool clearDownloadProgress = false,
   }) {
     return PlaybackUiState(
-      currentQueueEntryId:
-          clearCurrent ? null : (currentQueueEntryId ?? this.currentQueueEntryId),
+      currentQueueEntryId: clearCurrent
+          ? null
+          : (currentQueueEntryId ?? this.currentQueueEntryId),
       playing: playing ?? this.playing,
       position: position ?? this.position,
       duration: clearDuration ? null : (duration ?? this.duration),
       shuffleEnabled: shuffleEnabled ?? this.shuffleEnabled,
       repeatMode: repeatMode ?? this.repeatMode,
+      downloading: downloading ?? this.downloading,
+      downloadProgress: clearDownloadProgress
+          ? null
+          : (downloadProgress ?? this.downloadProgress),
     );
   }
 }

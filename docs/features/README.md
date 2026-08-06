@@ -5,7 +5,8 @@ Index of TinyTunes feature docs. Each major product module gets a kebab-case fil
 ## Documented features
 
 - [Theming](theming.md) — Settings theme mode + scheme catalog (`default` seed `#88AA00`)
-- [Library ingest](library-ingest.md) — local catalog, single queue, SAF scan / forget, revoked strips
+- [Library ingest](library-ingest.md) — local + cloud catalog, single queue, SAF / Drive scan / forget
+- [Cloud library](cloud-library.md) — Google Drive read-only (Android), download-then-play cache
 - [Player](player.md) — playback + background, Shuffle × Repeat matrix transport, expandable system volume
 - [Message center](message-center.md) — session log, toast pipeline, unread badge
 

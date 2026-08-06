@@ -34,8 +34,9 @@ isProject: false
 
 # TinyTunes high-level roadmap (hardened)
 
-**Current state (v0.6.0):** Phases 0–5 are implemented and device-verified on
-Android. Phase 6 (iOS storage and playback parity) is next.
+**Current state (v0.7.0):** Phases 0–5 and Phase 7 (Google Drive read-only cloud)
+are implemented on Android. Phase 6 (iOS storage and playback parity) remains
+**skipped / pending**.
 
 ## Goals and constraints
 
@@ -370,6 +371,8 @@ use on a documented device smoke checklist.
 
 ## Phase 6 — iOS storage and playback parity
 
+**Status:** Skipped for now (Android-first); revisit after Phase 7 daily-driver use.
+
 **Outcome:** Same catalog/queue/player contracts on iOS — adapter work, not schema rewrite.
 
 - Implement iOS `LocalLibrarySource` with **security-scoped access/bookmarks** (or explicitly document import-to-sandbox only if bookmarks prove impossible — prefer bookmarks).
@@ -381,6 +384,8 @@ use on a documented device smoke checklist.
 ---
 
 ## Phase 7 — Read-only cloud sync
+
+**Status:** Completed (Google Drive, Android) — see [`docs/features/cloud-library.md`](../../docs/features/cloud-library.md). Device smoke **Pass** 2026-08-06.
 
 **Outcome:** One provider behind the existing `CloudLibrarySource` contract.
 

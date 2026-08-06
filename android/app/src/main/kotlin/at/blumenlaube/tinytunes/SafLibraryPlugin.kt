@@ -201,8 +201,13 @@ class SafLibraryPlugin :
         val out = ArrayList<Map<String, Any?>>()
         var cursor: Cursor? = null
         try {
-            cursor = ctx.contentResolver.query(childrenUri, projection, null, null, null)
-                ?: return emptyList()
+            cursor = ctx.contentResolver.query(
+                childrenUri,
+                projection,
+                null,
+                null,
+                "${DocumentsContract.Document.COLUMN_DISPLAY_NAME} ASC",
+            ) ?: return emptyList()
             val idIdx = cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
             val nameIdx =
                 cursor.getColumnIndexOrThrow(DocumentsContract.Document.COLUMN_DISPLAY_NAME)

@@ -5,6 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod/misc.dart' show Override;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tinytunes/core/cloud/cloud_providers.dart';
+import 'package:tinytunes/core/cloud/google_drive_auth.dart';
+import 'package:tinytunes/core/cloud/google_drive_probe.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
@@ -25,6 +28,8 @@ import 'package:tinytunes/features/player/application/tinytunes_audio_handler.da
 import 'package:tinytunes/features/playlist/application/playlist_providers.dart';
 import 'package:tinytunes/main.dart';
 
+import '../core/cloud/fake_cloud_library_source.dart';
+import '../core/cloud/fake_google_drive.dart';
 import '../features/player/fake_playback_engine.dart';
 import '../features/player/fake_system_volume_source.dart';
 
@@ -46,6 +51,8 @@ Future<void> pumpApp(
   LocalLibrarySource? librarySource,
   FakePlaybackEngine? playbackEngine,
   SystemVolumeSource? systemVolumeSource,
+  GoogleDriveAuth? googleDriveAuth,
+  GoogleDriveProbe? googleDriveProbe,
   bool liveQueueStreams = false,
 }) async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
@@ -55,6 +62,8 @@ Future<void> pumpApp(
   final engine = playbackEngine ?? FakePlaybackEngine();
   final volume = systemVolumeSource ?? FakeSystemVolumeSource();
   final handler = TinyTunesAudioHandler();
+  final driveAuth = googleDriveAuth ?? FakeGoogleDriveAuth();
+  final driveProbe = googleDriveProbe ?? FakeGoogleDriveProbe(driveAuth);
 
   final streamOverrides = <Override>[
     if (!liveQueueStreams) ...[
@@ -87,6 +96,11 @@ Future<void> pumpApp(
         trackMetadataReaderProvider.overrideWithValue(
           const _EmptyFakeMetadataReader(),
         ),
+        googleDriveAuthProvider.overrideWithValue(driveAuth),
+        googleDriveProbeProvider.overrideWithValue(driveProbe),
+        cloudLibrarySourceProvider.overrideWith(
+          (ref) async => FakeCloudLibrarySource(),
+        ),
         toastDeliveryProvider.overrideWithValue(const NoopToastDelivery()),
         audioHandlerProvider.overrideWithValue(handler),
         playbackEngineProvider.overrideWithValue(engine),
@@ -104,7 +118,11 @@ Future<void> pumpApp(
       child: const TinyTunesApp(),
     ),
   );
-  await tester.pumpAndSettle();
+  // Resolve FutureProviders without pumpAndSettle — an indeterminate
+  // LinearProgressIndicator (e.g. Drive busy) never finishes settle.
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 50));
+  await tester.pump(const Duration(milliseconds: 50));
 }
 
 /// Disposes the pumped app and flushes any leftover zero-duration timers.

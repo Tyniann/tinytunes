@@ -47,6 +47,38 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settingsGoogleDriveSection => 'Google Drive';
+
+  @override
+  String get settingsGoogleDriveSignIn => 'Mit Google anmelden';
+
+  @override
+  String get settingsGoogleDriveSignOut => 'Abmelden';
+
+  @override
+  String settingsGoogleDriveSignedInAs(String email) {
+    return 'Angemeldet als $email';
+  }
+
+  @override
+  String settingsCloudCacheLimit(String size) {
+    return 'Cloud-Cache-Limit: $size';
+  }
+
+  @override
+  String get settingsCloudCacheClear => 'Cloud-Cache leeren';
+
+  @override
+  String get settingsCloudCacheClearTitle => 'Cloud-Cache leeren?';
+
+  @override
+  String get settingsCloudCacheClearBody =>
+      'Löscht heruntergeladene Cloud-Dateien auf diesem Gerät. Deine Drive-Bibliothek und die Playlist bleiben erhalten.';
+
+  @override
+  String get settingsCloudCacheCleared => 'Cloud-Cache geleert.';
+
+  @override
   String get messagesTitle => 'Nachrichten';
 
   @override
@@ -92,6 +124,15 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get addFolderTooltip => 'Ordner hinzufügen';
+
+  @override
+  String get addLibrarySourceTitle => 'Musik hinzufügen von';
+
+  @override
+  String get addLibrarySourceLocal => 'Dieses Gerät';
+
+  @override
+  String get addLibrarySourceGoogleDrive => 'Google Drive';
 
   @override
   String get playlistMenuTooltip => 'Playlist-Aktionen';
@@ -165,10 +206,42 @@ class AppLocalizationsDe extends AppLocalizations {
       'Ordner lokal entfernt, aber Freigabe fehlgeschlagen.';
 
   @override
+  String get libraryCloudSignInRequired =>
+      'Melde dich zuerst in den Einstellungen bei Google Drive an.';
+
+  @override
+  String get addCloudFolderTooltip => 'Cloud-Ordner hinzufügen';
+
+  @override
+  String get driveFolderBrowserTitle => 'Drive-Ordner wählen';
+
+  @override
+  String get driveFolderBrowserSelect => 'Diesen Ordner wählen';
+
+  @override
+  String get driveFolderBrowserEmpty => 'Dieser Ordner ist leer.';
+
+  @override
+  String get driveIncludeSubfoldersTitle => 'Auch Unterordner laden?';
+
+  @override
+  String get driveIncludeSubfoldersBody =>
+      'Verschachtelte Ordner wie beim lokalen Hinzufügen einbeziehen, oder nur Dateien in diesem Ordner.';
+
+  @override
+  String get driveIncludeSubfoldersYes => 'Unterordner einbeziehen';
+
+  @override
+  String get driveIncludeSubfoldersNo => 'Nur dieser Ordner';
+
+  @override
   String get unknownArtist => 'Unbekannter Künstler';
 
   @override
   String get playerFileMissing => 'Titeldatei fehlt oder ist nicht zugänglich.';
+
+  @override
+  String get cloudDownloading => 'Wird heruntergeladen…';
 
   @override
   String get playerLoadFailed => 'Titel konnte nicht geladen werden.';

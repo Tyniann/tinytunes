@@ -60,10 +60,7 @@ class ShuffleSession {
         if (id != headId) id,
     ]..shuffle(random);
 
-    return ShuffleSession(
-      permutation: [headId, ...rest],
-      index: 0,
-    );
+    return ShuffleSession(permutation: [headId, ...rest], index: 0);
   }
 
   /// Drops removed ids from perm/history and clamps [index].
@@ -77,11 +74,7 @@ class ShuffleSession {
         if (livingIds.contains(id)) id,
     ];
     final clamped = perm.isEmpty ? 0 : index.clamp(0, perm.length - 1);
-    return ShuffleSession(
-      permutation: perm,
-      index: clamped,
-      history: hist,
-    );
+    return ShuffleSession(permutation: perm, index: clamped, history: hist);
   }
 
   /// Appends [newIds] (not already in perm) at the end — Shuffle+Off only.

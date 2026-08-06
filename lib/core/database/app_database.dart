@@ -5,12 +5,20 @@ import 'package:tinytunes/core/database/tables.dart';
 
 part 'app_database.g.dart';
 
-/// TinyTunes Drift database (catalog, queue, playback singleton).
+/// TinyTunes Drift database (catalog, queue, playback singleton, cloud cache).
 ///
 /// Purpose: Persist library roots/tracks and the single queue across restarts.
 /// Usage Context: Opened once via [appDatabaseProvider]; tests use
 /// [AppDatabase.memory].
-@DriftDatabase(tables: [LibraryRoots, Tracks, QueueEntries, PlaybackState])
+@DriftDatabase(
+  tables: [
+    LibraryRoots,
+    Tracks,
+    QueueEntries,
+    PlaybackState,
+    CloudCacheEntries,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   /// Opens [executor] (production file DB or in-memory test DB).
   AppDatabase(super.executor);
@@ -38,13 +46,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (Migrator m) async {
           await m.createAll();
           await _ensurePlaybackStateRow();
+        },
+        onUpgrade: (Migrator m, int from, int to) async {
+          if (from < 2) {
+            await m.createTable(cloudCacheEntries);
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');

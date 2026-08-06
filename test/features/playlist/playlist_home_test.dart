@@ -108,6 +108,8 @@ void main() {
 
     await tester.tap(find.widgetWithText(FilledButton, 'Add folder'));
     await tester.pump();
+    await tester.tap(find.text('This device'));
+    await tester.pump();
 
     // CTA shares addFolder — picking is busy; actions disabled.
     final addButton = tester.widget<IconButton>(
@@ -117,7 +119,8 @@ void main() {
     expect(find.textContaining('Scanning'), findsNothing);
 
     gate.complete(null);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
 
     expect(
       tester
@@ -138,6 +141,8 @@ void main() {
 
     await tester.tap(find.byTooltip('Add folder'));
     await tester.pump();
+    await tester.tap(find.text('This device'));
+    await tester.pump();
 
     final addButton = tester.widget<IconButton>(
       find.widgetWithIcon(IconButton, Icons.create_new_folder_outlined),
@@ -147,7 +152,8 @@ void main() {
     expect(find.textContaining('Scanning'), findsNothing);
 
     gate.complete(null);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
 
     final addAfter = tester.widget<IconButton>(
       find.widgetWithIcon(IconButton, Icons.create_new_folder_outlined),

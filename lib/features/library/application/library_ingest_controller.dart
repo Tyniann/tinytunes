@@ -3,6 +3,9 @@ import 'dart:collection';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:tinytunes/core/cloud/cloud_library_source.dart';
+import 'package:tinytunes/core/cloud/cloud_providers.dart';
+import 'package:tinytunes/core/cloud/source_kinds.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
@@ -12,6 +15,8 @@ import 'package:tinytunes/core/library/media_locator.dart';
 import 'package:tinytunes/core/library/track_metadata_reader.dart';
 import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/features/library/application/audio_extensions.dart';
+import 'package:tinytunes/features/library/application/cloud_folder_pick.dart';
+import 'package:tinytunes/features/library/application/library_entry_order.dart';
 import 'package:tinytunes/features/library/application/library_ingest_l10n.dart';
 import 'package:tinytunes/features/library/application/library_message_codes.dart';
 import 'package:tinytunes/features/library/application/library_providers.dart';
@@ -178,6 +183,76 @@ class LibraryIngestController extends _$LibraryIngestController {
     }
   }
 
+  /// Picks a Drive folder and imports it as a cloud catalog root + queue refill.
+  ///
+  /// [pick] owns UI (folder browser + subfolders dialog). Cancel returns `null`.
+  Future<void> addCloudFolder({
+    required LibraryIngestL10n l10n,
+    required Future<CloudFolderPick?> Function() pick,
+  }) async {
+    if (state.isBusy) return;
+
+    final reporter = ref.read(messageReporterProvider);
+    final auth = ref.read(googleDriveAuthProvider);
+    if (auth.currentAccount == null) {
+      reporter.reportError(
+        code: LibraryMessageCodes.cloudSignInRequired,
+        message: l10n.cloudSignInRequired,
+      );
+      return;
+    }
+
+    _begin(IngestPhase.picking);
+    try {
+      final picked = await pick();
+      if (picked == null) {
+        _finishIdle();
+        return;
+      }
+
+      _begin(IngestPhase.scanning);
+      reporter.reportInfo(
+        code: LibraryMessageCodes.scanStarted,
+        message: l10n.scanStarted,
+      );
+
+      final cloud = await ref.read(cloudLibrarySourceProvider.future);
+      final db = ref.read(appDatabaseProvider);
+      final existing = await db.getRootByLocator(picked.locator.value);
+      if (existing != null) {
+        await _rescanCloudRoot(
+          rootId: existing.id,
+          rootLocator: MediaLocator(existing.locator),
+          cloud: cloud,
+          includeSubfolders: picked.includeSubfolders,
+          l10n: l10n,
+          appendAllTouched: true,
+        );
+        return;
+      }
+
+      final rootId = await db.upsertRoot(
+        locator: picked.locator.value,
+        displayName: picked.displayName,
+        sourceKind: SourceKinds.cloud,
+      );
+      await _scanNewCloudRoot(
+        rootId: rootId,
+        rootLocator: picked.locator,
+        cloud: cloud,
+        includeSubfolders: picked.includeSubfolders,
+        l10n: l10n,
+      );
+    } on Object catch (error, stack) {
+      debugPrint('addCloudFolder failed: $error\n$stack');
+      reporter.reportError(
+        code: LibraryMessageCodes.scanFailed,
+        message: '${l10n.scanFailed} ($error)',
+      );
+      _finishIdle();
+    }
+  }
+
   /// Re-scans an existing root by database [rootId].
   Future<void> rescanRoot({
     required int rootId,
@@ -198,6 +273,18 @@ class LibraryIngestController extends _$LibraryIngestController {
           code: LibraryMessageCodes.scanStarted,
           message: l10n.scanStarted,
         );
+
+    if (root.sourceKind == SourceKinds.cloud) {
+      final cloud = await ref.read(cloudLibrarySourceProvider.future);
+      await _rescanCloudRoot(
+        rootId: root.id,
+        rootLocator: MediaLocator(root.locator),
+        cloud: cloud,
+        includeSubfolders: true,
+        l10n: l10n,
+      );
+      return;
+    }
 
     await _rescanRoot(
       rootId: root.id,
@@ -226,6 +313,17 @@ class LibraryIngestController extends _$LibraryIngestController {
     _begin(IngestPhase.forgetting);
     try {
       final locator = MediaLocator(root.locator);
+      if (root.sourceKind == SourceKinds.cloud) {
+        await ref.read(cloudCacheStoreProvider).deleteForRoot(rootId);
+        await db.deleteRootCascade(rootId);
+        _clearRevokedRoot(rootId);
+        reporter.reportInfo(
+          code: LibraryMessageCodes.forgetComplete,
+          message: l10n.forgetComplete,
+        );
+        return;
+      }
+
       await db.deleteRootCascade(rootId);
       _clearRevokedRoot(rootId);
       try {
@@ -257,6 +355,9 @@ class LibraryIngestController extends _$LibraryIngestController {
 
     final nextRevoked = <RevokedRootInfo>[];
     for (final root in roots) {
+      if (root.sourceKind == SourceKinds.cloud) {
+        continue;
+      }
       final bool ok;
       try {
         ok = await source.hasPersistedAccess(MediaLocator(root.locator));
@@ -394,6 +495,220 @@ class LibraryIngestController extends _$LibraryIngestController {
       message: l10n.scanComplete,
     );
     _finishIdle();
+  }
+
+  Future<void> _scanNewCloudRoot({
+    required int rootId,
+    required MediaLocator rootLocator,
+    required CloudLibrarySource cloud,
+    required bool includeSubfolders,
+    required LibraryIngestL10n l10n,
+  }) async {
+    final reporter = ref.read(messageReporterProvider);
+    final outcome = await _walkCloudAndUpsert(
+      rootId: rootId,
+      rootLocator: rootLocator,
+      cloud: cloud,
+      includeSubfolders: includeSubfolders,
+      pruneMissing: false,
+    );
+
+    if (outcome.cancelled) {
+      reporter.reportInfo(
+        code: LibraryMessageCodes.scanCancelled,
+        message: l10n.scanCancelled,
+      );
+      _finishIdle();
+      return;
+    }
+    if (!outcome.success) {
+      reporter.reportError(
+        code: LibraryMessageCodes.scanFailed,
+        message: outcome.failureDetail == null
+            ? l10n.scanFailed
+            : '${l10n.scanFailed} (${outcome.failureDetail})',
+      );
+      _finishIdle();
+      return;
+    }
+
+    final db = ref.read(appDatabaseProvider);
+    await db.appendTrackIds(outcome.allTouchedTrackIds);
+    reporter.reportInfo(
+      code: LibraryMessageCodes.scanComplete,
+      message: l10n.scanComplete,
+    );
+    _finishIdle();
+  }
+
+  Future<void> _rescanCloudRoot({
+    required int rootId,
+    required MediaLocator rootLocator,
+    required CloudLibrarySource cloud,
+    required bool includeSubfolders,
+    required LibraryIngestL10n l10n,
+    bool appendAllTouched = false,
+  }) async {
+    final reporter = ref.read(messageReporterProvider);
+    final outcome = await _walkCloudAndUpsert(
+      rootId: rootId,
+      rootLocator: rootLocator,
+      cloud: cloud,
+      includeSubfolders: includeSubfolders,
+      pruneMissing: true,
+    );
+
+    if (outcome.cancelled) {
+      reporter.reportInfo(
+        code: LibraryMessageCodes.scanCancelled,
+        message: l10n.scanCancelled,
+      );
+      _finishIdle();
+      return;
+    }
+    if (!outcome.success) {
+      reporter.reportError(
+        code: LibraryMessageCodes.scanFailed,
+        message: outcome.failureDetail == null
+            ? l10n.scanFailed
+            : '${l10n.scanFailed} (${outcome.failureDetail})',
+      );
+      _finishIdle();
+      return;
+    }
+
+    final db = ref.read(appDatabaseProvider);
+    await db.appendTrackIds(
+      appendAllTouched
+          ? outcome.allTouchedTrackIds
+          : outcome.newlyInsertedTrackIds,
+    );
+    reporter.reportInfo(
+      code: LibraryMessageCodes.scanComplete,
+      message: l10n.scanComplete,
+    );
+    _finishIdle();
+  }
+
+  /// Walks a Drive folder tree (list-only; tags fill on play download).
+  Future<_WalkOutcome> _walkCloudAndUpsert({
+    required int rootId,
+    required MediaLocator rootLocator,
+    required CloudLibrarySource cloud,
+    required bool includeSubfolders,
+    required bool pruneMissing,
+  }) async {
+    final db = ref.read(appDatabaseProvider);
+
+    final seenSourceItemIds = <String>{};
+    final newlyInserted = <int>[];
+    final allTouched = <int>[];
+    var processed = 0;
+    var cancelled = false;
+    var failed = false;
+    var batchesFailed = false;
+    String? failureDetail;
+
+    final dirs = Queue<MediaLocator>()..add(rootLocator);
+    final pending = <CloudLibraryEntry>[];
+
+    Future<bool> flushBatch() async {
+      if (pending.isEmpty) return true;
+      final chunk = List<CloudLibraryEntry>.from(pending);
+      pending.clear();
+
+      // Leave title/artist/album absent so re-scan does not wipe play-path tags.
+      final companions = <TracksCompanion>[
+        for (final entry in chunk)
+          TracksCompanion.insert(
+            rootId: rootId,
+            sourceItemId: entry.locator.value,
+            locator: entry.locator.value,
+            displayName: entry.name,
+            sizeBytes: Value(entry.sizeBytes),
+            modifiedAt: Value(entry.modifiedAt),
+            sourceKind: const Value(SourceKinds.cloud),
+          ),
+      ];
+      for (final entry in chunk) {
+        seenSourceItemIds.add(entry.locator.value);
+        processed++;
+        state = state.copyWith(
+          phase: IngestPhase.scanning,
+          processedCount: processed,
+        );
+      }
+
+      try {
+        for (var i = 0; i < companions.length; i += _batchSize) {
+          final batch = companions.skip(i).take(_batchSize).toList();
+          final result = await db.upsertTracksBatch(rootId, batch);
+          newlyInserted.addAll(result.insertedIds);
+          allTouched.addAll(result.insertedIds);
+          allTouched.addAll(result.updatedIds);
+        }
+        return true;
+      } on Object catch (error, stack) {
+        debugPrint('cloud upsert batch failed: $error\n$stack');
+        batchesFailed = true;
+        failureDetail = error.toString();
+        return false;
+      }
+    }
+
+    while (dirs.isNotEmpty) {
+      if (_cancelRequested) {
+        cancelled = true;
+        break;
+      }
+      final parent = dirs.removeFirst();
+      final List<CloudLibraryEntry> children;
+      try {
+        children = List<CloudLibraryEntry>.of(await cloud.list(parent))
+          ..sort((a, b) => compareDisplayNames(a.name, b.name));
+      } on Object catch (error, stack) {
+        debugPrint('cloud list failed: $error\n$stack');
+        failed = true;
+        failureDetail = error.toString();
+        await flushBatch();
+        break;
+      }
+
+      for (final child in children) {
+        if (child.isDirectory) {
+          if (includeSubfolders) {
+            dirs.add(child.locator);
+          }
+        } else {
+          pending.add(child);
+          if (pending.length >= _batchSize) {
+            final ok = await flushBatch();
+            if (!ok) break;
+          }
+        }
+      }
+      if (failed || cancelled || batchesFailed) break;
+    }
+
+    if (!failed && !cancelled && !batchesFailed) {
+      final ok = await flushBatch();
+      if (!ok && !cancelled) {
+        failed = true;
+      }
+    }
+
+    final success = !failed && !cancelled && !batchesFailed;
+    if (success && pruneMissing) {
+      await db.deleteTracksNotIn(rootId, seenSourceItemIds);
+    }
+
+    return _WalkOutcome(
+      success: success,
+      cancelled: cancelled,
+      newlyInsertedTrackIds: List.unmodifiable(newlyInserted),
+      allTouchedTrackIds: List.unmodifiable(allTouched),
+      failureDetail: failureDetail,
+    );
   }
 
   Future<_WalkOutcome> _walkAndUpsert({
@@ -562,9 +877,7 @@ class LibraryIngestController extends _$LibraryIngestController {
 
   void _markRevoked(RevokedRootInfo info) {
     final without = state.revokedRoots.where((r) => r.id != info.id).toList();
-    state = state.copyWith(
-      revokedRoots: List.unmodifiable([...without, info]),
-    );
+    state = state.copyWith(revokedRoots: List.unmodifiable([...without, info]));
   }
 
   void _clearRevokedRoot(int rootId) {

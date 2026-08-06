@@ -47,6 +47,38 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settingsGoogleDriveSection => 'Google Drive';
+
+  @override
+  String get settingsGoogleDriveSignIn => 'Sign in with Google';
+
+  @override
+  String get settingsGoogleDriveSignOut => 'Sign out';
+
+  @override
+  String settingsGoogleDriveSignedInAs(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
+  String settingsCloudCacheLimit(String size) {
+    return 'Cloud cache limit: $size';
+  }
+
+  @override
+  String get settingsCloudCacheClear => 'Clear cloud cache';
+
+  @override
+  String get settingsCloudCacheClearTitle => 'Clear cloud cache?';
+
+  @override
+  String get settingsCloudCacheClearBody =>
+      'Deletes downloaded cloud files on this device. Your Drive library and playlist stay intact.';
+
+  @override
+  String get settingsCloudCacheCleared => 'Cloud cache cleared.';
+
+  @override
   String get messagesTitle => 'Messages';
 
   @override
@@ -92,6 +124,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addFolderTooltip => 'Add folder';
+
+  @override
+  String get addLibrarySourceTitle => 'Add music from';
+
+  @override
+  String get addLibrarySourceLocal => 'This device';
+
+  @override
+  String get addLibrarySourceGoogleDrive => 'Google Drive';
 
   @override
   String get playlistMenuTooltip => 'Playlist actions';
@@ -165,10 +206,42 @@ class AppLocalizationsEn extends AppLocalizations {
       'Folder removed locally, but access release failed.';
 
   @override
+  String get libraryCloudSignInRequired =>
+      'Sign in to Google Drive in Settings first.';
+
+  @override
+  String get addCloudFolderTooltip => 'Add cloud folder';
+
+  @override
+  String get driveFolderBrowserTitle => 'Choose Drive folder';
+
+  @override
+  String get driveFolderBrowserSelect => 'Select this folder';
+
+  @override
+  String get driveFolderBrowserEmpty => 'This folder is empty.';
+
+  @override
+  String get driveIncludeSubfoldersTitle => 'Also load subfolders?';
+
+  @override
+  String get driveIncludeSubfoldersBody =>
+      'Include nested folders like local Add folder, or only files in this folder.';
+
+  @override
+  String get driveIncludeSubfoldersYes => 'Include subfolders';
+
+  @override
+  String get driveIncludeSubfoldersNo => 'This folder only';
+
+  @override
   String get unknownArtist => 'Unknown artist';
 
   @override
   String get playerFileMissing => 'Track file is missing or inaccessible.';
+
+  @override
+  String get cloudDownloading => 'Downloading…';
 
   @override
   String get playerLoadFailed => 'Could not load track for playback.';

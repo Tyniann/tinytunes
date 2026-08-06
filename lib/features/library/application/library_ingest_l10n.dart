@@ -12,17 +12,19 @@ class LibraryIngestL10n {
     required this.rootRevoked,
     required this.forgetComplete,
     required this.forgetFailed,
+    required this.cloudSignInRequired,
   });
 
   /// English defaults for unit tests.
   const LibraryIngestL10n.english()
-      : scanStarted = 'Scanning library…',
-        scanComplete = 'Library scan complete.',
-        scanCancelled = 'Library scan cancelled.',
-        scanFailed = 'Library scan failed.',
-        rootRevoked = 'Folder access was revoked.',
-        forgetComplete = 'Folder forgotten.',
-        forgetFailed = 'Folder removed locally, but access release failed.';
+    : scanStarted = 'Scanning library…',
+      scanComplete = 'Library scan complete.',
+      scanCancelled = 'Library scan cancelled.',
+      scanFailed = 'Library scan failed.',
+      rootRevoked = 'Folder access was revoked.',
+      forgetComplete = 'Folder forgotten.',
+      forgetFailed = 'Folder removed locally, but access release failed.',
+      cloudSignInRequired = 'Sign in to Google Drive in Settings first.';
 
   /// `library.scan.started` toast/body.
   final String scanStarted;
@@ -44,4 +46,7 @@ class LibraryIngestL10n {
 
   /// `library.forget.failed` toast/body.
   final String forgetFailed;
+
+  /// `library.cloud.sign_in_required` toast/body.
+  final String cloudSignInRequired;
 }

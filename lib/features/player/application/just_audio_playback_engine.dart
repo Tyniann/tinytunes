@@ -36,9 +36,7 @@ class JustAudioPlaybackEngine implements PlaybackEngine {
 
   @override
   Future<void> setUri(Uri uri, {required MediaItem tag}) async {
-    await _player.setAudioSource(
-      AudioSource.uri(uri, tag: tag),
-    );
+    await _player.setAudioSource(AudioSource.uri(uri, tag: tag));
   }
 
   /// Starts playback without waiting for the current source to finish.
