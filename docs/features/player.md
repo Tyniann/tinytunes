@@ -23,6 +23,7 @@ via pure `QueueNavigator`; the handler stays a thin façade.
   - `lib/features/player/application/system_volume_source.dart`
   - `lib/features/player/application/device_system_volume_source.dart`
   - `lib/features/player/application/player_providers.dart`
+  - `lib/core/library/artwork_cache_store.dart` (capped cover JPEG cache)
   - `lib/main.dart` (bootstrap: `AudioService.init` → handler override → eager controller)
 
 ## Functionality
@@ -47,7 +48,9 @@ registration and media-session wiring coexist.
 - Current row highlight via `ColorScheme`.
 - When `currentQueueEntryId` changes and the row is outside the viewport, the
   list animates to center that row (next / previous / shuffle / natural advance).
-- No cover art (`artworkCacheRef` unused).
+- Queue trailing cover thumb (left of remove) when `artworkCacheRef` is set;
+  no placeholder — title/artist expand toward remove when art is missing.
+- `MediaItem.artUri` set from the capped cover file for notification / lock screen.
 - Cloud tracks resolve via `PlaybackUriResolver` (download-then-play + cache); see [cloud-library.md](cloud-library.md).
 
 ### Shuffle × Repeat matrix
@@ -133,11 +136,14 @@ expose play, pause, seek, skip previous/next via the handler façade.
 - `audio_service` (direct; **not** `just_audio_background`)
 - `audio_session`
 - `volume_controller` (system / media volume for transport chrome)
+- `image` (cap/encode embedded covers to JPEG)
 
 ## Related Features
 
 - [Library ingest](library-ingest.md) — catalog/queue and SAF locators
+- [Cloud library](cloud-library.md) — play-path cover enrich + cache wipe of art
+- [Online cover fetch](online-cover-fetch.md) — candidate later (opt-in; not shipped)
 - [Message center](message-center.md) — player error/info codes
 
 ---
-*Last updated: 2026-07-25*
+*Last updated: 2026-08-06*

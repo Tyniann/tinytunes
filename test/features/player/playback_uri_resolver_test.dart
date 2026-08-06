@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:tinytunes/core/cloud/cloud_cache_store.dart';
 import 'package:tinytunes/core/cloud/drive_media_locator.dart';
 import 'package:tinytunes/core/cloud/drive_remote.dart';
@@ -10,6 +11,7 @@ import 'package:tinytunes/core/cloud/google_drive_cloud_library_source.dart';
 import 'package:tinytunes/core/cloud/source_kinds.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
+import 'package:tinytunes/core/library/artwork_cache_store.dart';
 import 'package:tinytunes/core/library/local_library_source.dart';
 import 'package:tinytunes/core/library/media_locator.dart';
 import 'package:tinytunes/core/library/track_metadata_reader.dart';
@@ -20,15 +22,18 @@ import '../../core/cloud/fake_drive_remote.dart';
 void main() {
   late AppDatabase db;
   late Directory tempDir;
+  late Directory artDir;
   late FakeDriveRemote remote;
   late GoogleDriveCloudLibrarySource cloud;
   late CloudCacheStore cache;
+  late ArtworkCacheStore artwork;
   late _RecordingLocalSource local;
   late _StubMetadataReader reader;
 
   setUp(() async {
     db = AppDatabase.memory();
     tempDir = await Directory.systemTemp.createTemp('tt_uri_resolver_');
+    artDir = await Directory.systemTemp.createTemp('tt_uri_art_');
     remote = FakeDriveRemote(
       files: {
         'song1': const DriveRemoteFileMeta(
@@ -46,7 +51,8 @@ void main() {
       cacheRootDirectory: tempDir,
       freeSpace: const UnlimitedFreeSpaceSource(),
     );
-    cache = CloudCacheStore(db: db);
+    artwork = ArtworkCacheStore(db: db, root: artDir);
+    cache = CloudCacheStore(db: db, artwork: artwork);
     local = _RecordingLocalSource();
     reader = _StubMetadataReader();
   });
@@ -56,6 +62,9 @@ void main() {
     if (await tempDir.exists()) {
       await tempDir.delete(recursive: true);
     }
+    if (await artDir.exists()) {
+      await artDir.delete(recursive: true);
+    }
   });
 
   PlaybackUriResolver makeResolver() => PlaybackUriResolver(
@@ -64,6 +73,7 @@ void main() {
     cacheStore: cache,
     db: db,
     metadataReader: reader,
+    artworkStore: artwork,
     budgetBytes: 1024 * 1024,
   );
 
@@ -141,7 +151,7 @@ void main() {
     expect(local.resolveCalls, 0);
   });
 
-  test('cloud download fills null tags from local file', () async {
+  test('cloud download fills null tags and artwork from local file', () async {
     final view = await insertCloudTrack();
     await makeResolver().resolve(
       view,
@@ -155,6 +165,8 @@ void main() {
     expect(track.title, 'Stub Title');
     expect(track.artist, 'Stub Artist');
     expect(track.album, 'Stub Album');
+    expect(track.artworkCacheRef, isNotNull);
+    expect(File(track.artworkCacheRef!).existsSync(), isTrue);
   });
 
   test('cache hit with null tags reads file once without re-download', () async {
@@ -179,12 +191,15 @@ void main() {
     expect(track.title, 'Stub Title');
   });
 
-  test('does not re-read tags when already present', () async {
+  test('does not re-read when tags and artwork already present', () async {
     final view = await insertCloudTrack(
       title: 'Existing',
       artist: 'Artist',
       album: 'Album',
     );
+    await artwork.writeFromBytes(view.trackId, reader.artworkBytes);
+    reader.readCalls = 0;
+
     await makeResolver().resolve(view, queuedTrackIds: {view.trackId});
     expect(reader.readCalls, 0);
     final track = await (db.select(
@@ -192,18 +207,58 @@ void main() {
     )..where((t) => t.id.equals(view.trackId))).getSingle();
     expect(track.title, 'Existing');
   });
+
+  test('reads for artwork when tags exist but cover is missing', () async {
+    final view = await insertCloudTrack(
+      title: 'Existing',
+      artist: 'Artist',
+      album: 'Album',
+    );
+    await makeResolver().resolve(view, queuedTrackIds: {view.trackId});
+    expect(reader.readCalls, 1);
+    final track = await (db.select(
+      db.tracks,
+    )..where((t) => t.id.equals(view.trackId))).getSingle();
+    expect(track.artworkCacheRef, isNotNull);
+  });
+
+  test('cloud cache delete also removes artwork', () async {
+    final view = await insertCloudTrack();
+    await makeResolver().resolve(view, queuedTrackIds: {view.trackId});
+    final track = await (db.select(
+      db.tracks,
+    )..where((t) => t.id.equals(view.trackId))).getSingle();
+    final artPath = track.artworkCacheRef!;
+    expect(File(artPath).existsSync(), isTrue);
+
+    await cache.deleteForTrack(view.trackId);
+
+    expect(File(artPath).existsSync(), isFalse);
+    final after = await (db.select(
+      db.tracks,
+    )..where((t) => t.id.equals(view.trackId))).getSingle();
+    expect(after.artworkCacheRef, isNull);
+  });
 }
 
 class _StubMetadataReader implements TrackMetadataReader {
   int readCalls = 0;
 
+  /// Tiny PNG used as embedded cover bytes.
+  late final List<int> artworkBytes = () {
+    final image = img.Image(width: 16, height: 16);
+    img.fill(image, color: img.ColorRgb8(1, 2, 3));
+    return img.encodePng(image);
+  }();
+
   @override
   Future<TrackMetadata> read(String path) async {
     readCalls++;
-    return const TrackMetadata(
+    return TrackMetadata(
       title: 'Stub Title',
       artist: 'Stub Artist',
       album: 'Stub Album',
+      artworkBytes: artworkBytes,
     );
   }
 }

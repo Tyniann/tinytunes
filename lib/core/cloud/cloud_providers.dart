@@ -18,6 +18,7 @@ import 'package:tinytunes/core/cloud/google_drive_cloud_library_source.dart';
 import 'package:tinytunes/core/cloud/google_drive_probe.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
+import 'package:tinytunes/core/library/artwork_providers.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
 
 part 'cloud_providers.g.dart';
@@ -113,10 +114,13 @@ Future<CloudLibrarySource> cloudLibrarySource(Ref ref) async {
   );
 }
 
-/// [CloudCacheStore] bound to the app database.
+/// [CloudCacheStore] bound to the app database (deletes artwork with audio).
 @Riverpod(keepAlive: true)
 CloudCacheStore cloudCacheStore(Ref ref) {
-  return CloudCacheStore(db: ref.watch(appDatabaseProvider));
+  return CloudCacheStore(
+    db: ref.watch(appDatabaseProvider),
+    artwork: ref.watch(artworkCacheStoreProvider),
+  );
 }
 
 /// Prefs wrapper for the cloud cache budget.

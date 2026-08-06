@@ -14,6 +14,7 @@ import 'package:tinytunes/features/library/presentation/library_source_picker_di
 import 'package:tinytunes/features/player/application/playback_controller.dart';
 import 'package:tinytunes/features/player/presentation/transport_chrome.dart';
 import 'package:tinytunes/features/playlist/application/playlist_providers.dart';
+import 'package:tinytunes/features/playlist/presentation/queue_cover_thumb.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 
 /// Playlist home: queue list, library actions, live transport.
@@ -97,6 +98,10 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
               PopupMenuItem(
                 value: _PlaylistMenuAction.forget,
                 child: Text(l10n.forgetFolder),
+              ),
+              PopupMenuItem(
+                value: _PlaylistMenuAction.forgetAll,
+                child: Text(l10n.forgetAllFolders),
               ),
             ],
           ),
@@ -198,25 +203,49 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
                     final isCurrent =
                         row.queueEntryId == playback.currentQueueEntryId;
                     return ListTile(
+                      contentPadding: const EdgeInsets.only(
+                        left: 16,
+                        right: 4,
+                      ),
                       selected: isCurrent,
                       selectedTileColor: scheme.secondaryContainer,
-                      title: Text(row.listTitle),
+                      title: Text(
+                        row.listTitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       subtitle: Text(
                         (row.artist != null && row.artist!.trim().isNotEmpty)
                             ? row.artist!
                             : l10n.unknownArtist,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       onTap: () => ref
                           .read(playbackControllerProvider.notifier)
                           .playEntry(row.queueEntryId),
-                      trailing: IconButton(
-                        tooltip: l10n.removeFromQueueTooltip,
-                        onPressed: busy
-                            ? null
-                            : () => ref
-                                  .read(queueActionsProvider)
-                                  .removeEntry(row.queueEntryId),
-                        icon: const Icon(Icons.remove_circle_outline),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (row.artworkCacheRef != null &&
+                              row.artworkCacheRef!.trim().isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: QueueCoverThumb(
+                                key: ValueKey('queue-cover-${row.trackId}'),
+                                path: row.artworkCacheRef!,
+                              ),
+                            ),
+                          IconButton(
+                            tooltip: l10n.removeFromQueueTooltip,
+                            onPressed: busy
+                                ? null
+                                : () => ref
+                                      .read(queueActionsProvider)
+                                      .removeEntry(row.queueEntryId),
+                            icon: const Icon(Icons.remove_circle_outline),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -346,6 +375,26 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
               .read(libraryIngestControllerProvider.notifier)
               .forgetRoot(rootId: root.id, l10n: libraryIngestL10nFrom(l10n));
         }
+      case _PlaylistMenuAction.forgetAll:
+        final db = ref.read(appDatabaseProvider);
+        final roots = await db.select(db.libraryRoots).get();
+        if (!mounted) return;
+        if (roots.isEmpty) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.noLibraryFolders)));
+          return;
+        }
+        final ok = await _confirm(
+          title: l10n.forgetAllFoldersTitle,
+          body: l10n.forgetAllFoldersBody,
+          l10n: l10n,
+        );
+        if (ok && mounted) {
+          await ref
+              .read(libraryIngestControllerProvider.notifier)
+              .forgetAllRoots(l10n: libraryIngestL10nFrom(l10n));
+        }
     }
   }
 
@@ -432,4 +481,4 @@ class _HomeStrip extends StatelessWidget {
   }
 }
 
-enum _PlaylistMenuAction { clearQueue, rescan, forget }
+enum _PlaylistMenuAction { clearQueue, rescan, forget, forgetAll }

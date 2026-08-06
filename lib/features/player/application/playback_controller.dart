@@ -7,6 +7,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tinytunes/core/cloud/cloud_providers.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
+import 'package:tinytunes/core/library/artwork_providers.dart';
 import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/messages/session_message.dart';
 import 'package:tinytunes/features/library/application/library_providers.dart';
@@ -574,6 +575,7 @@ class PlaybackController extends _$PlaybackController
         cacheStore: ref.read(cloudCacheStoreProvider),
         db: ref.read(appDatabaseProvider),
         metadataReader: ref.read(trackMetadataReaderProvider),
+        artworkStore: ref.read(artworkCacheStoreProvider),
         budgetBytes: ref.read(cloudCacheBudgetControllerProvider),
       );
       final queuedIds = await ref.read(appDatabaseProvider).queuedTrackIds();
@@ -618,11 +620,13 @@ class PlaybackController extends _$PlaybackController
     state = state.copyWith(downloading: false, clearDownloadProgress: true);
 
     try {
+      final artPath = await _artworkPathFor(view.trackId, view.artworkCacheRef);
       final tag = MediaItem(
         id: view.trackId.toString(),
         title: view.listTitle,
         album: view.album,
         artist: view.artist,
+        artUri: artPath != null ? Uri.file(artPath) : null,
       );
       await _engine.setUri(uri, tag: tag);
       if (gen != _generation) return;
@@ -665,6 +669,18 @@ class PlaybackController extends _$PlaybackController
         failedEntryId: view.queueEntryId,
       );
     }
+  }
+
+  /// Prefers a fresh Drift `artworkCacheRef` after play-path enrich over [fallback].
+  Future<String?> _artworkPathFor(int trackId, String? fallback) async {
+    final db = ref.read(appDatabaseProvider);
+    final row = await (db.select(
+      db.tracks,
+    )..where((t) => t.id.equals(trackId))).getSingleOrNull();
+    final refPath = row?.artworkCacheRef;
+    if (refPath != null && refPath.trim().isNotEmpty) return refPath;
+    if (fallback != null && fallback.trim().isNotEmpty) return fallback;
+    return null;
   }
 
   QueueTrackView? _viewFor(int queueEntryId) {

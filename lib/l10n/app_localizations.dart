@@ -164,11 +164,59 @@ abstract class AppLocalizations {
   /// **'About'**
   String get settingsAboutSection;
 
+  /// List tile that opens the About dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'About TinyTunes'**
+  String get settingsAboutOpen;
+
   /// About row showing the app version string.
   ///
   /// In en, this message translates to:
   /// **'Version {version}'**
   String settingsAboutVersion(String version);
+
+  /// Heading above the in-app changelog preview.
+  ///
+  /// In en, this message translates to:
+  /// **'Changelog'**
+  String get settingsAboutChangelogHeading;
+
+  /// Error when docs/CHANGELOG.md fails to load from assets.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load the changelog.'**
+  String get settingsAboutChangelogLoadFailed;
+
+  /// Button that opens the changelog on GitHub.
+  ///
+  /// In en, this message translates to:
+  /// **'Open full changelog online'**
+  String get settingsAboutOpenChangelogOnline;
+
+  /// Button that opens the hosted privacy policy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get settingsAboutPrivacyPolicy;
+
+  /// Button that opens the public TinyTunes GitHub repo.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub repository'**
+  String get settingsAboutGitHub;
+
+  /// SnackBar when url_launcher fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link.'**
+  String get settingsAboutOpenLinkFailed;
+
+  /// Dismisses the About dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get settingsAboutClose;
 
   /// Settings section for Google Drive sign-in (Phase 7).
   ///
@@ -356,6 +404,12 @@ abstract class AppLocalizations {
   /// **'Forget folder'**
   String get forgetFolder;
 
+  /// Menu action to forget every library root at once.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget all folders'**
+  String get forgetAllFolders;
+
   /// Tooltip for removing one queue row.
   ///
   /// In en, this message translates to:
@@ -397,6 +451,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Removes this folder from the library and its songs from the queue.'**
   String get forgetFolderBody;
+
+  /// Confirm dialog title for forgetting every library root.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget all folders?'**
+  String get forgetAllFoldersTitle;
+
+  /// Confirm dialog body for forgetting every library root.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes every library folder (this device and Google Drive) and clears their songs from the queue. Files on disk and in Drive are not deleted.'**
+  String get forgetAllFoldersBody;
 
   /// Positive button on destructive confirm dialogs.
   ///
@@ -463,6 +529,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Folder removed locally, but access release failed.'**
   String get libraryForgetFailed;
+
+  /// Message/toast after forgetting every library folder.
+  ///
+  /// In en, this message translates to:
+  /// **'All folders forgotten.'**
+  String get libraryForgetAllComplete;
+
+  /// Message/toast when one or more SAF releases fail during forget-all.
+  ///
+  /// In en, this message translates to:
+  /// **'Folders removed locally, but some access releases failed.'**
+  String get libraryForgetAllFailed;
 
   /// Message when Add cloud folder is used while signed out.
   ///

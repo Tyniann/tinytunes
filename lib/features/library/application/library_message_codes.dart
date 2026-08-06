@@ -23,6 +23,12 @@ abstract final class LibraryMessageCodes {
   /// Grant release failed after DB delete.
   static const forgetFailed = 'library.forget.failed';
 
+  /// Forget-all finished; every root removed from the catalog.
+  static const forgetAllComplete = 'library.forget_all.complete';
+
+  /// Forget-all removed roots, but one or more SAF releases failed.
+  static const forgetAllFailed = 'library.forget_all.failed';
+
   /// Cloud add attempted while signed out of Google.
   static const cloudSignInRequired = 'library.cloud.sign_in_required';
 }

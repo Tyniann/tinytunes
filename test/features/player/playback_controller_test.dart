@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tinytunes/core/cloud/cloud_providers.dart';
 import 'package:tinytunes/core/database/app_database.dart';
@@ -113,9 +115,35 @@ void main() {
     );
     expect(container.read(playbackControllerProvider).playing, isTrue);
     expect(engine.setUriCount, 1);
+    expect(engine.lastTag?.artUri, isNull);
 
     await controller.playEntry(ids[0]);
     expect(container.read(playbackControllerProvider).playing, isFalse);
+  });
+
+  test('playEntry sets MediaItem.artUri when artworkCacheRef exists', () async {
+    final artDir = await Directory.systemTemp.createTemp('tt_play_art_');
+    addTearDown(() async {
+      if (await artDir.exists()) {
+        await artDir.delete(recursive: true);
+      }
+    });
+    final cover = File('${artDir.path}/cover.jpg');
+    final image = img.Image(width: 8, height: 8);
+    img.fill(image, color: img.ColorRgb8(1, 2, 3));
+    await cover.writeAsBytes(img.encodeJpg(image));
+
+    final ids = await seedQueue(1);
+    final trackId = (await db.getOrderedQueue()).single.trackId;
+    await (db.update(db.tracks)..where((t) => t.id.equals(trackId))).write(
+      TracksCompanion(artworkCacheRef: Value(cover.path)),
+    );
+
+    final controller = container.read(playbackControllerProvider.notifier);
+    await Future<void>.delayed(Duration.zero);
+    await controller.playEntry(ids[0]);
+
+    expect(engine.lastTag?.artUri, Uri.file(cover.path));
   });
 
   test('next advances; next at last is no-op', () async {

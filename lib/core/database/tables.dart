@@ -58,7 +58,7 @@ class Tracks extends Table {
   /// Optional tag album.
   TextColumn get album => text().nullable()();
 
-  /// Reserved artwork cache path; always null in Phase 2.
+  /// Absolute path to capped on-device cover JPEG (`artwork/<trackId>.jpg`).
   TextColumn get artworkCacheRef => text().nullable()();
 
   /// Catalog source kind; Phase 2 always writes `local`.

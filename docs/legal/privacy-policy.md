@@ -2,10 +2,10 @@
 
 **Effective date:** 6 August 2026  
 **Last updated:** 6 August 2026  
-**Language:** English (authoritative for international disclosure). A German version is provided in [`privacy-policy.de.md`](privacy-policy.de.md).
+**Language:** English (authoritative for international disclosure). A German version is provided in [`privacy-policy.de.md`](privacy-policy.de.md).  
+**Live HTML:** https://blumenlaube.at/apps/tinytunes/privacy-policy.html
 
-> **Controller details (complete before public / Play / OAuth verification):**  
-> Replace the bracketed placeholders below with your real legal identity and contact. Google’s OAuth consent screen and GDPR Art. 13 both require an identifiable controller and a working contact channel.
+**Controller:** Mario Angerer · privacy@blumenlaube.at
 
 ---
 
@@ -17,8 +17,8 @@
 
 | Field | Value |
 | --- | --- |
-| Legal name | **[YOUR FULL LEGAL NAME OR COMPANY NAME]** |
-| Contact email | **[privacy@YOUR-DOMAIN.example]** |
+| Legal name | Mario Angerer |
+| Contact email | [privacy@blumenlaube.at](mailto:privacy@blumenlaube.at) |
 | App package (Android) | `at.blumenlaube.tinytunes` |
 
 If you have questions about this policy or your personal data, contact us at the email above.
@@ -166,7 +166,7 @@ Where the GDPR (or UK GDPR) applies, you have the right to:
 - Remove Drive cache: Clear cloud cache or Sign out  
 - Disconnect Google: Sign out in Settings; optionally revoke TinyTunes in your [Google Account third-party connections](https://myaccount.google.com/permissions)  
 
-For requests that need our help (for example confirmation what we hold as controller), email **[privacy@YOUR-DOMAIN.example]**. We will respond within the statutory period (generally one month).
+For requests that need our help (for example confirmation what we hold as controller), email [privacy@blumenlaube.at](mailto:privacy@blumenlaube.at). We will respond within the statutory period (generally one month).
 
 You also have the right to lodge a complaint with a supervisory authority, in particular in your EU/EEA member state of residence. In Austria, for example, that is the **Österreichische Datenschutzbehörde** ([dsb.gv.at](https://www.dsb.gv.at/)).
 
@@ -204,4 +204,4 @@ Recommended: publish this file (or an HTML export) via GitHub Pages, your own do
 
 ---
 
-*This document is provided to describe TinyTunes’ intended data practices. It is not legal advice. Have it reviewed for your jurisdiction and complete the controller placeholders before relying on it for a public release.*
+*This document is provided to describe TinyTunes’ intended data practices. It is not legal advice. Have it reviewed for your jurisdiction if needed.*

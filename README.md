@@ -9,8 +9,10 @@ cache — never write to Drive).
 | | |
 | --- | --- |
 | Package | `at.blumenlaube.tinytunes` |
+| License | [MIT](LICENSE) |
 | Privacy | https://blumenlaube.at/apps/tinytunes/privacy-policy.html |
 | Platforms | Android first (iOS later) |
+| Latest release | [v0.7.1](https://github.com/Tyniann/tinytunes/releases/tag/v0.7.1) |
 
 ## Google Drive = bring your own OAuth (BYO)
 
@@ -32,9 +34,11 @@ Step-by-step: [docs/legal/android-signing-and-oauth.md](docs/legal/android-signi
 
 - Winamp-style single queue (play / pause / prev / next)
 - Shuffle × repeat, background playback / lock screen controls
+- Expandable system-volume slider on transport chrome
 - Add local folders (including subfolders) via Android SAF
 - Optional Google Drive folder ingest + download-then-play cache + cache budget
 - Material 3 themes, EN / DE
+- In-app About dialog (logo, version, changelog, privacy policy link)
 
 ## Requirements
 
@@ -80,12 +84,13 @@ See [docs/legal/android-signing-and-oauth.md](docs/legal/android-signing-and-oau
 
 Feature-first Flutter app (`lib/features/…`, `lib/core/…`). Domain terms:
 [CONTEXT.md](CONTEXT.md). Feature docs: [docs/features/](docs/features/).
-ADRs: [docs/adr/](docs/adr/).
+ADRs: [docs/adr/](docs/adr/). Changelog: [docs/CHANGELOG.md](docs/CHANGELOG.md).
 
 ## Privacy
 
 - [English](https://blumenlaube.at/apps/tinytunes/privacy-policy.html)
 - [Deutsch](https://blumenlaube.at/apps/tinytunes/privacy-policy.de.html)
+- Also linked from **Settings → About** in the app
 - Sources in-repo: [docs/legal/](docs/legal/)
 
 ## Contributing

@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
+import 'package:tinytunes/core/library/artwork_cache_store.dart';
+import 'package:tinytunes/core/library/artwork_providers.dart';
 import 'package:tinytunes/core/library/local_library_source.dart';
 import 'package:tinytunes/core/library/media_locator.dart';
 import 'package:tinytunes/core/library/track_metadata_reader.dart';
@@ -15,6 +20,8 @@ import 'package:tinytunes/features/library/application/library_providers.dart';
 
 void main() {
   late AppDatabase db;
+  late Directory artDir;
+  late ArtworkCacheStore artwork;
   late _FakeLocalLibrarySource source;
   late ProviderContainer container;
   const l10n = LibraryIngestL10n.english();
@@ -26,8 +33,10 @@ void main() {
   final trackC = MediaLocator('content://fake/tree/music/document/c.mp3');
   final skipTxt = MediaLocator('content://fake/tree/music/document/readme.txt');
 
-  setUp(() {
+  setUp(() async {
     db = AppDatabase.memory();
+    artDir = await Directory.systemTemp.createTemp('tt_ingest_art_');
+    artwork = ArtworkCacheStore(db: db, root: artDir);
     source = _FakeLocalLibrarySource(
       root: root,
       tree: {
@@ -53,6 +62,7 @@ void main() {
         trackMetadataReaderProvider.overrideWithValue(
           const _FakeTrackMetadataReader(),
         ),
+        artworkCacheStoreProvider.overrideWithValue(artwork),
         toastDeliveryProvider.overrideWithValue(const NoopToastDelivery()),
       ],
     );
@@ -61,6 +71,9 @@ void main() {
   tearDown(() async {
     container.dispose();
     await db.close();
+    if (await artDir.exists()) {
+      await artDir.delete(recursive: true);
+    }
   });
 
   List<String> messageCodes() {
@@ -246,6 +259,23 @@ void main() {
     expect(await db.select(db.libraryRoots).get(), hasLength(1));
   });
 
+  test('forgetAllRoots removes every root, track, and queue row', () async {
+    await pumpAdd();
+    final secondRoot = MediaLocator('content://fake/tree/other');
+    await db.upsertRoot(locator: secondRoot.value, displayName: 'Other');
+    expect(await db.select(db.libraryRoots).get(), hasLength(2));
+
+    await container
+        .read(libraryIngestControllerProvider.notifier)
+        .forgetAllRoots(l10n: l10n);
+
+    expect(await db.select(db.libraryRoots).get(), isEmpty);
+    expect(await db.select(db.tracks).get(), isEmpty);
+    expect(await db.watchOrderedQueue().first, isEmpty);
+    expect(source.released, contains(root));
+    expect(messageCodes(), contains(LibraryMessageCodes.forgetAllComplete));
+  });
+
   test('forget deletes DB then releases grant', () async {
     await pumpAdd();
     final rootId = (await db.select(db.libraryRoots).get()).single.id;
@@ -256,6 +286,36 @@ void main() {
     expect(await db.select(db.libraryRoots).get(), isEmpty);
     expect(source.released, contains(root));
     expect(messageCodes(), contains(LibraryMessageCodes.forgetComplete));
+  });
+
+  test('forget deletes on-device artwork files for the root', () async {
+    await pumpAdd();
+    final tracks = await db.select(db.tracks).get();
+    final paths = <String>[];
+    for (final track in tracks) {
+      final path = await artwork.writeFromBytes(
+        track.id,
+        () {
+          final image = img.Image(width: 12, height: 12);
+          img.fill(image, color: img.ColorRgb8(5, 6, 7));
+          return img.encodePng(image);
+        }(),
+      );
+      paths.add(path!);
+    }
+    expect(paths, isNotEmpty);
+    for (final path in paths) {
+      expect(File(path).existsSync(), isTrue);
+    }
+
+    final rootId = (await db.select(db.libraryRoots).get()).single.id;
+    await container
+        .read(libraryIngestControllerProvider.notifier)
+        .forgetRoot(rootId: rootId, l10n: l10n);
+
+    for (final path in paths) {
+      expect(File(path).existsSync(), isFalse);
+    }
   });
 
   test(
@@ -379,7 +439,6 @@ class _FakeTrackMetadataReader implements TrackMetadataReader {
       title: 'Tagged',
       artist: 'Artist',
       album: 'Album',
-      artworkBytes: [9, 9, 9],
     );
   }
 }

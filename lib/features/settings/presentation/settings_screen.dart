@@ -6,13 +6,14 @@ import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/settings/package_info_provider.dart';
 import 'package:tinytunes/core/theme/app_theme_mode.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
+import 'package:tinytunes/features/settings/presentation/about_app_dialog.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 import 'package:tinytunes/shared/widgets/google_branding.dart';
 
 /// Daily-driver Settings: theme, Google Drive account/cache, and About.
 ///
 /// Purpose: Let the user pick System/Light/Dark, manage Drive sign-in and cloud
-/// cache budget, and see app name + version.
+/// cache budget, and open the About dialog (logo, version, changelog, privacy).
 /// Usage Context: Route `/settings` via [SettingsRoute].
 class SettingsScreen extends ConsumerWidget {
   /// Creates the Settings screen.
@@ -25,6 +26,11 @@ class SettingsScreen extends ConsumerWidget {
     final packageInfo = ref.watch(packageInfoProvider);
     final drive = ref.watch(googleDriveSessionControllerProvider);
     final driveCtrl = ref.read(googleDriveSessionControllerProvider.notifier);
+    final aboutVersion = switch (packageInfo) {
+      AsyncData(:final value) => value.version,
+      AsyncError() => '—',
+      _ => '…',
+    };
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
@@ -91,21 +97,41 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           const Divider(),
-          ListTile(title: Text(l10n.settingsAboutSection)),
-          packageInfo.when(
-            data: (info) => ListTile(
-              title: Text(
-                info.appName.trim().isEmpty ? l10n.appTitle : info.appName,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: FilledButton.tonal(
+              onPressed: () {
+                final info = packageInfo.asData?.value;
+                if (info == null) return;
+                showAboutAppDialog(context: context, packageInfo: info);
+              },
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(64),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                alignment: Alignment.centerLeft,
               ),
-              subtitle: Text(l10n.settingsAboutVersion(info.version)),
-            ),
-            loading: () => ListTile(
-              title: Text(l10n.appTitle),
-              subtitle: Text(l10n.settingsAboutVersion('…')),
-            ),
-            error: (_, _) => ListTile(
-              title: Text(l10n.appTitle),
-              subtitle: Text(l10n.settingsAboutVersion('—')),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l10n.settingsAboutOpen),
+                        Text(
+                          l10n.settingsAboutVersion(aboutVersion),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
             ),
           ),
         ],

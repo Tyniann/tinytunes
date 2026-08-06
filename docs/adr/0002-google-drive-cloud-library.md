@@ -61,14 +61,14 @@ later Phase 7 steps. Step 4 will expand this into account + cache budget UI.
 
 | # | Check | Result |
 | --- | --- | --- |
-| 1 | Settings → Sign in with Google (test user on OAuth consent) | **Pass** — `urviech6@gmail.com` on A065 |
+| 1 | Settings → Sign in with Google (test user on OAuth consent) | **Pass** on A065 |
 | 2 | Authorize `drive.readonly` when prompted | **Pass** |
 | 3 | List My Drive shows folders/files with `gdrive:` locators | **Pass** (e.g. `Musik`, `backups`, files) |
 | 4 | Sign out returns to Sign in | Spot-check optional (button present; not blocking) |
 | 5 | No remote create/delete/rename performed by the app | Pass by design (list-only spike) |
 
 **Device:** Nothing A065 (`a0cc96e2`), debug APK.  
-**Debug SHA-1:** `90:DA:CA:10:A5:40:4C:F3:80:2D:6A:22:D8:88:86:A9:F9:E9:84:63`
+**Debug SHA-1:** registered on the Android OAuth client (Console-only; not required in-repo).
 
 ### Implementation findings (Step 0)
 

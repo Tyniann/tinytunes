@@ -14,6 +14,8 @@ LibraryIngestL10n libraryIngestL10nFrom(AppLocalizations l10n) {
     rootRevoked: l10n.libraryRootRevoked,
     forgetComplete: l10n.libraryForgetComplete,
     forgetFailed: l10n.libraryForgetFailed,
+    forgetAllComplete: l10n.libraryForgetAllComplete,
+    forgetAllFailed: l10n.libraryForgetAllFailed,
     cloudSignInRequired: l10n.libraryCloudSignInRequired,
   );
 }

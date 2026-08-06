@@ -12,6 +12,8 @@ class LibraryIngestL10n {
     required this.rootRevoked,
     required this.forgetComplete,
     required this.forgetFailed,
+    required this.forgetAllComplete,
+    required this.forgetAllFailed,
     required this.cloudSignInRequired,
   });
 
@@ -24,6 +26,9 @@ class LibraryIngestL10n {
       rootRevoked = 'Folder access was revoked.',
       forgetComplete = 'Folder forgotten.',
       forgetFailed = 'Folder removed locally, but access release failed.',
+      forgetAllComplete = 'All folders forgotten.',
+      forgetAllFailed =
+          'Folders removed locally, but some access releases failed.',
       cloudSignInRequired = 'Sign in to Google Drive in Settings first.';
 
   /// `library.scan.started` toast/body.
@@ -46,6 +51,12 @@ class LibraryIngestL10n {
 
   /// `library.forget.failed` toast/body.
   final String forgetFailed;
+
+  /// `library.forget_all.complete` toast/body.
+  final String forgetAllComplete;
+
+  /// `library.forget_all.failed` toast/body.
+  final String forgetAllFailed;
 
   /// `library.cloud.sign_in_required` toast/body.
   final String cloudSignInRequired;

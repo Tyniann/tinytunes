@@ -19,6 +19,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.8.0] - 2026-08-06
+
+### Added
+
+- Settings About dialog (logo, version, changelog preview, privacy policy link)
+- Embedded album covers: capped JPEG cache, queue trailing thumbs, lock-screen / notification `MediaItem.artUri` (local at ingest; cloud on play-path)
+- Playlist menu **Forget all folders** (clears every library root + queue songs; files untouched)
+- Document online cover fetch (MusicBrainz / Cover Art Archive) as a later opt-in candidate
+
+### Changed
+
+- Bump app version to `0.8.0+9`
+
+### Fixed
+
+- Cap queue title to 2 lines and artist to 1 (ellipsis) so long filenames no longer overlap other rows
+
+### Removed
+
+### Security
+
+---
+
 ## [0.7.1] - 2026-08-06
 
 ### Added

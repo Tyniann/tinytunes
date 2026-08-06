@@ -28,6 +28,9 @@ void main() {
     expect(find.text(l10n.settingsGoogleDriveSection), findsOneWidget);
     expect(find.text(l10n.settingsGoogleDriveSignIn), findsOneWidget);
     expect(find.text(l10n.settingsCloudCacheClear), findsOneWidget);
+    await tester.ensureVisible(find.text(l10n.settingsAboutOpen));
+    await tester.pump();
+    expect(find.text(l10n.settingsAboutOpen), findsOneWidget);
     expect(
       find.text(l10n.settingsCloudCacheLimit('2.0 GB')),
       findsOneWidget,
@@ -135,6 +138,33 @@ void main() {
     await tester.pump();
 
     expect(await container.read(cloudCacheStoreProvider).totalSizeBytes(), 0);
+
+    await endPumpApp(tester);
+  });
+
+  testWidgets('About dialog shows logo version changelog and privacy link', (
+    tester,
+  ) async {
+    await pumpApp(tester, initialLocation: '/settings');
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    await tester.ensureVisible(find.text(l10n.settingsAboutOpen));
+    await tester.pump();
+    await tester.tap(find.text(l10n.settingsAboutOpen));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+
+    expect(find.text(l10n.settingsAboutChangelogHeading), findsOneWidget);
+    expect(find.text(l10n.settingsAboutPrivacyPolicy), findsOneWidget);
+    expect(find.text(l10n.settingsAboutOpenChangelogOnline), findsOneWidget);
+    expect(find.text(l10n.settingsAboutGitHub), findsOneWidget);
+    expect(find.byType(Image), findsWidgets);
+
+    await tester.ensureVisible(find.text(l10n.settingsAboutClose));
+    await tester.tap(find.text(l10n.settingsAboutClose));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(AlertDialog), findsNothing);
 
     await endPumpApp(tester);
   });

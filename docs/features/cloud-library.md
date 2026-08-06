@@ -39,18 +39,24 @@ and manage cache budget / clear / sign-out wipe — never mutate remote files.
 
 - Local tracks: SAF resolve as before.
 - Cloud tracks: cache hit → play file; miss → home **Downloading…** + progress bar → download → LRU budget → play.
-- After a local file is available, missing tags are read once via `audiotags` and written to the track row (queue UI updates via watch). No download solely for tags; remote files are never mutated.
+- After a local file is available, missing tags and/or cover art are read once via
+  `audiotags` and written to the track row / artwork cache (queue UI updates via
+  watch). No download solely for tags or art; remote files are never mutated.
+- Cover files live under application support (`artwork/<trackId>.jpg`, capped
+  ~512px JPEG). They are deleted with the same cloud-cache triggers as audio
+  (queue remove / clear, budget eviction, Clear cache, sign-out) and on Forget /
+  prune. Art does not count toward the GB budget.
 - Failures use the existing unplayable / auto-advance path.
 
 ### Cache eviction
 
 | Trigger | Behavior |
 | --- | --- |
-| Remove queue row / Clear queue | Delete that track’s cache file(s) |
-| After download | Enforce budget LRU (prefer non-queued; never now-playing) |
+| Remove queue row / Clear queue | Delete that track’s cache file(s) + artwork |
+| After download | Enforce budget LRU (prefer non-queued; never now-playing); eviction drops art with audio |
 | Settings slider lower | Persist prefs + enforce once |
-| Clear cloud cache | Wipe all cache files + Drift rows |
-| Forget cloud root / Sign out | Wipe relevant / all cache |
+| Clear cloud cache | Wipe all cache files + Drift rows + artwork for those tracks |
+| Forget cloud root / Sign out | Wipe relevant / all cache (+ Forget also wipes art for the root) |
 
 ### Settings budget
 

@@ -42,9 +42,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAboutSection => 'About';
 
   @override
+  String get settingsAboutOpen => 'About TinyTunes';
+
+  @override
   String settingsAboutVersion(String version) {
     return 'Version $version';
   }
+
+  @override
+  String get settingsAboutChangelogHeading => 'Changelog';
+
+  @override
+  String get settingsAboutChangelogLoadFailed =>
+      'Could not load the changelog.';
+
+  @override
+  String get settingsAboutOpenChangelogOnline => 'Open full changelog online';
+
+  @override
+  String get settingsAboutPrivacyPolicy => 'Privacy policy';
+
+  @override
+  String get settingsAboutGitHub => 'GitHub repository';
+
+  @override
+  String get settingsAboutOpenLinkFailed => 'Could not open the link.';
+
+  @override
+  String get settingsAboutClose => 'Close';
 
   @override
   String get settingsGoogleDriveSection => 'Google Drive';
@@ -147,6 +172,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgetFolder => 'Forget folder';
 
   @override
+  String get forgetAllFolders => 'Forget all folders';
+
+  @override
   String get removeFromQueueTooltip => 'Remove from queue';
 
   @override
@@ -170,6 +198,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get forgetFolderBody =>
       'Removes this folder from the library and its songs from the queue.';
+
+  @override
+  String get forgetAllFoldersTitle => 'Forget all folders?';
+
+  @override
+  String get forgetAllFoldersBody =>
+      'Removes every library folder (this device and Google Drive) and clears their songs from the queue. Files on disk and in Drive are not deleted.';
 
   @override
   String get confirmAction => 'Confirm';
@@ -204,6 +239,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get libraryForgetFailed =>
       'Folder removed locally, but access release failed.';
+
+  @override
+  String get libraryForgetAllComplete => 'All folders forgotten.';
+
+  @override
+  String get libraryForgetAllFailed =>
+      'Folders removed locally, but some access releases failed.';
 
   @override
   String get libraryCloudSignInRequired =>

@@ -7,6 +7,7 @@ import 'package:tinytunes/core/cloud/cloud_library_source.dart';
 import 'package:tinytunes/core/cloud/source_kinds.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
+import 'package:tinytunes/core/library/artwork_cache_store.dart';
 import 'package:tinytunes/core/library/local_library_source.dart';
 import 'package:tinytunes/core/library/media_locator.dart';
 import 'package:tinytunes/core/library/track_metadata_reader.dart';
@@ -24,18 +25,21 @@ class PlaybackUriResolver {
     required CloudCacheStore cacheStore,
     required AppDatabase db,
     required TrackMetadataReader metadataReader,
+    required ArtworkCacheStore artworkStore,
     this.budgetBytes = CloudCacheBudget.defaultBytes,
   }) : _local = localSource,
        _cloud = cloudSource,
        _cache = cacheStore,
        _db = db,
-       _reader = metadataReader;
+       _reader = metadataReader,
+       _artwork = artworkStore;
 
   final LocalLibrarySource _local;
   final CloudLibrarySource _cloud;
   final CloudCacheStore _cache;
   final AppDatabase _db;
   final TrackMetadataReader _reader;
+  final ArtworkCacheStore _artwork;
 
   /// Cloud cache size budget applied after each download.
   final int budgetBytes;
@@ -44,8 +48,8 @@ class PlaybackUriResolver {
   ///
   /// For cloud tracks: returns cached file if present (touching LRU); otherwise
   /// downloads, indexes, enforces budget, then returns the file URI.
-  /// When the local file is available and tags are still empty, reads tags once
-  /// from that file (no extra download) and upserts the track row.
+  /// When the local file is available, missing tags and/or cover art are filled
+  /// once from that file (no extra download).
   /// [onDownloadStarted] runs once when a network download begins.
   /// [onDownloadProgress] reports bytes received vs remote total when known.
   Future<Uri> resolve(
@@ -64,7 +68,7 @@ class PlaybackUriResolver {
       final file = File(existing.localPath);
       if (await file.exists()) {
         await _cache.touch(view.trackId);
-        await _enrichTagsIfNeeded(view, existing.localPath);
+        await _enrichMetadataIfNeeded(view, existing.localPath);
         return Uri.file(existing.localPath);
       }
       await _cache.deleteForTrack(view.trackId);
@@ -80,7 +84,7 @@ class PlaybackUriResolver {
         localPath: path,
         sizeBytes: size,
       );
-      await _enrichTagsIfNeeded(view, path);
+      await _enrichMetadataIfNeeded(view, path);
       return uri;
     } on CloudCacheMissException {
       // Download required.
@@ -96,7 +100,7 @@ class PlaybackUriResolver {
       queuedTrackIds: queuedTrackIds,
       onProgress: onDownloadProgress,
     );
-    await _enrichTagsIfNeeded(view, uri.toFilePath());
+    await _enrichMetadataIfNeeded(view, uri.toFilePath());
     return uri;
   }
 
@@ -121,32 +125,45 @@ class PlaybackUriResolver {
     album: view.album,
   );
 
-  /// Reads tags from [path] once when the track row has no tags yet; never
-  /// re-downloads. Checks Drift (not only [view]) so a stale queue snapshot
-  /// after a prior enrich does not trigger another read.
-  Future<void> _enrichTagsIfNeeded(QueueTrackView view, String path) async {
+  /// Reads tags/art from [path] when tags are empty and/or cover is missing.
+  ///
+  /// Checks Drift (not only [view]) so a stale queue snapshot after a prior
+  /// enrich does not trigger another read. When extract yields cover bytes,
+  /// always rewrites the artwork file.
+  Future<void> _enrichMetadataIfNeeded(QueueTrackView view, String path) async {
     final row =
         await (_db.select(_db.tracks)
               ..where((t) => t.id.equals(view.trackId)))
             .getSingleOrNull();
     if (row == null) return;
-    if (!tagsAreEmpty(
+
+    final needsTags = tagsAreEmpty(
       title: row.title,
       artist: row.artist,
       album: row.album,
-    )) {
-      return;
-    }
+    );
+    final needsArt =
+        row.artworkCacheRef == null || row.artworkCacheRef!.trim().isEmpty;
+    if (!needsTags && !needsArt) return;
+
     try {
       final meta = await _reader.read(path);
-      await _db.updateTrackTags(
-        trackId: view.trackId,
-        title: meta.title,
-        artist: meta.artist,
-        album: meta.album,
-      );
+      if (needsTags) {
+        await _db.updateTrackTags(
+          trackId: view.trackId,
+          title: meta.title,
+          artist: meta.artist,
+          album: meta.album,
+        );
+      }
+      final bytes = meta.artworkBytes;
+      if (bytes != null && bytes.isNotEmpty) {
+        await _artwork.writeFromBytes(view.trackId, bytes);
+      }
     } on Object catch (error, stack) {
-      debugPrint('cloud tag enrich failed for ${view.trackId}: $error\n$stack');
+      debugPrint(
+        'cloud metadata enrich failed for ${view.trackId}: $error\n$stack',
+      );
     }
   }
 }

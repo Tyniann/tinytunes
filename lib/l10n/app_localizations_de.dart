@@ -42,9 +42,36 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsAboutSection => 'Über';
 
   @override
+  String get settingsAboutOpen => 'Über TinyTunes';
+
+  @override
   String settingsAboutVersion(String version) {
     return 'Version $version';
   }
+
+  @override
+  String get settingsAboutChangelogHeading => 'Änderungsprotokoll';
+
+  @override
+  String get settingsAboutChangelogLoadFailed =>
+      'Änderungsprotokoll konnte nicht geladen werden.';
+
+  @override
+  String get settingsAboutOpenChangelogOnline =>
+      'Vollständiges Changelog online öffnen';
+
+  @override
+  String get settingsAboutPrivacyPolicy => 'Datenschutzerklärung';
+
+  @override
+  String get settingsAboutGitHub => 'GitHub-Repository';
+
+  @override
+  String get settingsAboutOpenLinkFailed =>
+      'Link konnte nicht geöffnet werden.';
+
+  @override
+  String get settingsAboutClose => 'Schließen';
 
   @override
   String get settingsGoogleDriveSection => 'Google Drive';
@@ -147,6 +174,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get forgetFolder => 'Ordner vergessen';
 
   @override
+  String get forgetAllFolders => 'Alle Ordner vergessen';
+
+  @override
   String get removeFromQueueTooltip => 'Aus Warteschlange entfernen';
 
   @override
@@ -170,6 +200,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get forgetFolderBody =>
       'Entfernt diesen Ordner aus der Bibliothek und seine Titel aus der Warteschlange.';
+
+  @override
+  String get forgetAllFoldersTitle => 'Alle Ordner vergessen?';
+
+  @override
+  String get forgetAllFoldersBody =>
+      'Entfernt jeden Bibliotheksordner (dieses Gerät und Google Drive) und ihre Titel aus der Warteschlange. Dateien auf dem Gerät und in Drive werden nicht gelöscht.';
 
   @override
   String get confirmAction => 'Bestätigen';
@@ -204,6 +241,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get libraryForgetFailed =>
       'Ordner lokal entfernt, aber Freigabe fehlgeschlagen.';
+
+  @override
+  String get libraryForgetAllComplete => 'Alle Ordner vergessen.';
+
+  @override
+  String get libraryForgetAllFailed =>
+      'Ordner lokal entfernt, aber einige Freigaben fehlgeschlagen.';
 
   @override
   String get libraryCloudSignInRequired =>

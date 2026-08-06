@@ -10,6 +10,7 @@ import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
 import 'package:tinytunes/core/library/android/android_local_library_source.dart';
+import 'package:tinytunes/core/library/artwork_providers.dart';
 import 'package:tinytunes/core/library/local_library_source.dart';
 import 'package:tinytunes/core/library/media_locator.dart';
 import 'package:tinytunes/core/library/track_metadata_reader.dart';
@@ -313,6 +314,8 @@ class LibraryIngestController extends _$LibraryIngestController {
     _begin(IngestPhase.forgetting);
     try {
       final locator = MediaLocator(root.locator);
+      final artwork = ref.read(artworkCacheStoreProvider);
+      await artwork.deleteForRoot(rootId);
       if (root.sourceKind == SourceKinds.cloud) {
         await ref.read(cloudCacheStoreProvider).deleteForRoot(rootId);
         await db.deleteRootCascade(rootId);
@@ -337,6 +340,58 @@ class LibraryIngestController extends _$LibraryIngestController {
         reporter.reportError(
           code: LibraryMessageCodes.forgetFailed,
           message: l10n.forgetFailed,
+        );
+      }
+    } finally {
+      _finishIdle();
+    }
+  }
+
+  /// Forgets every library root in one busy phase (art + cloud cache + grants).
+  Future<void> forgetAllRoots({required LibraryIngestL10n l10n}) async {
+    if (state.isBusy) return;
+
+    final db = ref.read(appDatabaseProvider);
+    final roots = await db.select(db.libraryRoots).get();
+    if (roots.isEmpty) return;
+
+    final source = ref.read(localLibrarySourceProvider);
+    final reporter = ref.read(messageReporterProvider);
+    final artwork = ref.read(artworkCacheStoreProvider);
+    final cloudCache = ref.read(cloudCacheStoreProvider);
+
+    _begin(IngestPhase.forgetting);
+    var anyReleaseFailed = false;
+    try {
+      for (final root in roots) {
+        await artwork.deleteForRoot(root.id);
+        if (root.sourceKind == SourceKinds.cloud) {
+          await cloudCache.deleteForRoot(root.id);
+          await db.deleteRootCascade(root.id);
+          _clearRevokedRoot(root.id);
+          continue;
+        }
+
+        final locator = MediaLocator(root.locator);
+        await db.deleteRootCascade(root.id);
+        _clearRevokedRoot(root.id);
+        try {
+          await source.releaseRoot(locator);
+        } on Object catch (error, stack) {
+          debugPrint('releaseRoot failed: $error\n$stack');
+          anyReleaseFailed = true;
+        }
+      }
+
+      if (anyReleaseFailed) {
+        reporter.reportError(
+          code: LibraryMessageCodes.forgetAllFailed,
+          message: l10n.forgetAllFailed,
+        );
+      } else {
+        reporter.reportInfo(
+          code: LibraryMessageCodes.forgetAllComplete,
+          message: l10n.forgetAllComplete,
         );
       }
     } finally {
@@ -699,7 +754,7 @@ class LibraryIngestController extends _$LibraryIngestController {
 
     final success = !failed && !cancelled && !batchesFailed;
     if (success && pruneMissing) {
-      await db.deleteTracksNotIn(rootId, seenSourceItemIds);
+      await _pruneMissingTracks(db, rootId, seenSourceItemIds);
     }
 
     return _WalkOutcome(
@@ -738,6 +793,7 @@ class LibraryIngestController extends _$LibraryIngestController {
       pendingFiles.clear();
 
       final companions = <TracksCompanion>[];
+      final artworkBySource = <String, List<int>>{};
       for (var i = 0; i < chunk.length; i += _metadataConcurrency) {
         if (_cancelRequested) {
           cancelled = true;
@@ -762,6 +818,10 @@ class LibraryIngestController extends _$LibraryIngestController {
               album: Value(tags?.album),
             ),
           );
+          final bytes = tags?.artworkBytes;
+          if (bytes != null && bytes.isNotEmpty) {
+            artworkBySource[entry.locator.value] = bytes;
+          }
           processed++;
           state = state.copyWith(
             phase: IngestPhase.scanning,
@@ -771,12 +831,18 @@ class LibraryIngestController extends _$LibraryIngestController {
       }
 
       try {
+        final artwork = ref.read(artworkCacheStoreProvider);
         for (var i = 0; i < companions.length; i += _batchSize) {
           final batch = companions.skip(i).take(_batchSize).toList();
           final result = await db.upsertTracksBatch(rootId, batch);
           newlyInserted.addAll(result.insertedIds);
           allTouched.addAll(result.insertedIds);
           allTouched.addAll(result.updatedIds);
+          for (final entry in result.idsBySourceItemId.entries) {
+            final bytes = artworkBySource[entry.key];
+            if (bytes == null) continue;
+            await artwork.writeFromBytes(entry.value, bytes);
+          }
         }
         return true;
       } on Object catch (error, stack) {
@@ -827,7 +893,7 @@ class LibraryIngestController extends _$LibraryIngestController {
 
     final success = !failed && !cancelled && !batchesFailed;
     if (success && pruneMissing) {
-      await db.deleteTracksNotIn(rootId, seenSourceItemIds);
+      await _pruneMissingTracks(db, rootId, seenSourceItemIds);
     }
 
     return _WalkOutcome(
@@ -837,6 +903,19 @@ class LibraryIngestController extends _$LibraryIngestController {
       allTouchedTrackIds: List.unmodifiable(allTouched),
       failureDetail: failureDetail,
     );
+  }
+
+  /// Deletes artwork for pruned tracks, then removes their catalog rows.
+  Future<void> _pruneMissingTracks(
+    AppDatabase db,
+    int rootId,
+    Set<String> seenSourceItemIds,
+  ) async {
+    final doomed = await db.trackIdsNotIn(rootId, seenSourceItemIds);
+    if (doomed.isNotEmpty) {
+      await ref.read(artworkCacheStoreProvider).deleteForTrackIds(doomed);
+    }
+    await db.deleteTracksNotIn(rootId, seenSourceItemIds);
   }
 
   Future<TrackMetadata?> _readTags(
@@ -851,12 +930,7 @@ class LibraryIngestController extends _$LibraryIngestController {
         fileNameHint: entry.name,
       );
       final meta = await reader.read(path);
-      // Discard artwork bytes immediately (never persist until cover cache).
-      return TrackMetadata(
-        title: meta.title,
-        artist: meta.artist,
-        album: meta.album,
-      );
+      return meta;
     } on Object catch (error, stack) {
       debugPrint('metadata failed for ${entry.name}: $error\n$stack');
       return null;

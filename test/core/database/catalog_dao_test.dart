@@ -87,6 +87,38 @@ void main() {
     expect(queue.single.displayName, 'a.mp3');
   });
 
+  test('queue view maps artworkCacheRef; upsert update does not wipe it', () async {
+    final rootId = await seedRoot();
+    final inserted = await db.upsertTracksBatch(rootId, [
+      TracksCompanion.insert(
+        rootId: rootId,
+        sourceItemId: 'a',
+        locator: 'a',
+        displayName: 'a.mp3',
+        artworkCacheRef: const Value('/tmp/a.jpg'),
+      ),
+    ]);
+    await db.appendTrackIds(inserted.insertedIds);
+
+    var queue = await db.getOrderedQueue();
+    expect(queue.single.artworkCacheRef, '/tmp/a.jpg');
+
+    await db.upsertTracksBatch(rootId, [
+      TracksCompanion.insert(
+        rootId: rootId,
+        sourceItemId: 'a',
+        locator: 'a',
+        displayName: 'a-renamed.mp3',
+        title: const Value('Retitled'),
+      ),
+    ]);
+
+    queue = await db.getOrderedQueue();
+    expect(queue.single.displayName, 'a-renamed.mp3');
+    expect(queue.single.title, 'Retitled');
+    expect(queue.single.artworkCacheRef, '/tmp/a.jpg');
+  });
+
   test('upsertTracksBatch reports inserted vs updated', () async {
     final rootId = await seedRoot();
     final first = await db.upsertTracksBatch(rootId, [trackRow('a', 'a.mp3')]);

@@ -3,10 +3,10 @@
 **Gültig ab:** 6. August 2026  
 **Zuletzt aktualisiert:** 6. August 2026  
 
-Die englische Fassung [`privacy-policy.md`](privacy-policy.md) ist die verbindliche Fassung für internationale Angaben (z. B. Google OAuth). Diese deutsche Fassung dient der Verständlichkeit für Nutzerinnen und Nutzer im deutschsprachigen Raum.
+Die englische Fassung [`privacy-policy.md`](privacy-policy.md) ist die verbindliche Fassung für internationale Angaben (z. B. Google OAuth). Diese deutsche Fassung dient der Verständlichkeit für Nutzerinnen und Nutzer im deutschsprachigen Raum.  
+**Online:** https://blumenlaube.at/apps/tinytunes/privacy-policy.de.html
 
-> **Verantwortlichenangaben (vor Veröffentlichung / OAuth-Verifizierung ausfüllen):**  
-> Ersetzen Sie die Platzhalter in eckigen Klammern durch Ihre echten Kontaktdaten.
+**Verantwortlicher:** Mario Angerer · privacy@blumenlaube.at
 
 ---
 
@@ -16,8 +16,8 @@ Die englische Fassung [`privacy-policy.md`](privacy-policy.md) ist die verbindli
 
 | Feld | Wert |
 | --- | --- |
-| Name / Firma | **[IHR VOLLSTÄNDIGER NAME ODER FIRMENNAME]** |
-| E-Mail | **[privacy@IHRE-DOMAIN.example]** |
+| Name / Firma | Mario Angerer |
+| E-Mail | [privacy@blumenlaube.at](mailto:privacy@blumenlaube.at) |
 | Android-Paketname | `at.blumenlaube.tinytunes` |
 
 ---
@@ -91,7 +91,7 @@ Soweit die DSGVO gilt: Auskunft, Berichtigung, Löschung, Einschränkung, Daten�
 
 In der App u. a.: Ordner vergessen, Cloud-Cache leeren, Abmelden; zusätzlich Zugriff bei Google widerrufen: [myaccount.google.com/permissions](https://myaccount.google.com/permissions).
 
-Anfragen an **[privacy@IHRE-DOMAIN.example]**. Beschwerderecht bei einer Aufsichtsbehörde, in Österreich z. B. der [Datenschutzbehörde](https://www.dsb.gv.at/).
+Anfragen an [privacy@blumenlaube.at](mailto:privacy@blumenlaube.at). Beschwerderecht bei einer Aufsichtsbehörde, in Österreich z. B. der [Datenschutzbehörde](https://www.dsb.gv.at/).
 
 ---
 
@@ -101,4 +101,4 @@ Die App richtet sich nicht an Kinder. Keine automatisierten Entscheidungen mit R
 
 ---
 
-*Keine Rechtsberatung. Vor öffentlicher Nutzung Platzhalter ersetzen und ggf. rechtlich prüfen lassen.*
+*Keine Rechtsberatung. Bei Bedarf für Ihre Jurisdiktion rechtlich prüfen lassen.*

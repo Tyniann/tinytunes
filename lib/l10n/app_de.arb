@@ -11,6 +11,7 @@
   "settingsThemeLight": "Hell",
   "settingsThemeDark": "Dunkel",
   "settingsAboutSection": "Über",
+  "settingsAboutOpen": "Über TinyTunes",
   "settingsAboutVersion": "Version {version}",
   "@settingsAboutVersion": {
     "placeholders": {
@@ -19,6 +20,13 @@
       }
     }
   },
+  "settingsAboutChangelogHeading": "Änderungsprotokoll",
+  "settingsAboutChangelogLoadFailed": "Änderungsprotokoll konnte nicht geladen werden.",
+  "settingsAboutOpenChangelogOnline": "Vollständiges Changelog online öffnen",
+  "settingsAboutPrivacyPolicy": "Datenschutzerklärung",
+  "settingsAboutGitHub": "GitHub-Repository",
+  "settingsAboutOpenLinkFailed": "Link konnte nicht geöffnet werden.",
+  "settingsAboutClose": "Schließen",
   "settingsGoogleDriveSection": "Google Drive",
   "settingsGoogleDriveSignIn": "Mit Google anmelden",
   "settingsGoogleDriveSignOut": "Abmelden",
@@ -72,6 +80,7 @@
   "clearQueue": "Warteschlange leeren",
   "rescanFolder": "Ordner erneut scannen",
   "forgetFolder": "Ordner vergessen",
+  "forgetAllFolders": "Alle Ordner vergessen",
   "removeFromQueueTooltip": "Aus Warteschlange entfernen",
   "cancelScan": "Abbrechen",
   "scanningProgress": "Scannen… {count}",
@@ -86,6 +95,8 @@
   "clearQueueBody": "Entfernt alle Titel aus der Warteschlange. Bibliotheksordner bleiben erhalten.",
   "forgetFolderTitle": "Ordner vergessen?",
   "forgetFolderBody": "Entfernt diesen Ordner aus der Bibliothek und seine Titel aus der Warteschlange.",
+  "forgetAllFoldersTitle": "Alle Ordner vergessen?",
+  "forgetAllFoldersBody": "Entfernt jeden Bibliotheksordner (dieses Gerät und Google Drive) und ihre Titel aus der Warteschlange. Dateien auf dem Gerät und in Drive werden nicht gelöscht.",
   "confirmAction": "Bestätigen",
   "cancelAction": "Abbrechen",
   "pickFolderTitle": "Ordner wählen",
@@ -97,6 +108,8 @@
   "libraryRootRevoked": "Ordnerzugriff wurde widerrufen.",
   "libraryForgetComplete": "Ordner vergessen.",
   "libraryForgetFailed": "Ordner lokal entfernt, aber Freigabe fehlgeschlagen.",
+  "libraryForgetAllComplete": "Alle Ordner vergessen.",
+  "libraryForgetAllFailed": "Ordner lokal entfernt, aber einige Freigaben fehlgeschlagen.",
   "libraryCloudSignInRequired": "Melde dich zuerst in den Einstellungen bei Google Drive an.",
   "addCloudFolderTooltip": "Cloud-Ordner hinzufügen",
   "driveFolderBrowserTitle": "Drive-Ordner wählen",

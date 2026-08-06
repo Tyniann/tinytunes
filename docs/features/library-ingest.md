@@ -28,6 +28,7 @@ Indexes user-picked local music folders into a durable **catalog** and a single 
    explicit way to refill a cleared queue without creating duplicates.
 5. Otherwise insert `library_roots`, walk the tree (recurse **all** directories; match audio **files** only by extension).
 6. Upsert catalog in batches while walking (partial catalog may remain on failure).
+   Local files: read tags + write capped cover JPEG when embedded art exists.
 7. **Append to queue only after a full successful walk** (all batches OK, not cancelled).
 
 ### Re-scan
@@ -41,9 +42,17 @@ catalog tracks missing from the queue; Re-scan only discovers new files.
 
 ### Forget folder
 
-1. Transactionally delete related queue rows, tracks, then the root in Drift.
+1. Delete on-device artwork for the root’s tracks, then transactionally delete
+   related queue rows, tracks, then the root in Drift (cloud also wipes audio cache).
 2. Best-effort `releaseRoot`; on release failure report `library.forget.failed` without restoring rows.
 3. Clears that root from the revoked UI list.
+
+### Forget all folders
+
+Same cleanup as Forget for **every** library root in one busy phase (local +
+cloud). One confirm; reports `library.forget_all.complete` or
+`library.forget_all.failed` if any SAF release fails. Files on disk / Drive are
+never deleted.
 
 ### Single-flight
 
@@ -83,7 +92,7 @@ Catalog is kept until Forget or a successful Re-scan/Add with access.
 | Table | Role |
 | --- | --- |
 | `library_roots` | Opaque root locator + display name |
-| `tracks` | Catalog identity `(rootId, sourceItemId)`; tags; nullable reserved `artworkCacheRef` / `sizeBytes` / `modifiedAt` (always null until cover cache) |
+| `tracks` | Catalog identity `(rootId, sourceItemId)`; tags; `artworkCacheRef` path to capped cover JPEG (local: filled at ingest; cloud: on play-path) |
 | `queue_entries` | Ordered unique `trackId` links |
 | `playback_state` | Singleton `id=1`; `currentQueueEntryId` ON DELETE SET NULL; driven by [player](player.md) |
 
@@ -95,13 +104,16 @@ Identity: `sourceItemId` == item `MediaLocator.value`. `PRAGMA foreign_keys = ON
 
 ### Message codes
 
-`library.scan.started` | `library.scan.complete` | `library.scan.cancelled` | `library.scan.failed` | `library.root.revoked` | `library.forget.complete` | `library.forget.failed`
+`library.scan.started` | `library.scan.complete` | `library.scan.cancelled` | `library.scan.failed` | `library.root.revoked` | `library.forget.complete` | `library.forget.failed` | `library.forget_all.complete` | `library.forget_all.failed`
 
 (Machine codes stay in the message model; Messages UI shows localized text only.)
 
 ## User Interface
 
-Playlist home: queue list, Add folder, remove row, overflow Clear / Re-scan / Forget (confirms for Clear and Forget; multi-root picker has Cancel), revoked strips, scan/forget banners, live transport (see [player](player.md)).
+Playlist home: queue list, Add folder, remove row, overflow Clear / Re-scan /
+Forget / Forget all folders (confirms for Clear and Forget actions; multi-root
+picker has Cancel), revoked strips, scan/forget banners, live transport (see
+[player](player.md)).
 
 ## Device smoke checklist (Phase 5)
 

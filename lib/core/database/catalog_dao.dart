@@ -6,10 +6,11 @@ import 'package:tinytunes/core/database/app_database.dart';
 /// Purpose: Let ingest distinguish newly inserted rows (queue append on re-scan)
 /// from updates to existing catalog rows.
 class UpsertTracksResult {
-  /// Creates an upsert result with [insertedIds] and [updatedIds].
+  /// Creates an upsert result with [insertedIds], [updatedIds], and id map.
   const UpsertTracksResult({
     required this.insertedIds,
     required this.updatedIds,
+    required this.idsBySourceItemId,
   });
 
   /// Track ids created in this batch.
@@ -17,6 +18,9 @@ class UpsertTracksResult {
 
   /// Track ids that already existed and were updated.
   final List<int> updatedIds;
+
+  /// `sourceItemId` → track id for every row in this batch.
+  final Map<String, int> idsBySourceItemId;
 
   /// All affected track ids (inserted then updated order is undefined; prefer lists).
   List<int> get allIds => [...insertedIds, ...updatedIds];
@@ -36,6 +40,7 @@ class QueueTrackView {
     this.title,
     this.artist,
     this.album,
+    this.artworkCacheRef,
     this.sourceKind = 'local',
   });
 
@@ -62,6 +67,9 @@ class QueueTrackView {
 
   /// Optional tag album.
   final String? album;
+
+  /// Absolute path to capped cover JPEG, when extracted.
+  final String? artworkCacheRef;
 
   /// Catalog origin (`local` / `cloud`).
   final String sourceKind;
@@ -138,6 +146,7 @@ extension CatalogDao on AppDatabase {
   ) async {
     final inserted = <int>[];
     final updated = <int>[];
+    final idsBySourceItemId = <String, int>{};
 
     await transaction(() async {
       for (final row in rows) {
@@ -155,6 +164,7 @@ extension CatalogDao on AppDatabase {
             tracks,
           ).insert(row.copyWith(rootId: Value(rootId)));
           inserted.add(id);
+          idsBySourceItemId[sourceItemId] = id;
         } else {
           await (update(tracks)..where((t) => t.id.equals(existing.id))).write(
             TracksCompanion(
@@ -170,18 +180,26 @@ extension CatalogDao on AppDatabase {
               modifiedAt: row.modifiedAt.present
                   ? row.modifiedAt
                   : const Value.absent(),
-              artworkCacheRef: const Value(null),
+              // Artwork is written separately via [ArtworkCacheStore]; do not wipe.
+              artworkCacheRef: row.artworkCacheRef.present
+                  ? row.artworkCacheRef
+                  : const Value.absent(),
               sourceKind: row.sourceKind.present
                   ? row.sourceKind
                   : const Value.absent(),
             ),
           );
           updated.add(existing.id);
+          idsBySourceItemId[sourceItemId] = existing.id;
         }
       }
     });
 
-    return UpsertTracksResult(insertedIds: inserted, updatedIds: updated);
+    return UpsertTracksResult(
+      insertedIds: inserted,
+      updatedIds: updated,
+      idsBySourceItemId: idsBySourceItemId,
+    );
   }
 
   /// Writes tag fields for an existing [trackId] (cloud play-path enrichment).
@@ -198,6 +216,19 @@ extension CatalogDao on AppDatabase {
         album: Value(album),
       ),
     );
+  }
+
+  /// Track ids under [rootId] whose source ids are not in [seenSourceItemIds].
+  Future<List<int>> trackIdsNotIn(
+    int rootId,
+    Set<String> seenSourceItemIds,
+  ) async {
+    final query = select(tracks)..where((t) => t.rootId.equals(rootId));
+    if (seenSourceItemIds.isNotEmpty) {
+      query.where((t) => t.sourceItemId.isNotIn(seenSourceItemIds.toList()));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.id).toList(growable: false);
   }
 
   /// Hard-deletes catalog tracks under [rootId] whose source ids are not in [seen].
@@ -294,6 +325,7 @@ extension CatalogDao on AppDatabase {
             title: track.title,
             artist: track.artist,
             album: track.album,
+            artworkCacheRef: track.artworkCacheRef,
             sourceKind: track.sourceKind,
           );
         })

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:tinytunes/core/cloud/cloud_library_source.dart';
 import 'package:tinytunes/core/database/app_database.dart';
+import 'package:tinytunes/core/library/artwork_cache_store.dart';
 import 'package:tinytunes/core/library/media_locator.dart';
 
 /// Filesystem + Drift index for downloaded cloud tracks.
@@ -12,9 +13,15 @@ import 'package:tinytunes/core/library/media_locator.dart';
 /// Usage Context: Playback download path and Settings Clear cache.
 class CloudCacheStore {
   /// Creates a store bound to [db].
-  CloudCacheStore({required AppDatabase db}) : _db = db;
+  ///
+  /// When [artwork] is set, track artwork is deleted with each audio cache
+  /// removal (queue remove, clear, budget eviction, clearAll, forget).
+  CloudCacheStore({required AppDatabase db, ArtworkCacheStore? artwork})
+    : _db = db,
+      _artwork = artwork;
 
   final AppDatabase _db;
+  final ArtworkCacheStore? _artwork;
 
   /// Upserts a cache row after a successful download and touches access time.
   Future<void> upsert({
@@ -179,5 +186,6 @@ class CloudCacheStore {
     } on Object {
       // Best-effort filesystem cleanup; Drift row is already gone.
     }
+    await _artwork?.deleteForTrack(row.trackId);
   }
 }

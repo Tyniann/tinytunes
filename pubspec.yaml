@@ -1,7 +1,7 @@
 name: tinytunes
 description: "Local-first Android music player with optional BYO Google Drive (read-only)."
 publish_to: 'none'
-version: 0.7.1+8
+version: 0.8.0+9
 
 environment:
   sdk: ^3.11.0
@@ -55,6 +55,8 @@ dependencies:
   google_sign_in: 7.2.0
   googleapis: 16.0.0
   http: ^1.6.0
+  url_launcher: ^6.3.2
+  image: ^4.8.0
 
 dev_dependencies:
   flutter_test:
@@ -113,3 +115,4 @@ flutter:
     - assets/branding/google_drive_icon.png
     - assets/branding/google_g_logo.png
     - assets/branding/tinytunes_logo.png
+    - docs/CHANGELOG.md

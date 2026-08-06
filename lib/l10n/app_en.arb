@@ -44,6 +44,10 @@
   "@settingsAboutSection": {
     "description": "Settings section header for app about info."
   },
+  "settingsAboutOpen": "About TinyTunes",
+  "@settingsAboutOpen": {
+    "description": "List tile that opens the About dialog."
+  },
   "settingsAboutVersion": "Version {version}",
   "@settingsAboutVersion": {
     "description": "About row showing the app version string.",
@@ -52,6 +56,34 @@
         "type": "String"
       }
     }
+  },
+  "settingsAboutChangelogHeading": "Changelog",
+  "@settingsAboutChangelogHeading": {
+    "description": "Heading above the in-app changelog preview."
+  },
+  "settingsAboutChangelogLoadFailed": "Could not load the changelog.",
+  "@settingsAboutChangelogLoadFailed": {
+    "description": "Error when docs/CHANGELOG.md fails to load from assets."
+  },
+  "settingsAboutOpenChangelogOnline": "Open full changelog online",
+  "@settingsAboutOpenChangelogOnline": {
+    "description": "Button that opens the changelog on GitHub."
+  },
+  "settingsAboutPrivacyPolicy": "Privacy policy",
+  "@settingsAboutPrivacyPolicy": {
+    "description": "Button that opens the hosted privacy policy."
+  },
+  "settingsAboutGitHub": "GitHub repository",
+  "@settingsAboutGitHub": {
+    "description": "Button that opens the public TinyTunes GitHub repo."
+  },
+  "settingsAboutOpenLinkFailed": "Could not open the link.",
+  "@settingsAboutOpenLinkFailed": {
+    "description": "SnackBar when url_launcher fails."
+  },
+  "settingsAboutClose": "Close",
+  "@settingsAboutClose": {
+    "description": "Dismisses the About dialog."
   },
   "settingsGoogleDriveSection": "Google Drive",
   "@settingsGoogleDriveSection": {
@@ -193,6 +225,10 @@
   "@forgetFolder": {
     "description": "Menu action to forget a library root."
   },
+  "forgetAllFolders": "Forget all folders",
+  "@forgetAllFolders": {
+    "description": "Menu action to forget every library root at once."
+  },
   "removeFromQueueTooltip": "Remove from queue",
   "@removeFromQueueTooltip": {
     "description": "Tooltip for removing one queue row."
@@ -225,6 +261,14 @@
   "forgetFolderBody": "Removes this folder from the library and its songs from the queue.",
   "@forgetFolderBody": {
     "description": "Confirm dialog body for forgetting a library root."
+  },
+  "forgetAllFoldersTitle": "Forget all folders?",
+  "@forgetAllFoldersTitle": {
+    "description": "Confirm dialog title for forgetting every library root."
+  },
+  "forgetAllFoldersBody": "Removes every library folder (this device and Google Drive) and clears their songs from the queue. Files on disk and in Drive are not deleted.",
+  "@forgetAllFoldersBody": {
+    "description": "Confirm dialog body for forgetting every library root."
   },
   "confirmAction": "Confirm",
   "@confirmAction": {
@@ -269,6 +313,14 @@
   "libraryForgetFailed": "Folder removed locally, but access release failed.",
   "@libraryForgetFailed": {
     "description": "Message/toast when grant release fails after DB delete."
+  },
+  "libraryForgetAllComplete": "All folders forgotten.",
+  "@libraryForgetAllComplete": {
+    "description": "Message/toast after forgetting every library folder."
+  },
+  "libraryForgetAllFailed": "Folders removed locally, but some access releases failed.",
+  "@libraryForgetAllFailed": {
+    "description": "Message/toast when one or more SAF releases fail during forget-all."
   },
   "libraryCloudSignInRequired": "Sign in to Google Drive in Settings first.",
   "@libraryCloudSignInRequired": {
