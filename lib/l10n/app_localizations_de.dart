@@ -27,7 +27,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsTitle => 'Einstellungen';
 
   @override
-  String get settingsAppearanceSection => 'Erscheinungsbild';
+  String get settingsModeSection => 'Modus';
+
+  @override
+  String get settingsColorSchemeSection => 'Farbschema';
 
   @override
   String get settingsThemeSystem => 'System';
@@ -37,6 +40,25 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsThemeDark => 'Dunkel';
+
+  @override
+  String get settingsSchemeDefault => 'Standard';
+
+  @override
+  String get settingsSchemeHighContrast => 'Hoher Kontrast';
+
+  @override
+  String get settingsSchemeDynamic => 'Dynamisch';
+
+  @override
+  String get settingsSchemeDynamicInfoTitle => 'Dynamisch';
+
+  @override
+  String get settingsSchemeDynamicInfoBody =>
+      'Verwendet Farben von deinem Hintergrundbild (Material You). Hell und Dunkel folgen weiterhin dem Modus.';
+
+  @override
+  String get settingsSchemeDynamicInfoClose => 'OK';
 
   @override
   String get settingsAboutSection => 'Über';

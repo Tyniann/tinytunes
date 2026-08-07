@@ -27,7 +27,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get settingsAppearanceSection => 'Appearance';
+  String get settingsModeSection => 'Mode';
+
+  @override
+  String get settingsColorSchemeSection => 'Color scheme';
 
   @override
   String get settingsThemeSystem => 'System';
@@ -37,6 +40,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsThemeDark => 'Dark';
+
+  @override
+  String get settingsSchemeDefault => 'Default';
+
+  @override
+  String get settingsSchemeHighContrast => 'High contrast';
+
+  @override
+  String get settingsSchemeDynamic => 'Dynamic';
+
+  @override
+  String get settingsSchemeDynamicInfoTitle => 'Dynamic';
+
+  @override
+  String get settingsSchemeDynamicInfoBody =>
+      'Uses colors from your wallpaper (Material You). Light and dark still follow Mode.';
+
+  @override
+  String get settingsSchemeDynamicInfoClose => 'OK';
 
   @override
   String get settingsAboutSection => 'About';

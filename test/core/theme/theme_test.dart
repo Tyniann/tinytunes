@@ -27,8 +27,8 @@ void main() {
   });
 
   group('ThemeCatalog', () {
-    test('v1 default scheme builds light and dark ThemeData', () {
-      final catalog = ThemeCatalog.v1();
+    test('standard default scheme builds light and dark ThemeData', () {
+      final catalog = ThemeCatalog.standard();
       final scheme = catalog.resolve(ThemeCatalog.defaultSchemeId);
 
       expect(scheme.id, ThemeCatalog.defaultSchemeId);
@@ -39,7 +39,7 @@ void main() {
     });
 
     test('resolve falls back to default for unknown scheme id', () {
-      final catalog = ThemeCatalog.v1();
+      final catalog = ThemeCatalog.standard();
       final scheme = catalog.resolve('missing');
 
       expect(scheme.id, ThemeCatalog.defaultSchemeId);

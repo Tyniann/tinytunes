@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tinytunes/core/cloud/cloud_providers.dart';
 import 'package:tinytunes/core/cloud/drive_media_locator.dart';
+import 'package:tinytunes/core/cloud/google_drive_auth.dart';
 import 'package:tinytunes/core/cloud/google_drive_probe.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
@@ -74,6 +75,24 @@ void main() {
     expect(state.isSignedIn, isFalse);
     expect(state.rootEntries, isEmpty);
     expect(auth.signOutCalls, 1);
+  });
+
+  test('first build restores a prior Google session without interactive sign-in',
+      () async {
+    final auth = FakeGoogleDriveAuth(
+      account: const GoogleDriveAccount(email: 'saved@example.com'),
+    );
+    final container = makeContainer(auth: auth);
+    addTearDown(container.dispose);
+
+    container.read(googleDriveSessionControllerProvider);
+    await Future<void>.delayed(Duration.zero);
+
+    final state = container.read(googleDriveSessionControllerProvider);
+    expect(auth.restoreCalls, 1);
+    expect(auth.signInCalls, 0);
+    expect(state.isSignedIn, isTrue);
+    expect(state.account?.email, 'saved@example.com');
   });
 
   test('listMyDriveRoot without sign-in sets an error', () async {

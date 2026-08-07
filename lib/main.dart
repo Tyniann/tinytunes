@@ -4,8 +4,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
+import 'package:tinytunes/core/cloud/cloud_providers.dart';
 import 'package:tinytunes/core/l10n/locale_resolution.dart';
 import 'package:tinytunes/core/routing/app_router.dart';
+import 'package:tinytunes/core/theme/dynamic_color_binder.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:tinytunes/features/player/application/playback_controller.dart';
 import 'package:tinytunes/features/player/application/player_providers.dart';
@@ -40,6 +42,8 @@ Future<void> main() async {
 
   // Eager attach: controller owns engine + session; handler receives remote.
   container.read(playbackControllerProvider);
+  // Restore a prior Google session without opening Settings first.
+  container.read(googleDriveSessionControllerProvider);
 
   runApp(
     UncontrolledProviderScope(
@@ -66,21 +70,23 @@ class TinyTunesApp extends ConsumerWidget {
     final dark = ref.watch(darkThemeDataProvider);
     final themeMode = ref.watch(materialThemeModeProvider);
 
-    return ToastificationWrapper(
-      child: MaterialApp.router(
-        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-        theme: light,
-        darkTheme: dark,
-        themeMode: themeMode,
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        localeListResolutionCallback: resolveAppLocale,
-        routerConfig: router,
+    return DynamicColorBinder(
+      child: ToastificationWrapper(
+        child: MaterialApp.router(
+          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
+          theme: light,
+          darkTheme: dark,
+          themeMode: themeMode,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          localeListResolutionCallback: resolveAppLocale,
+          routerConfig: router,
+        ),
       ),
     );
   }

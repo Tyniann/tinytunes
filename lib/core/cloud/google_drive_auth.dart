@@ -94,6 +94,11 @@ class GoogleSignInDriveAuth implements GoogleDriveAuth {
     await ensureInitialized();
     var user = _user;
     if (user == null) {
+      // Prefer silent restore so cold-start cloud play does not force UI.
+      await attemptLightweightSignIn();
+      user = _user;
+    }
+    if (user == null) {
       user = await _signIn.authenticate(scopeHint: _scopes);
       _user = user;
     }

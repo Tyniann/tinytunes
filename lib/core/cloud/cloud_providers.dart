@@ -170,7 +170,8 @@ GoogleDriveProbe googleDriveProbe(Ref ref) {
 ///
 /// Purpose: Drive Settings buttons through a testable seam; wipe cache on
 /// sign-out; restore a lightweight session on first build.
-/// Usage Context: Settings Google Drive section.
+/// Usage Context: Eagerly read from `main` so a prior Google session returns
+/// without opening Settings; also used by the Settings Google Drive section.
 @Riverpod(keepAlive: true)
 class GoogleDriveSessionController extends _$GoogleDriveSessionController {
   @override

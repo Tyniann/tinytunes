@@ -19,8 +19,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(SettingsScreen), findsOneWidget);
     final settingsL10n = lookupAppLocalizations(const Locale('en'));
-    expect(find.text(settingsL10n.settingsAppearanceSection), findsOneWidget);
-    expect(find.text('TinyTunes'), findsWidgets);
+    expect(find.text(settingsL10n.settingsModeSection), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text(settingsL10n.settingsAboutVersion('0.6.0')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pump();
     expect(
       find.text(settingsL10n.settingsAboutVersion('0.6.0')),
       findsOneWidget,

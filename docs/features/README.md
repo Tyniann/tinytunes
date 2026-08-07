@@ -4,7 +4,7 @@ Index of TinyTunes feature docs. Each major product module gets a kebab-case fil
 
 ## Documented features
 
-- [Theming](theming.md) — Settings theme mode + scheme catalog (`default` seed `#88AA00`)
+- [Theming](theming.md) — Mode + scheme picker (`default`, `highContrast`, optional Material You `dynamic`)
 - [Library ingest](library-ingest.md) — local + cloud catalog, single queue, SAF / Drive scan / forget
 - [Cloud library](cloud-library.md) — Google Drive read-only (Android), download-then-play cache
 - [Player](player.md) — playback + background, Shuffle × Repeat matrix transport, expandable system volume

@@ -203,12 +203,10 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
                     final isCurrent =
                         row.queueEntryId == playback.currentQueueEntryId;
                     return ListTile(
-                      contentPadding: const EdgeInsets.only(
-                        left: 16,
-                        right: 4,
-                      ),
+                      contentPadding: const EdgeInsets.only(left: 16, right: 4),
                       selected: isCurrent,
                       selectedTileColor: scheme.secondaryContainer,
+                      selectedColor: scheme.onSecondaryContainer,
                       title: Text(
                         row.listTitle,
                         maxLines: 2,

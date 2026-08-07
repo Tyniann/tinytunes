@@ -4,16 +4,18 @@ import 'package:tinytunes/core/cloud/cloud_cache_budget.dart';
 import 'package:tinytunes/core/cloud/cloud_providers.dart';
 import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/settings/package_info_provider.dart';
-import 'package:tinytunes/core/theme/app_theme_mode.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:tinytunes/features/settings/presentation/about_app_dialog.dart';
+import 'package:tinytunes/features/settings/presentation/widgets/color_scheme_picker.dart';
+import 'package:tinytunes/features/settings/presentation/widgets/theme_mode_segmented_control.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 import 'package:tinytunes/shared/widgets/google_branding.dart';
 
 /// Daily-driver Settings: theme, Google Drive account/cache, and About.
 ///
-/// Purpose: Let the user pick System/Light/Dark, manage Drive sign-in and cloud
-/// cache budget, and open the About dialog (logo, version, changelog, privacy).
+/// Purpose: Let the user pick Mode and Color scheme, manage Drive sign-in and
+/// cloud cache budget, and open the About dialog (logo, version, changelog,
+/// privacy).
 /// Usage Context: Route `/settings` via [SettingsRoute].
 class SettingsScreen extends ConsumerWidget {
   /// Creates the Settings screen.
@@ -22,10 +24,12 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final mode = ref.watch(appThemeModeControllerProvider);
     final packageInfo = ref.watch(packageInfoProvider);
     final drive = ref.watch(googleDriveSessionControllerProvider);
     final driveCtrl = ref.read(googleDriveSessionControllerProvider.notifier);
+    final dynamicAvailable = ref
+        .watch(dynamicColorAvailabilityControllerProvider)
+        .isAvailable;
     final aboutVersion = switch (packageInfo) {
       AsyncData(:final value) => value.version,
       AsyncError() => '—',
@@ -36,29 +40,25 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListView(
         children: [
-          ListTile(title: Text(l10n.settingsAppearanceSection)),
-          RadioGroup<AppThemeMode>(
-            groupValue: mode,
-            onChanged: (value) {
-              if (value == null) return;
-              ref.read(appThemeModeControllerProvider.notifier).setMode(value);
-            },
-            child: Column(
-              children: [
-                RadioListTile<AppThemeMode>(
-                  title: Text(l10n.settingsThemeSystem),
-                  value: AppThemeMode.system,
-                ),
-                RadioListTile<AppThemeMode>(
-                  title: Text(l10n.settingsThemeLight),
-                  value: AppThemeMode.light,
-                ),
-                RadioListTile<AppThemeMode>(
-                  title: Text(l10n.settingsThemeDark),
-                  value: AppThemeMode.dark,
-                ),
-              ],
-            ),
+          ListTile(title: Text(l10n.settingsModeSection)),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: ThemeModeSegmentedControl(),
+          ),
+          const SizedBox(height: 8),
+          ListTile(
+            title: Text(l10n.settingsColorSchemeSection),
+            trailing: dynamicAvailable
+                ? IconButton(
+                    tooltip: l10n.settingsSchemeDynamicInfoTitle,
+                    icon: const Icon(Icons.info_outline),
+                    onPressed: () => showDynamicSchemeInfoDialog(context),
+                  )
+                : null,
+          ),
+          const Padding(
+            padding: EdgeInsets.fromLTRB(12, 0, 12, 8),
+            child: ColorSchemePicker(),
           ),
           const Divider(),
           ListTile(
@@ -124,7 +124,12 @@ class SettingsScreen extends ConsumerWidget {
                         Text(l10n.settingsAboutOpen),
                         Text(
                           l10n.settingsAboutVersion(aboutVersion),
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSecondaryContainer,
+                              ),
                         ),
                       ],
                     ),

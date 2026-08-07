@@ -1,25 +1,21 @@
-# Android signing + Google OAuth (BYO — GitHub only)
+# Android signing + Google OAuth
 
-TinyTunes is **not** on Google Play and does **not** pursue Google’s public
-OAuth verification for Drive. **Bring your own OAuth client.**
+TinyTunes is **not** on Google Play. Distribution is via GitHub (source +
+optional release APKs).
 
 ## Policy (read this first)
 
-- **Forks / self-built APKs:** create your own GCP project + OAuth clients.
-  Replace `serverClientId` in
-  [`lib/core/cloud/google_oauth_config.dart`](../../lib/core/cloud/google_oauth_config.dart).
-- **Maintainer machine only:** the committed Web Client ID may be used together
-  with SHA-1s registered on that private GCP project. It is **not** a public
-  multi-user OAuth app.
-- **No verification video, no “publish for everyone” requirement** for this
-  project’s intended distribution model.
-- Local library (SAF) needs **zero** Google setup.
+| Distribution | OAuth |
+| --- | --- |
+| **Official release APK** (GitHub Releases) | Preconfigured with the maintainer’s Google Cloud OAuth clients (`serverClientId` in [`google_oauth_config.dart`](../../lib/core/cloud/google_oauth_config.dart) + Android clients registered for the release signing SHA-1). Install, sign in, use Drive. Google’s sensitive-scope / brand **verification may still be pending** — users can see an “unverified app” warning until review completes. |
+| **Forks / self-built APKs** | **Bring your own** GCP project + OAuth clients. Replace `serverClientId`. Register **your** debug and (if applicable) release SHA-1s. The committed Client ID will not work for builds signed with your keystore. |
+| **Local library (SAF)** | Needs **zero** Google setup. |
 
 ## Create your own Drive OAuth (forks)
 
 1. [Google Cloud Console](https://console.cloud.google.com/) → new or existing project.
 2. Enable **Google Drive API**.
-3. **OAuth consent screen** (External). Testing + yourself as test user is enough.
+3. **OAuth consent screen** (External). Testing + yourself as test user is enough for personal builds.
 4. **Credentials** → Create credentials → OAuth client ID:
    - **Android (debug):** package `at.blumenlaube.tinytunes` + **debug** SHA-1.
    - **Android (release), if you ship signed APKs:** create a **second** Android
@@ -57,10 +53,11 @@ Back up the `.jks` and passwords offline. Losing them means a new signing key
 
 | Google step | TinyTunes stance |
 | --- | --- |
-| OAuth brand / sensitive-scope verification | Not doing it |
-| Demo YouTube video for Drive | Not doing it |
 | Play Console / Play App Signing | Not distributing on Play |
+| Waiting on verification before shipping APKs | Official APKs may ship while verification is **pending**; expect Google’s unverified-app warning until approved |
 
-Privacy policy (for your own consent screen if you want one):  
+Forks that only need Drive for themselves can stay on OAuth **Testing** + test users and skip brand verification entirely.
+
+Privacy policy (for consent screen / users):  
 https://blumenlaube.at/apps/tinytunes/privacy-policy.html  
 In-repo drafts: [docs/legal/](.).

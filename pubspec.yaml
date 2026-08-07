@@ -1,7 +1,7 @@
 name: tinytunes
-description: "Local-first Android music player with optional BYO Google Drive (read-only)."
+description: "Local-first Android music player with optional Google Drive (read-only)."
 publish_to: 'none'
-version: 0.8.0+9
+version: 1.0.0+10
 
 environment:
   sdk: ^3.11.0
@@ -57,6 +57,7 @@ dependencies:
   http: ^1.6.0
   url_launcher: ^6.3.2
   image: ^4.8.0
+  dynamic_color: 1.8.1
 
 dev_dependencies:
   flutter_test:

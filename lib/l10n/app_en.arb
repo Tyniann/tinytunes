@@ -24,9 +24,13 @@
   "@settingsTitle": {
     "description": "Settings screen app bar title."
   },
-  "settingsAppearanceSection": "Appearance",
-  "@settingsAppearanceSection": {
-    "description": "Settings section header for theme mode."
+  "settingsModeSection": "Mode",
+  "@settingsModeSection": {
+    "description": "Settings section header for System / Light / Dark."
+  },
+  "settingsColorSchemeSection": "Color scheme",
+  "@settingsColorSchemeSection": {
+    "description": "Settings section header for named theme schemes."
   },
   "settingsThemeSystem": "System",
   "@settingsThemeSystem": {
@@ -39,6 +43,30 @@
   "settingsThemeDark": "Dark",
   "@settingsThemeDark": {
     "description": "Theme mode option for dark appearance."
+  },
+  "settingsSchemeDefault": "Default",
+  "@settingsSchemeDefault": {
+    "description": "Brand green color scheme option."
+  },
+  "settingsSchemeHighContrast": "High contrast",
+  "@settingsSchemeHighContrast": {
+    "description": "Aggressive high-contrast color scheme option."
+  },
+  "settingsSchemeDynamic": "Dynamic",
+  "@settingsSchemeDynamic": {
+    "description": "Material You / wallpaper-derived color scheme option."
+  },
+  "settingsSchemeDynamicInfoTitle": "Dynamic",
+  "@settingsSchemeDynamicInfoTitle": {
+    "description": "Title for the Dynamic color scheme info dialog."
+  },
+  "settingsSchemeDynamicInfoBody": "Uses colors from your wallpaper (Material You). Light and dark still follow Mode.",
+  "@settingsSchemeDynamicInfoBody": {
+    "description": "Body explaining what the Dynamic color scheme does."
+  },
+  "settingsSchemeDynamicInfoClose": "OK",
+  "@settingsSchemeDynamicInfoClose": {
+    "description": "Dismiss button for the Dynamic scheme info dialog."
   },
   "settingsAboutSection": "About",
   "@settingsAboutSection": {

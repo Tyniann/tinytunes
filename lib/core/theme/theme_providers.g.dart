@@ -120,17 +120,17 @@ final class ThemePreferencesProvider
 
 String _$themePreferencesHash() => r'1bffd8962a6c5909df735d37cfb3b51e19505d4c';
 
-/// v1 [ThemeCatalog] (single `default` scheme).
+/// Shipped [ThemeCatalog] (`default` + `highContrast`).
 
 @ProviderFor(themeCatalog)
 final themeCatalogProvider = ThemeCatalogProvider._();
 
-/// v1 [ThemeCatalog] (single `default` scheme).
+/// Shipped [ThemeCatalog] (`default` + `highContrast`).
 
 final class ThemeCatalogProvider
     extends $FunctionalProvider<ThemeCatalog, ThemeCatalog, ThemeCatalog>
     with $Provider<ThemeCatalog> {
-  /// v1 [ThemeCatalog] (single `default` scheme).
+  /// Shipped [ThemeCatalog] (`default` + `highContrast`).
   ThemeCatalogProvider._()
     : super(
         from: null,
@@ -164,7 +164,75 @@ final class ThemeCatalogProvider
   }
 }
 
-String _$themeCatalogHash() => r'857c7bcc85f3119f98e6ffaf2d2781c38e7da3e1';
+String _$themeCatalogHash() => r'068ded7f06bab156324528b9811e4b6f00da44ef';
+
+/// Platform Material You colors bridged from [DynamicColorBinder].
+
+@ProviderFor(DynamicColorAvailabilityController)
+final dynamicColorAvailabilityControllerProvider =
+    DynamicColorAvailabilityControllerProvider._();
+
+/// Platform Material You colors bridged from [DynamicColorBinder].
+final class DynamicColorAvailabilityControllerProvider
+    extends
+        $NotifierProvider<
+          DynamicColorAvailabilityController,
+          DynamicColorAvailability
+        > {
+  /// Platform Material You colors bridged from [DynamicColorBinder].
+  DynamicColorAvailabilityControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'dynamicColorAvailabilityControllerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$dynamicColorAvailabilityControllerHash();
+
+  @$internal
+  @override
+  DynamicColorAvailabilityController create() =>
+      DynamicColorAvailabilityController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(DynamicColorAvailability value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<DynamicColorAvailability>(value),
+    );
+  }
+}
+
+String _$dynamicColorAvailabilityControllerHash() =>
+    r'225c9a33cc0522a1c3bec493365426564d40aa1b';
+
+/// Platform Material You colors bridged from [DynamicColorBinder].
+
+abstract class _$DynamicColorAvailabilityController
+    extends $Notifier<DynamicColorAvailability> {
+  DynamicColorAvailability build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref =
+        this.ref as $Ref<DynamicColorAvailability, DynamicColorAvailability>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<DynamicColorAvailability, DynamicColorAvailability>,
+              DynamicColorAvailability,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
 
 /// Persisted appearance mode with write API for Settings and tests.
 
@@ -225,16 +293,16 @@ abstract class _$AppThemeModeController extends $Notifier<AppThemeMode> {
   }
 }
 
-/// Persisted scheme id with write API for later scheme pickers.
+/// Persisted scheme id with write API for Settings and tests.
 
 @ProviderFor(AppThemeSchemeIdController)
 final appThemeSchemeIdControllerProvider =
     AppThemeSchemeIdControllerProvider._();
 
-/// Persisted scheme id with write API for later scheme pickers.
+/// Persisted scheme id with write API for Settings and tests.
 final class AppThemeSchemeIdControllerProvider
     extends $NotifierProvider<AppThemeSchemeIdController, String> {
-  /// Persisted scheme id with write API for later scheme pickers.
+  /// Persisted scheme id with write API for Settings and tests.
   AppThemeSchemeIdControllerProvider._()
     : super(
         from: null,
@@ -265,7 +333,7 @@ final class AppThemeSchemeIdControllerProvider
 String _$appThemeSchemeIdControllerHash() =>
     r'3204e0703834b7e9dda687b37d9b4f0c2816608e';
 
-/// Persisted scheme id with write API for later scheme pickers.
+/// Persisted scheme id with write API for Settings and tests.
 
 abstract class _$AppThemeSchemeIdController extends $Notifier<String> {
   String build();
@@ -285,17 +353,85 @@ abstract class _$AppThemeSchemeIdController extends $Notifier<String> {
   }
 }
 
-/// Active [AppThemeScheme] resolved from catalog + scheme id.
+/// Rewrites prefs from `dynamic` to `default` once Dynamic is known unavailable.
+///
+/// Purpose: Keep Settings honest when the Dynamic chip is hidden, without the
+/// scheme controller depending on itself during [build].
+/// Usage Context: Watched from theme data providers so the guard stays alive.
+
+@ProviderFor(dynamicSchemeGuard)
+final dynamicSchemeGuardProvider = DynamicSchemeGuardProvider._();
+
+/// Rewrites prefs from `dynamic` to `default` once Dynamic is known unavailable.
+///
+/// Purpose: Keep Settings honest when the Dynamic chip is hidden, without the
+/// scheme controller depending on itself during [build].
+/// Usage Context: Watched from theme data providers so the guard stays alive.
+
+final class DynamicSchemeGuardProvider
+    extends $FunctionalProvider<int, int, int>
+    with $Provider<int> {
+  /// Rewrites prefs from `dynamic` to `default` once Dynamic is known unavailable.
+  ///
+  /// Purpose: Keep Settings honest when the Dynamic chip is hidden, without the
+  /// scheme controller depending on itself during [build].
+  /// Usage Context: Watched from theme data providers so the guard stays alive.
+  DynamicSchemeGuardProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'dynamicSchemeGuardProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$dynamicSchemeGuardHash();
+
+  @$internal
+  @override
+  $ProviderElement<int> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  int create(Ref ref) {
+    return dynamicSchemeGuard(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(int value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<int>(value),
+    );
+  }
+}
+
+String _$dynamicSchemeGuardHash() =>
+    r'6ddf4bc6a9d5160c957a25c7be0a3d4bc28bc5c2';
+
+/// Active static [AppThemeScheme] for non-dynamic scheme ids.
+///
+/// When prefs say Dynamic, returns the catalog `default` seed scheme for
+/// callers that need a static entry; prefer theme data / [previewColorScheme].
 
 @ProviderFor(activeThemeScheme)
 final activeThemeSchemeProvider = ActiveThemeSchemeProvider._();
 
-/// Active [AppThemeScheme] resolved from catalog + scheme id.
+/// Active static [AppThemeScheme] for non-dynamic scheme ids.
+///
+/// When prefs say Dynamic, returns the catalog `default` seed scheme for
+/// callers that need a static entry; prefer theme data / [previewColorScheme].
 
 final class ActiveThemeSchemeProvider
     extends $FunctionalProvider<AppThemeScheme, AppThemeScheme, AppThemeScheme>
     with $Provider<AppThemeScheme> {
-  /// Active [AppThemeScheme] resolved from catalog + scheme id.
+  /// Active static [AppThemeScheme] for non-dynamic scheme ids.
+  ///
+  /// When prefs say Dynamic, returns the catalog `default` seed scheme for
+  /// callers that need a static entry; prefer theme data / [previewColorScheme].
   ActiveThemeSchemeProvider._()
     : super(
         from: null,
@@ -329,7 +465,7 @@ final class ActiveThemeSchemeProvider
   }
 }
 
-String _$activeThemeSchemeHash() => r'54fc30bb69c1fa929acf314bddbcb4e4369313b6';
+String _$activeThemeSchemeHash() => r'f7992a3dfd07f83f26d4ff8d52f397dbbd96df65';
 
 /// Light [ThemeData] for [MaterialApp.router].
 
@@ -375,7 +511,7 @@ final class LightThemeDataProvider
   }
 }
 
-String _$lightThemeDataHash() => r'8a49641dff910d9dca7855e43cfc2f79aad98768';
+String _$lightThemeDataHash() => r'4dbc0104b1a6cc2ac75eb49052b1a1a7bf9a9da5';
 
 /// Dark [ThemeData] for [MaterialApp.router].
 
@@ -421,7 +557,7 @@ final class DarkThemeDataProvider
   }
 }
 
-String _$darkThemeDataHash() => r'4e681530f8815cc83e0958691a3a3098ed2ea784';
+String _$darkThemeDataHash() => r'd770cfb090a24ec1334710cfdc96d6b1d8741207';
 
 /// Flutter [ThemeMode] derived from [AppThemeModeController].
 

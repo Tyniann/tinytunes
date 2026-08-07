@@ -134,11 +134,17 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTitle;
 
-  /// Settings section header for theme mode.
+  /// Settings section header for System / Light / Dark.
   ///
   /// In en, this message translates to:
-  /// **'Appearance'**
-  String get settingsAppearanceSection;
+  /// **'Mode'**
+  String get settingsModeSection;
+
+  /// Settings section header for named theme schemes.
+  ///
+  /// In en, this message translates to:
+  /// **'Color scheme'**
+  String get settingsColorSchemeSection;
 
   /// Theme mode option that follows the OS.
   ///
@@ -157,6 +163,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dark'**
   String get settingsThemeDark;
+
+  /// Brand green color scheme option.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get settingsSchemeDefault;
+
+  /// Aggressive high-contrast color scheme option.
+  ///
+  /// In en, this message translates to:
+  /// **'High contrast'**
+  String get settingsSchemeHighContrast;
+
+  /// Material You / wallpaper-derived color scheme option.
+  ///
+  /// In en, this message translates to:
+  /// **'Dynamic'**
+  String get settingsSchemeDynamic;
+
+  /// Title for the Dynamic color scheme info dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Dynamic'**
+  String get settingsSchemeDynamicInfoTitle;
+
+  /// Body explaining what the Dynamic color scheme does.
+  ///
+  /// In en, this message translates to:
+  /// **'Uses colors from your wallpaper (Material You). Light and dark still follow Mode.'**
+  String get settingsSchemeDynamicInfoBody;
+
+  /// Dismiss button for the Dynamic scheme info dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get settingsSchemeDynamicInfoClose;
 
   /// Settings section header for app about info.
   ///

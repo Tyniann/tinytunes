@@ -24,7 +24,19 @@ and manage cache budget / clear / sign-out wipe — never mutate remote files.
 ### Sign in / Sign out (Settings)
 
 - Sign in with Google (`drive.readonly`).
+- On app start, `main` eagerly builds `googleDriveSessionControllerProvider` so
+  a prior platform session is restored via lightweight auth (same path Settings
+  used when opened). Token fetch also tries silent restore before interactive
+  sign-in.
 - Sign out clears the Google session and **wipes all cloud cache** (catalog roots stay until Forget).
+
+### OAuth distribution
+
+- **Official release APK:** uses the maintainer’s preconfigured OAuth clients;
+  end users can sign in without setting up GCP (Google may show an unverified-app
+  warning while brand/sensitive-scope verification is pending).
+- **Forks / self-built APKs:** must create their own GCP OAuth clients and replace
+  `serverClientId` — see [`docs/legal/android-signing-and-oauth.md`](../legal/android-signing-and-oauth.md).
 
 ### Add cloud folder (home)
 

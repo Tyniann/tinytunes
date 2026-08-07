@@ -6,7 +6,7 @@
 | --- | --- |
 | [`privacy-policy.md`](privacy-policy.md) | Privacy policy (English, GDPR-oriented) |
 | [`privacy-policy.de.md`](privacy-policy.de.md) | German user-facing version |
-| [`android-signing-and-oauth.md`](android-signing-and-oauth.md) | **BYO OAuth** + optional release signing (no Play / no Google verification) |
+| [`android-signing-and-oauth.md`](android-signing-and-oauth.md) | Official APK OAuth vs **BYO for forks**; optional release signing (no Play) |
 
 **Live HTML (authoritative for users):**  
 https://blumenlaube.at/apps/tinytunes/privacy-policy.html

@@ -19,6 +19,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.0.0] - 2026-08-08
+
+### Added
+
+- Add color scheme picker in Settings: Default, High contrast, and Dynamic (Material You when available)
+- Add aggressive high-contrast scheme (`contrastLevel` 1.0, brand seed `#88AA00`)
+- Add live wallpaper-derived Dynamic themes via `dynamic_color`, with prefs rewrite to Default when unavailable
+- Rework Appearance into Mode (`SegmentedButton`) and Color scheme (swatch chips + Dynamic info dialog)
+
+### Changed
+
+- Bump app version to `1.0.0+10`
+- Clarify Google OAuth docs: official release APK is preconfigured; forks must BYO GCP clients (verification may still be pending)
+
+### Fixed
+
+- Restore Google Drive sign-in at app start (not only when opening Settings)
+
+### Removed
+
+### Security
+
+---
+
 ## [0.8.0] - 2026-08-06
 
 ### Added

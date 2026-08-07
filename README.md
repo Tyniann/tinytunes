@@ -4,7 +4,7 @@ Simple, no-nonsense, local-first Android music player. Add folders, queue tracks
 background. Optional **Google Drive** support is read-only (list / download /
 cache — never write to Drive).
 
-**Not on Google Play.** Source and (optional) self-built APKs via GitHub only.
+**Not on Google Play.** Source and release APKs via GitHub.
 
 | | |
 | --- | --- |
@@ -12,23 +12,17 @@ cache — never write to Drive).
 | License | [MIT](LICENSE) |
 | Privacy | https://blumenlaube.at/apps/tinytunes/privacy-policy.html |
 | Platforms | Android first (iOS later) |
-| Latest release | [v0.8.0](https://github.com/Tyniann/tinytunes/releases/tag/v0.8.0) |
+| Latest release | [v1.0.0](https://github.com/Tyniann/tinytunes/releases/tag/v1.0.0) |
 
-## Google Drive = bring your own OAuth (BYO)
-
-TinyTunes does **not** ship a verified, public Google OAuth app for every
-GitHub user. Google’s Drive (`drive.readonly`) verification circus (including
-demo videos) is intentionally **out of scope**.
+## Google Drive / OAuth
 
 | You | What to do |
 | --- | --- |
-| **Maintainer builds** | May use the Client ID in `lib/core/cloud/google_oauth_config.dart` with SHA-1s registered on that GCP project |
-| **Forks / your own APK** | **Create your own** Google Cloud OAuth clients and replace `serverClientId` |
-| **Contributors** | Local music works with zero Google setup; Drive needs your own clients |
+| **Official release APK** (GitHub Releases) | Already wired to the maintainer’s OAuth clients. Install and sign in — Drive works. Google’s verification for `drive.readonly` may still be **pending**, so you might see an “unverified app” warning; that is expected until Google finishes review. |
+| **Forks / self-built APKs** | **Bring your own** Google Cloud project + OAuth clients. Replace `serverClientId` in `lib/core/cloud/google_oauth_config.dart`. The committed Client ID is for the official signed APK only — your debug/release SHA-1s will not match. |
+| **Contributors (local library only)** | No Google setup needed. SAF local folders never need OAuth. |
 
-Local folders (SAF) never need Google.
-
-Step-by-step: [docs/legal/android-signing-and-oauth.md](docs/legal/android-signing-and-oauth.md).
+Step-by-step for forks: [docs/legal/android-signing-and-oauth.md](docs/legal/android-signing-and-oauth.md).
 
 ## Features
 
@@ -44,7 +38,7 @@ Step-by-step: [docs/legal/android-signing-and-oauth.md](docs/legal/android-signi
 
 - Flutter **3.41+** / Dart **3.11+** (see `pubspec.yaml`)
 - Android device or emulator
-- For Drive only: a Google Cloud project you control (see OAuth doc)
+- For Drive on **your own** builds/forks only: a Google Cloud project you control (see OAuth doc). Not needed if you only install the official APK.
 
 ## Build & run
 
@@ -62,7 +56,9 @@ Release APK (uses `android/key.properties` + keystore if present; else debug key
 flutter build apk --release
 ```
 
-### Drive setup (forks / own builds)
+### Drive setup (forks / own builds only)
+
+Skip this if you install the official release APK — OAuth is already configured.
 
 1. Google Cloud Console → enable **Google Drive API**.
 2. OAuth consent screen (External, Testing is fine for yourself).
@@ -97,7 +93,8 @@ ADRs: [docs/adr/](docs/adr/). Changelog: [docs/CHANGELOG.md](docs/CHANGELOG.md).
 
 PRs welcome. Keep changes focused; prefer the existing Riverpod / Drift /
 `just_audio` + custom `audio_service` stack. Run analyzer/tests before opening
-a PR. Drive OAuth for your machine is **your** GCP project (BYO).
+a PR. If you build your own APK and want Drive, use **your** GCP OAuth clients
+(see above) — do not rely on the committed maintainer Client ID.
 
 ## License
 
