@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tinytunes/core/cloud/drive_media_locator.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_media_locator.dart';
 import 'package:tinytunes/core/library/media_locator.dart';
 
 void main() {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tinytunes/core/cloud/cloud_cache_budget.dart';
@@ -10,12 +12,12 @@ import 'package:tinytunes/features/settings/presentation/widgets/color_scheme_pi
 import 'package:tinytunes/features/settings/presentation/widgets/theme_mode_segmented_control.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 import 'package:tinytunes/shared/widgets/google_branding.dart';
+import 'package:tinytunes/shared/widgets/microsoft_branding.dart';
 
-/// Daily-driver Settings: theme, Google Drive account/cache, and About.
+/// Daily-driver Settings: theme, cloud accounts/cache, and About.
 ///
-/// Purpose: Let the user pick Mode and Color scheme, manage Drive sign-in and
-/// cloud cache budget, and open the About dialog (logo, version, changelog,
-/// privacy).
+/// Purpose: Let the user pick Mode and Color scheme, manage Google Drive and
+/// OneDrive sign-in, cloud cache budget, and open the About dialog.
 /// Usage Context: Route `/settings` via [SettingsRoute].
 class SettingsScreen extends ConsumerWidget {
   /// Creates the Settings screen.
@@ -27,6 +29,8 @@ class SettingsScreen extends ConsumerWidget {
     final packageInfo = ref.watch(packageInfoProvider);
     final drive = ref.watch(googleDriveSessionControllerProvider);
     final driveCtrl = ref.read(googleDriveSessionControllerProvider.notifier);
+    final oneDrive = ref.watch(oneDriveSessionControllerProvider);
+    final oneDriveCtrl = ref.read(oneDriveSessionControllerProvider.notifier);
     final dynamicAvailable = ref
         .watch(dynamicColorAvailabilityControllerProvider)
         .isAvailable;
@@ -35,6 +39,37 @@ class SettingsScreen extends ConsumerWidget {
       AsyncError() => '—',
       _ => '…',
     };
+
+    ref.listen(googleDriveSessionControllerProvider, (previous, next) {
+      if (next.accountChangeRequired &&
+          previous?.accountChangeRequired != true) {
+        unawaited(
+          _confirmCloudAccountReplace(
+            context: context,
+            l10n: l10n,
+            previousEmail: next.previousAccountEmail ?? '…',
+            newEmail: next.pendingAccount!.email,
+            onConfirm: driveCtrl.confirmAccountReplacement,
+            onCancel: driveCtrl.cancelAccountReplacement,
+          ),
+        );
+      }
+    });
+    ref.listen(oneDriveSessionControllerProvider, (previous, next) {
+      if (next.accountChangeRequired &&
+          previous?.accountChangeRequired != true) {
+        unawaited(
+          _confirmCloudAccountReplace(
+            context: context,
+            l10n: l10n,
+            previousEmail: next.previousAccountEmail ?? '…',
+            newEmail: next.pendingAccount!.email,
+            onConfirm: oneDriveCtrl.confirmAccountReplacement,
+            onCancel: oneDriveCtrl.cancelAccountReplacement,
+          ),
+        );
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
@@ -65,30 +100,33 @@ class SettingsScreen extends ConsumerWidget {
             leading: const GoogleDriveMark(size: 28),
             title: Text(l10n.settingsGoogleDriveSection),
           ),
-          if (drive.account != null)
+          if (drive.accountChangeRequired && drive.pendingAccount != null)
+            ListTile(
+              title: Text(
+                l10n.settingsCloudAccountReplaceBody(
+                  drive.previousAccountEmail ?? '…',
+                  drive.pendingAccount!.email,
+                ),
+              ),
+            )
+          else if (drive.account != null)
             ListTile(
               title: Text(
                 l10n.settingsGoogleDriveSignedInAs(drive.account!.email),
               ),
             ),
-          if (!drive.isSignedIn)
+          if (!drive.isSignedIn && !drive.accountChangeRequired)
             SignInWithGoogleButton(
               label: l10n.settingsGoogleDriveSignIn,
               enabled: !drive.busy,
               onPressed: driveCtrl.signIn,
             )
-          else
+          else if (drive.isSignedIn)
             ListTile(
               title: Text(l10n.settingsGoogleDriveSignOut),
               enabled: !drive.busy,
               onTap: driveCtrl.signOut,
             ),
-          _CloudCacheBudgetSlider(enabled: !drive.busy),
-          ListTile(
-            title: Text(l10n.settingsCloudCacheClear),
-            enabled: !drive.busy,
-            onTap: () => _confirmClearCloudCache(context, ref, l10n),
-          ),
           if (drive.lastError != null)
             ListTile(
               title: Text(
@@ -96,6 +134,52 @@ class SettingsScreen extends ConsumerWidget {
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
+          const Divider(),
+          ListTile(
+            leading: const OneDriveMark(size: 28),
+            title: Text(l10n.settingsOneDriveSection),
+          ),
+          if (oneDrive.accountChangeRequired && oneDrive.pendingAccount != null)
+            ListTile(
+              title: Text(
+                l10n.settingsCloudAccountReplaceBody(
+                  oneDrive.previousAccountEmail ?? '…',
+                  oneDrive.pendingAccount!.email,
+                ),
+              ),
+            )
+          else if (oneDrive.account != null)
+            ListTile(
+              title: Text(
+                l10n.settingsOneDriveSignedInAs(oneDrive.account!.email),
+              ),
+            ),
+          if (!oneDrive.isSignedIn && !oneDrive.accountChangeRequired)
+            SignInWithMicrosoftButton(
+              label: l10n.settingsOneDriveSignIn,
+              enabled: !oneDrive.busy,
+              onPressed: oneDriveCtrl.signIn,
+            )
+          else if (oneDrive.isSignedIn)
+            ListTile(
+              title: Text(l10n.settingsOneDriveSignOut),
+              enabled: !oneDrive.busy,
+              onTap: oneDriveCtrl.signOut,
+            ),
+          if (oneDrive.lastError != null)
+            ListTile(
+              title: Text(
+                oneDrive.lastError!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            ),
+          const Divider(),
+          _CloudCacheBudgetSlider(enabled: true),
+          ListTile(
+            title: Text(l10n.settingsCloudCacheClear),
+            enabled: true,
+            onTap: () => _confirmClearCloudCache(context, ref, l10n),
+          ),
           const Divider(),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -144,6 +228,41 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
+  Future<void> _confirmCloudAccountReplace({
+    required BuildContext context,
+    required AppLocalizations l10n,
+    required String previousEmail,
+    required String newEmail,
+    required Future<void> Function() onConfirm,
+    required Future<void> Function() onCancel,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.settingsCloudAccountReplaceTitle),
+        content: Text(
+          l10n.settingsCloudAccountReplaceBody(previousEmail, newEmail),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.settingsCloudAccountReplaceCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.settingsCloudAccountReplaceConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await onConfirm();
+    } else {
+      await onCancel();
+    }
+  }
+
   Future<void> _confirmClearCloudCache(
     BuildContext context,
     WidgetRef ref,
@@ -168,9 +287,7 @@ class SettingsScreen extends ConsumerWidget {
     );
     if (confirmed != true) return;
 
-    await ref
-        .read(googleDriveSessionControllerProvider.notifier)
-        .clearCloudCache();
+    await ref.read(cloudCacheStoreProvider).clearAll();
     ref
         .read(messageReporterProvider)
         .reportInfo(
@@ -183,7 +300,7 @@ class SettingsScreen extends ConsumerWidget {
 /// Cloud cache budget slider that commits on finger-up only.
 ///
 /// Purpose: Avoid prefs writes / LRU eviction on every drag tick.
-/// Usage Context: Settings Google Drive section.
+/// Usage Context: Shared Settings cloud-cache section.
 class _CloudCacheBudgetSlider extends ConsumerStatefulWidget {
   const _CloudCacheBudgetSlider({required this.enabled});
 

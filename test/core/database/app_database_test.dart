@@ -125,4 +125,63 @@ void main() {
     expect(rows, hasLength(1));
     expect(rows.single.trackId, trackId);
   });
+
+  test('schema v3 ownership columns: local stays null; gdrive backfill', () async {
+    expect(db.schemaVersion, 3);
+
+    final localId = await db.upsertRoot(
+      locator: 'content://tree/local',
+      displayName: 'Local',
+    );
+    final gdriveId = await db.into(db.libraryRoots).insert(
+      LibraryRootsCompanion.insert(
+        locator: 'gdrive:folder1',
+        displayName: 'Drive',
+        sourceKind: const Value('cloud'),
+        addedAt: DateTime.utc(2026, 1, 1),
+      ),
+    );
+    final odId = await db.into(db.libraryRoots).insert(
+      LibraryRootsCompanion.insert(
+        locator: 'onedrive:d%2Fx/i%2Fy',
+        displayName: 'OD',
+        sourceKind: const Value('cloud'),
+        addedAt: DateTime.utc(2026, 1, 1),
+      ),
+    );
+
+    await db.backfillCloudProviderFromLocators();
+
+    final local = await (db.select(db.libraryRoots)
+          ..where((t) => t.id.equals(localId)))
+        .getSingle();
+    final gdrive = await (db.select(db.libraryRoots)
+          ..where((t) => t.id.equals(gdriveId)))
+        .getSingle();
+    final od = await (db.select(db.libraryRoots)
+          ..where((t) => t.id.equals(odId)))
+        .getSingle();
+
+    expect(local.cloudProvider, isNull);
+    expect(local.cloudAccountKey, isNull);
+    expect(gdrive.cloudProvider, 'gdrive');
+    expect(gdrive.cloudAccountKey, isNull);
+    expect(od.cloudProvider, 'onedrive');
+    expect(od.cloudAccountKey, isNull);
+  });
+
+  test('fresh cloud roots accept provider and account key on upsert', () async {
+    final id = await db.upsertRoot(
+      locator: 'onedrive:drive/item',
+      displayName: 'Fresh',
+      sourceKind: 'cloud',
+      cloudProvider: 'onedrive',
+      cloudAccountKey: 'oid-1',
+    );
+    final row = await (db.select(db.libraryRoots)
+          ..where((t) => t.id.equals(id)))
+        .getSingle();
+    expect(row.cloudProvider, 'onedrive');
+    expect(row.cloudAccountKey, 'oid-1');
+  });
 }

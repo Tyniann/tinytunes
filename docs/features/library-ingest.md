@@ -51,8 +51,8 @@ catalog tracks missing from the queue; Re-scan only discovers new files.
 
 Same cleanup as Forget for **every** library root in one busy phase (local +
 cloud). One confirm; reports `library.forget_all.complete` or
-`library.forget_all.failed` if any SAF release fails. Files on disk / Drive are
-never deleted.
+`library.forget_all.failed` if any SAF release fails. Files on disk and in the
+cloud are never deleted.
 
 ### Single-flight
 

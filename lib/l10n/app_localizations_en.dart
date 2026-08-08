@@ -108,6 +108,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get settingsCloudAccountReplaceTitle => 'Replace cloud account?';
+
+  @override
+  String settingsCloudAccountReplaceBody(
+    String previousEmail,
+    String newEmail,
+  ) {
+    return 'Library folders from $previousEmail will be removed from this device (including playlist entries and cached files for that account). $newEmail will become the active account.';
+  }
+
+  @override
+  String get settingsCloudAccountReplaceConfirm => 'Replace';
+
+  @override
+  String get settingsCloudAccountReplaceCancel => 'Cancel';
+
+  @override
+  String get settingsOneDriveSection => 'OneDrive';
+
+  @override
+  String get settingsOneDriveSignIn => 'Sign in with Microsoft';
+
+  @override
+  String get settingsOneDriveSignOut => 'Sign out';
+
+  @override
+  String settingsOneDriveSignedInAs(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
   String settingsCloudCacheLimit(String size) {
     return 'Cloud cache limit: $size';
   }
@@ -120,7 +151,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsCloudCacheClearBody =>
-      'Deletes downloaded cloud files on this device. Your Drive library and playlist stay intact.';
+      'Deletes downloaded cloud files on this device. Your library roots and playlist stay intact.';
 
   @override
   String get settingsCloudCacheCleared => 'Cloud cache cleared.';
@@ -182,6 +213,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addLibrarySourceGoogleDrive => 'Google Drive';
 
   @override
+  String get addLibrarySourceOneDrive => 'OneDrive';
+
+  @override
   String get playlistMenuTooltip => 'Playlist actions';
 
   @override
@@ -226,7 +260,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get forgetAllFoldersBody =>
-      'Removes every library folder (this device and Google Drive) and clears their songs from the queue. Files on disk and in Drive are not deleted.';
+      'Removes every library folder (this device and cloud accounts) and clears their songs from the queue. Files on disk and in the cloud are not deleted.';
 
   @override
   String get confirmAction => 'Confirm';
@@ -271,19 +305,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get libraryCloudSignInRequired =>
+      'Sign in to a cloud account in Settings first.';
+
+  @override
+  String get libraryCloudSignInRequiredGoogleDrive =>
       'Sign in to Google Drive in Settings first.';
+
+  @override
+  String get libraryCloudSignInRequiredOneDrive =>
+      'Sign in to OneDrive in Settings first.';
 
   @override
   String get addCloudFolderTooltip => 'Add cloud folder';
 
   @override
-  String get driveFolderBrowserTitle => 'Choose Drive folder';
+  String get cloudFolderBrowserTitle => 'Choose folder';
 
   @override
-  String get driveFolderBrowserSelect => 'Select this folder';
+  String get cloudFolderBrowserSelect => 'Select this folder';
 
   @override
-  String get driveFolderBrowserEmpty => 'This folder is empty.';
+  String get cloudFolderBrowserEmpty => 'This folder is empty.';
+
+  @override
+  String get cloudFolderBrowserMyDrive => 'My Drive';
+
+  @override
+  String get cloudFolderBrowserMyFiles => 'My files';
+
+  @override
+  String get cloudFolderBrowserScrollMore => 'More folders below';
 
   @override
   String get driveIncludeSubfoldersTitle => 'Also load subfolders?';

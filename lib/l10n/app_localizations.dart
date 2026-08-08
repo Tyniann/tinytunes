@@ -284,6 +284,54 @@ abstract class AppLocalizations {
   /// **'Signed in as {email}'**
   String settingsGoogleDriveSignedInAs(String email);
 
+  /// Title for confirming replacement of another account's cloud library roots.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace cloud account?'**
+  String get settingsCloudAccountReplaceTitle;
+
+  /// Explains destructive account replacement for a cloud provider.
+  ///
+  /// In en, this message translates to:
+  /// **'Library folders from {previousEmail} will be removed from this device (including playlist entries and cached files for that account). {newEmail} will become the active account.'**
+  String settingsCloudAccountReplaceBody(String previousEmail, String newEmail);
+
+  /// Confirm button for cloud account replacement.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get settingsCloudAccountReplaceConfirm;
+
+  /// Cancel button for cloud account replacement (keeps old library).
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get settingsCloudAccountReplaceCancel;
+
+  /// Settings section for personal OneDrive sign-in.
+  ///
+  /// In en, this message translates to:
+  /// **'OneDrive'**
+  String get settingsOneDriveSection;
+
+  /// Button to start Microsoft sign-in for OneDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Microsoft'**
+  String get settingsOneDriveSignIn;
+
+  /// Button to sign out of OneDrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get settingsOneDriveSignOut;
+
+  /// Shows the signed-in Microsoft account email.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {email}'**
+  String settingsOneDriveSignedInAs(String email);
+
   /// Settings label above the cloud cache budget slider.
   ///
   /// In en, this message translates to:
@@ -305,7 +353,7 @@ abstract class AppLocalizations {
   /// Confirmation dialog body for clearing cloud cache.
   ///
   /// In en, this message translates to:
-  /// **'Deletes downloaded cloud files on this device. Your Drive library and playlist stay intact.'**
+  /// **'Deletes downloaded cloud files on this device. Your library roots and playlist stay intact.'**
   String get settingsCloudCacheClearBody;
 
   /// Info after Clear cloud cache succeeds.
@@ -422,6 +470,12 @@ abstract class AppLocalizations {
   /// **'Google Drive'**
   String get addLibrarySourceGoogleDrive;
 
+  /// Picker option for personal OneDrive folder import.
+  ///
+  /// In en, this message translates to:
+  /// **'OneDrive'**
+  String get addLibrarySourceOneDrive;
+
   /// Tooltip for the playlist overflow menu.
   ///
   /// In en, this message translates to:
@@ -503,7 +557,7 @@ abstract class AppLocalizations {
   /// Confirm dialog body for forgetting every library root.
   ///
   /// In en, this message translates to:
-  /// **'Removes every library folder (this device and Google Drive) and clears their songs from the queue. Files on disk and in Drive are not deleted.'**
+  /// **'Removes every library folder (this device and cloud accounts) and clears their songs from the queue. Files on disk and in the cloud are not deleted.'**
   String get forgetAllFoldersBody;
 
   /// Positive button on destructive confirm dialogs.
@@ -584,37 +638,67 @@ abstract class AppLocalizations {
   /// **'Folders removed locally, but some access releases failed.'**
   String get libraryForgetAllFailed;
 
-  /// Message when Add cloud folder is used while signed out.
+  /// Generic message when Add cloud folder is used while signed out.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to a cloud account in Settings first.'**
+  String get libraryCloudSignInRequired;
+
+  /// Message when Google Drive import is used while signed out.
   ///
   /// In en, this message translates to:
   /// **'Sign in to Google Drive in Settings first.'**
-  String get libraryCloudSignInRequired;
+  String get libraryCloudSignInRequiredGoogleDrive;
 
-  /// App bar tooltip for adding a Google Drive folder.
+  /// Message when OneDrive import is used while signed out.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to OneDrive in Settings first.'**
+  String get libraryCloudSignInRequiredOneDrive;
+
+  /// App bar tooltip for adding a cloud folder.
   ///
   /// In en, this message translates to:
   /// **'Add cloud folder'**
   String get addCloudFolderTooltip;
 
-  /// Title of the Drive folder browser dialog.
+  /// Title of the cloud folder browser dialog.
   ///
   /// In en, this message translates to:
-  /// **'Choose Drive folder'**
-  String get driveFolderBrowserTitle;
+  /// **'Choose folder'**
+  String get cloudFolderBrowserTitle;
 
-  /// Confirms the current Drive folder as the cloud root.
+  /// Confirms the current cloud folder as the library root.
   ///
   /// In en, this message translates to:
   /// **'Select this folder'**
-  String get driveFolderBrowserSelect;
+  String get cloudFolderBrowserSelect;
 
-  /// Empty state when the current Drive folder has no subfolders or audio files.
+  /// Empty state when the current cloud folder has no subfolders or audio files.
   ///
   /// In en, this message translates to:
   /// **'This folder is empty.'**
-  String get driveFolderBrowserEmpty;
+  String get cloudFolderBrowserEmpty;
 
-  /// Dialog title after picking a Drive folder.
+  /// Virtual root label for Google Drive folder browser.
+  ///
+  /// In en, this message translates to:
+  /// **'My Drive'**
+  String get cloudFolderBrowserMyDrive;
+
+  /// Virtual root label for OneDrive folder browser.
+  ///
+  /// In en, this message translates to:
+  /// **'My files'**
+  String get cloudFolderBrowserMyFiles;
+
+  /// Accessibility label for the cloud browser scroll-down hint.
+  ///
+  /// In en, this message translates to:
+  /// **'More folders below'**
+  String get cloudFolderBrowserScrollMore;
+
+  /// Dialog title after picking a cloud folder.
   ///
   /// In en, this message translates to:
   /// **'Also load subfolders?'**
@@ -626,13 +710,13 @@ abstract class AppLocalizations {
   /// **'Include nested folders like local Add folder, or only files in this folder.'**
   String get driveIncludeSubfoldersBody;
 
-  /// Positive choice for recursive Drive import.
+  /// Positive choice for recursive cloud import.
   ///
   /// In en, this message translates to:
   /// **'Include subfolders'**
   String get driveIncludeSubfoldersYes;
 
-  /// Choice for flat Drive import.
+  /// Choice for flat cloud import.
   ///
   /// In en, this message translates to:
   /// **'This folder only'**

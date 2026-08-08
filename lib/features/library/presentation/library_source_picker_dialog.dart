@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 import 'package:tinytunes/shared/widgets/google_branding.dart';
+import 'package:tinytunes/shared/widgets/microsoft_branding.dart';
 
 /// Which library backend the user picked for Add folder.
 enum LibrarySourceChoice {
@@ -9,9 +10,12 @@ enum LibrarySourceChoice {
 
   /// Google Drive cloud folder.
   googleDrive,
+
+  /// Personal OneDrive cloud folder.
+  oneDrive,
 }
 
-/// Shows a picker: This device vs Google Drive.
+/// Shows a picker: This device vs Google Drive vs OneDrive.
 ///
 /// Purpose: One home "+" entry point that branches to local or cloud ingest.
 /// Usage Context: Playlist home Add folder action.
@@ -39,6 +43,15 @@ Future<LibrarySourceChoice?> showLibrarySourcePicker({
             contentPadding: EdgeInsets.zero,
             leading: const GoogleDriveMark(size: 28),
             title: Text(l10n.addLibrarySourceGoogleDrive),
+          ),
+        ),
+        SimpleDialogOption(
+          onPressed: () =>
+              Navigator.of(context).pop(LibrarySourceChoice.oneDrive),
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const OneDriveMark(size: 28),
+            title: Text(l10n.addLibrarySourceOneDrive),
           ),
         ),
         Padding(

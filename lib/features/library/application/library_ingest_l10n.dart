@@ -29,7 +29,7 @@ class LibraryIngestL10n {
       forgetAllComplete = 'All folders forgotten.',
       forgetAllFailed =
           'Folders removed locally, but some access releases failed.',
-      cloudSignInRequired = 'Sign in to Google Drive in Settings first.';
+      cloudSignInRequired = 'Sign in to a cloud account in Settings first.';
 
   /// `library.scan.started` toast/body.
   final String scanStarted;
@@ -60,4 +60,20 @@ class LibraryIngestL10n {
 
   /// `library.cloud.sign_in_required` toast/body.
   final String cloudSignInRequired;
+
+  /// Returns a copy with a provider-specific [cloudSignInRequired] message.
+  LibraryIngestL10n withCloudSignInRequired(String message) {
+    return LibraryIngestL10n(
+      scanStarted: scanStarted,
+      scanComplete: scanComplete,
+      scanCancelled: scanCancelled,
+      scanFailed: scanFailed,
+      rootRevoked: rootRevoked,
+      forgetComplete: forgetComplete,
+      forgetFailed: forgetFailed,
+      forgetAllComplete: forgetAllComplete,
+      forgetAllFailed: forgetAllFailed,
+      cloudSignInRequired: message,
+    );
+  }
 }

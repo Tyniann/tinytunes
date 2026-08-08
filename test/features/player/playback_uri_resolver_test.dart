@@ -4,10 +4,13 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:tinytunes/core/cloud/cloud_cache_store.dart';
-import 'package:tinytunes/core/cloud/drive_media_locator.dart';
-import 'package:tinytunes/core/cloud/drive_remote.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_media_locator.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_remote.dart';
 import 'package:tinytunes/core/cloud/free_space_source.dart';
-import 'package:tinytunes/core/cloud/google_drive_cloud_library_source.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_cloud_library_source.dart';
+import 'package:tinytunes/core/cloud/one_drive/one_drive_cloud_library_source.dart';
+import 'package:tinytunes/core/cloud/one_drive/one_drive_media_locator.dart';
+import 'package:tinytunes/core/cloud/one_drive/one_drive_remote.dart';
 import 'package:tinytunes/core/cloud/source_kinds.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
@@ -17,7 +20,8 @@ import 'package:tinytunes/core/library/media_locator.dart';
 import 'package:tinytunes/core/library/track_metadata_reader.dart';
 import 'package:tinytunes/features/player/application/playback_uri_resolver.dart';
 
-import '../../core/cloud/fake_drive_remote.dart';
+import '../../core/cloud/google_drive/fake_drive_remote.dart';
+import '../../core/cloud/one_drive/fake_one_drive_remote.dart';
 
 void main() {
   late AppDatabase db;
@@ -238,6 +242,68 @@ void main() {
       db.tracks,
     )..where((t) => t.id.equals(view.trackId))).getSingle();
     expect(after.artworkCacheRef, isNull);
+  });
+
+  test('OneDrive miss downloads once then cache hit skips download', () async {
+    final odRemote = FakeOneDriveRemote(
+      files: {
+        'd1/song1': const OneDriveRemoteFileMeta(
+          driveId: 'd1',
+          itemId: 'song1',
+          name: 'song1.mp3',
+          sizeBytes: 4,
+        ),
+      },
+      fileBytes: {
+        'd1/song1': [1, 2, 3, 4],
+      },
+    );
+    final odCloud = OneDriveCloudLibrarySource(
+      remote: odRemote,
+      cacheRootDirectory: tempDir,
+      freeSpace: const UnlimitedFreeSpaceSource(),
+    );
+    final rootId = await db.upsertRoot(
+      locator: OneDriveMediaLocator.encode(driveId: 'd1', itemId: 'folder').value,
+      displayName: 'OD',
+      sourceKind: SourceKinds.cloud,
+    );
+    final locator = OneDriveMediaLocator.encode(driveId: 'd1', itemId: 'song1');
+    final trackId = (await db.upsertTracksBatch(rootId, [
+      TracksCompanion.insert(
+        rootId: rootId,
+        sourceItemId: locator.value,
+        locator: locator.value,
+        displayName: 'song1.mp3',
+        sourceKind: const Value(SourceKinds.cloud),
+      ),
+    ])).insertedIds.single;
+    await db.appendTrackIds([trackId]);
+    final view = (await db.getOrderedQueue()).single;
+
+    final resolver = PlaybackUriResolver(
+      localSource: local,
+      cloudSource: odCloud,
+      cacheStore: cache,
+      db: db,
+      metadataReader: reader,
+      artworkStore: artwork,
+      budgetBytes: 1024 * 1024,
+    );
+
+    final first = await resolver.resolve(
+      view,
+      queuedTrackIds: {view.trackId},
+    );
+    expect(odRemote.downloadCalls, 1);
+    expect(await File(first.toFilePath()).exists(), isTrue);
+
+    final second = await resolver.resolve(
+      view,
+      queuedTrackIds: {view.trackId},
+    );
+    expect(odRemote.downloadCalls, 1);
+    expect(second.toFilePath(), first.toFilePath());
   });
 }
 

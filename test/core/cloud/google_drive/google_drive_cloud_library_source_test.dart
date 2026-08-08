@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tinytunes/core/cloud/cloud_library_source.dart';
-import 'package:tinytunes/core/cloud/drive_media_locator.dart';
-import 'package:tinytunes/core/cloud/drive_remote.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_media_locator.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_remote.dart';
 import 'package:tinytunes/core/cloud/free_space_source.dart';
-import 'package:tinytunes/core/cloud/google_drive_cloud_library_source.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_cloud_library_source.dart';
 
 import 'fake_drive_remote.dart';
 
@@ -123,11 +123,26 @@ void main() {
 
     final cacheLocator = await source.downloadToCache(remoteLocator);
     expect(File(cacheLocator.value).existsSync(), isTrue);
+    expect(cacheLocator.value, contains('${Platform.pathSeparator}gdrive${Platform.pathSeparator}'));
     expect(remote.downloadCalls, 1);
 
     final uri = await source.resolveCached(remoteLocator);
     expect(uri.scheme, 'file');
     expect(File.fromUri(uri).readAsBytesSync(), [1, 2, 3, 4]);
+  });
+
+  test('resolveCached finds legacy flat cache layout', () async {
+    const fileId = 'legacy1';
+    final legacyDir = Directory('${tempDir.path}${Platform.pathSeparator}$fileId')
+      ..createSync(recursive: true);
+    File('${legacyDir.path}${Platform.pathSeparator}a.mp3').writeAsBytesSync([9]);
+
+    final source = GoogleDriveCloudLibrarySource(
+      remote: FakeDriveRemote(),
+      cacheRootDirectory: tempDir,
+    );
+    final uri = await source.resolveCached(DriveMediaLocator.encode(fileId));
+    expect(File.fromUri(uri).readAsBytesSync(), [9]);
   });
 
   test('resolveCached throws CloudCacheMissException when absent', () async {

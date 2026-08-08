@@ -39,7 +39,7 @@ Cloud roots and items use:
 MediaLocator.value = gdrive:<driveFileId>
 ```
 
-Helpers live in `DriveMediaLocator` (`lib/core/cloud/drive_media_locator.dart`).
+Helpers live in `DriveMediaLocator` (`lib/core/cloud/google_drive/google_drive_media_locator.dart`).
 Never use filesystem paths as durable cloud identity.
 
 ### Auth → API bridge
@@ -89,7 +89,8 @@ later Phase 7 steps. Step 4 will expand this into account + cache budget UI.
 - Catalog rows for cloud use `sourceKind = cloud`.
 - Sign-out (later) wipes local cloud cache only; Drive content is never mutated.
 - Adding another cloud provider later means a new `CloudLibrarySource` impl +
-  locator scheme — not a rewrite of local SAF.
+  locator scheme — not a rewrite of local SAF. Personal OneDrive is specified in
+  [ADR 0003](0003-onedrive-cloud-library.md).
 
 ## Non-goals
 

@@ -1,0 +1,19 @@
+{
+  "account_mode": "SINGLE",
+  "authorization_user_agent": "BROWSER",
+  "broker_redirect_uri_registered": false,
+  "logging": {
+    "pii_enabled": false,
+    "log_level": "WARNING",
+    "logcat_enabled": false
+  },
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "PersonalMicrosoftAccount",
+        "tenant_id": "consumers"
+      }
+    }
+  ]
+}

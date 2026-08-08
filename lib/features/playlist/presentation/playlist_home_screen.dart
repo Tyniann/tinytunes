@@ -2,7 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tinytunes/core/cloud/cloud_provider_id.dart';
 import 'package:tinytunes/core/cloud/cloud_providers.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_cloud_library_source.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_media_locator.dart';
+import 'package:tinytunes/core/cloud/one_drive/one_drive_media_locator.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
 import 'package:tinytunes/core/messages/message_providers.dart';
@@ -311,18 +315,47 @@ class _PlaylistHomeScreenState extends ConsumerState<PlaylistHomeScreen> {
             .read(libraryIngestControllerProvider.notifier)
             .addFolder(l10n: libraryIngestL10nFrom(l10n));
       case LibrarySourceChoice.googleDrive:
-        await _addCloudFolder(l10n);
+        await _addCloudFolder(l10n, CloudProviderId.googleDrive);
+      case LibrarySourceChoice.oneDrive:
+        await _addCloudFolder(l10n, CloudProviderId.oneDrive);
     }
   }
 
-  Future<void> _addCloudFolder(AppLocalizations l10n) async {
+  Future<void> _addCloudFolder(
+    AppLocalizations l10n,
+    CloudProviderId provider,
+  ) async {
     final cloud = await ref.read(cloudLibrarySourceProvider.future);
     if (!mounted) return;
+    final config = switch (provider) {
+      CloudProviderId.googleDrive => CloudFolderBrowserConfig(
+        rootLocator: DriveMediaLocator.encode(
+          GoogleDriveCloudLibrarySource.myDriveRootFileId,
+        ),
+        rootDisplayName: l10n.cloudFolderBrowserMyDrive,
+      ),
+      CloudProviderId.oneDrive => CloudFolderBrowserConfig(
+        rootLocator: OneDriveMediaLocator.personalRoot,
+        rootDisplayName: l10n.cloudFolderBrowserMyFiles,
+      ),
+    };
+    final signInMessage = switch (provider) {
+      CloudProviderId.googleDrive => l10n.libraryCloudSignInRequiredGoogleDrive,
+      CloudProviderId.oneDrive => l10n.libraryCloudSignInRequiredOneDrive,
+    };
+    final ingestL10n = libraryIngestL10nFrom(
+      l10n,
+    ).withCloudSignInRequired(signInMessage);
     await ref
         .read(libraryIngestControllerProvider.notifier)
         .addCloudFolder(
-          l10n: libraryIngestL10nFrom(l10n),
-          pick: () => showDriveFolderPicker(context: context, cloud: cloud),
+          l10n: ingestL10n,
+          provider: provider,
+          pick: () => showCloudFolderPicker(
+            context: context,
+            cloud: cloud,
+            config: config,
+          ),
         );
   }
 

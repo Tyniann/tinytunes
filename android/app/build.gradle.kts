@@ -34,6 +34,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Default for tooling that reads defaultConfig placeholders only.
+        manifestPlaceholders["msalSignaturePath"] = "/kNrKEKVATPOALWoi2IiGqfnphGM="
     }
 
     signingConfigs {
@@ -48,6 +50,9 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            manifestPlaceholders["msalSignaturePath"] = "/kNrKEKVATPOALWoi2IiGqfnphGM="
+        }
         release {
             // Prefer real release keystore when android/key.properties exists; else debug
             // so local `flutter run --release` still works for contributors without secrets.
@@ -57,6 +62,28 @@ android {
                 } else {
                     signingConfigs.getByName("debug")
                 }
+            manifestPlaceholders["msalSignaturePath"] =
+                if (keystorePropertiesFile.exists()) {
+                    "/yA+8T1x4a9pYEu1mYe58Quq7f5Y="
+                } else {
+                    "/kNrKEKVATPOALWoi2IiGqfnphGM="
+                }
+        }
+    }
+
+    // MSAL / Apache HTTP jars collide with audiotags' tika on META-INF/DEPENDENCIES.
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/notice.txt",
+                "META-INF/ASL2.0",
+            )
         }
     }
 }

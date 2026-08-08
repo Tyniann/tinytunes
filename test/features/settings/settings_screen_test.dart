@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tinytunes/core/cloud/cloud_cache_store.dart';
 import 'package:tinytunes/core/cloud/cloud_providers.dart';
-import 'package:tinytunes/core/cloud/drive_media_locator.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_media_locator.dart';
 import 'package:tinytunes/core/cloud/source_kinds.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
@@ -18,7 +18,7 @@ import 'package:tinytunes/core/theme/theme_catalog.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 
-import '../../core/cloud/fake_google_drive.dart';
+import '../../core/cloud/google_drive/fake_google_drive.dart';
 import '../../core/theme/fixed_dynamic_availability.dart';
 import '../../helpers/pump_app.dart';
 
@@ -58,6 +58,14 @@ void main() {
 
     expect(find.text(l10n.settingsGoogleDriveSection), findsOneWidget);
     expect(find.text(l10n.settingsGoogleDriveSignIn), findsOneWidget);
+    expect(find.text(l10n.settingsOneDriveSection), findsOneWidget);
+    expect(find.text(l10n.settingsOneDriveSignIn), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text(l10n.settingsCloudCacheClear),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pump();
     expect(find.text(l10n.settingsCloudCacheClear), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text(l10n.settingsAboutOpen),
@@ -288,14 +296,18 @@ void main() {
     expect(await container.read(cloudCacheStoreProvider).totalSizeBytes(), 3);
 
     final l10n = lookupAppLocalizations(const Locale('en'));
+    await tester.scrollUntilVisible(
+      find.text(l10n.settingsCloudCacheClear),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pump();
     expect(find.text(l10n.settingsCloudCacheClear), findsOneWidget);
 
     // Artwork deletion performs real dart:io work. Widget tests otherwise run
     // in FakeAsync, where that I/O future cannot make progress.
     await tester.runAsync(
-      container
-          .read(googleDriveSessionControllerProvider.notifier)
-          .clearCloudCache,
+      () => container.read(cloudCacheStoreProvider).clearAll(),
     );
     await tester.pump();
 

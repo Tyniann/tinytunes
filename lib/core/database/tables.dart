@@ -16,6 +16,12 @@ class LibraryRoots extends Table {
   /// Catalog source kind; Phase 2 always writes `local`.
   TextColumn get sourceKind => text().withDefault(const Constant('local'))();
 
+  /// Cloud provider token (`gdrive` / `onedrive`); null for local roots.
+  TextColumn get cloudProvider => text().nullable()();
+
+  /// Stable provider account id owning this root; null until first bind.
+  TextColumn get cloudAccountKey => text().nullable()();
+
   /// When the root was first added.
   DateTimeColumn get addedAt => dateTime()();
 }

@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tinytunes/core/cloud/google_drive_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tinytunes/core/cloud/cloud_provider_id.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_auth.dart';
 import 'package:tinytunes/core/cloud/cloud_library_source.dart';
 import 'package:tinytunes/core/cloud/cloud_providers.dart';
-import 'package:tinytunes/core/cloud/drive_media_locator.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_media_locator.dart';
 import 'package:tinytunes/core/cloud/source_kinds.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
@@ -13,6 +15,7 @@ import 'package:tinytunes/core/library/media_locator.dart';
 import 'package:tinytunes/core/library/track_metadata_reader.dart';
 import 'package:tinytunes/core/messages/message_providers.dart';
 import 'package:tinytunes/core/messages/toast_delivery.dart';
+import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:tinytunes/features/library/application/cloud_folder_pick.dart';
 import 'package:tinytunes/features/library/application/library_ingest_controller.dart';
 import 'package:tinytunes/features/library/application/library_ingest_l10n.dart';
@@ -20,7 +23,7 @@ import 'package:tinytunes/features/library/application/library_message_codes.dar
 import 'package:tinytunes/features/library/application/library_providers.dart';
 
 import '../../core/cloud/fake_cloud_library_source.dart';
-import '../../core/cloud/fake_google_drive.dart';
+import '../../core/cloud/google_drive/fake_google_drive.dart';
 
 void main() {
   late AppDatabase db;
@@ -34,10 +37,15 @@ void main() {
   final trackA = DriveMediaLocator.encode('a');
   final trackB = DriveMediaLocator.encode('b');
 
-  setUp(() {
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     db = AppDatabase.memory();
     auth = FakeGoogleDriveAuth()
-      ..account = const GoogleDriveAccount(email: 'user@example.com');
+      ..account = const GoogleDriveAccount(
+        stableAccountKey: 'gid-user',
+        email: 'user@example.com',
+      );
     cloud = FakeCloudLibrarySource(
       childrenByParent: {
         music.value: [
@@ -63,6 +71,7 @@ void main() {
     container = ProviderContainer(
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
+        sharedPreferencesProvider.overrideWithValue(prefs),
         googleDriveAuthProvider.overrideWithValue(auth),
         cloudLibrarySourceProvider.overrideWith((ref) async => cloud),
         localLibrarySourceProvider.overrideWithValue(
@@ -74,6 +83,10 @@ void main() {
         toastDeliveryProvider.overrideWithValue(const NoopToastDelivery()),
       ],
     );
+    // Eager restore so session.canUseProvider is true for signed-in auth.
+    container.read(googleDriveSessionControllerProvider);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
   });
 
   tearDown(() async {
@@ -107,9 +120,12 @@ void main() {
       },
     );
     container.dispose();
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
     container = ProviderContainer(
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
+        sharedPreferencesProvider.overrideWithValue(prefs),
         googleDriveAuthProvider.overrideWithValue(auth),
         cloudLibrarySourceProvider.overrideWith((ref) async => cloud),
         localLibrarySourceProvider.overrideWithValue(
@@ -121,11 +137,15 @@ void main() {
         toastDeliveryProvider.overrideWithValue(const NoopToastDelivery()),
       ],
     );
+    container.read(googleDriveSessionControllerProvider);
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
 
     await container
         .read(libraryIngestControllerProvider.notifier)
         .addCloudFolder(
           l10n: l10n,
+          provider: CloudProviderId.googleDrive,
           pick: () async => CloudFolderPick(
             locator: music,
             displayName: 'Musik',
@@ -146,6 +166,7 @@ void main() {
         .read(libraryIngestControllerProvider.notifier)
         .addCloudFolder(
           l10n: l10n,
+          provider: CloudProviderId.googleDrive,
           pick: () async => CloudFolderPick(
             locator: music,
             displayName: 'Musik',
@@ -165,6 +186,7 @@ void main() {
         .read(libraryIngestControllerProvider.notifier)
         .addCloudFolder(
           l10n: l10n,
+          provider: CloudProviderId.googleDrive,
           pick: () async => CloudFolderPick(
             locator: music,
             displayName: 'Musik',
@@ -178,11 +200,15 @@ void main() {
   });
 
   test('addCloudFolder while signed out reports sign-in required', () async {
+    await container
+        .read(googleDriveSessionControllerProvider.notifier)
+        .signOut();
     auth.account = null;
     await container
         .read(libraryIngestControllerProvider.notifier)
         .addCloudFolder(
           l10n: l10n,
+          provider: CloudProviderId.googleDrive,
           pick: () async => fail('pick should not run'),
         );
 
@@ -216,6 +242,7 @@ void main() {
         .read(libraryIngestControllerProvider.notifier)
         .addCloudFolder(
           l10n: l10n,
+          provider: CloudProviderId.googleDrive,
           pick: () async => CloudFolderPick(
             locator: music,
             displayName: 'Musik',
@@ -238,6 +265,7 @@ void main() {
         .read(libraryIngestControllerProvider.notifier)
         .addCloudFolder(
           l10n: l10n,
+          provider: CloudProviderId.googleDrive,
           pick: () async => CloudFolderPick(
             locator: music,
             displayName: 'Musik',

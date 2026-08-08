@@ -1,25 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:tinytunes/core/cloud/cloud_library_source.dart';
-import 'package:tinytunes/core/cloud/drive_media_locator.dart';
-import 'package:tinytunes/core/cloud/google_drive_cloud_library_source.dart';
 import 'package:tinytunes/core/library/media_locator.dart';
 import 'package:tinytunes/features/library/application/cloud_folder_pick.dart';
 import 'package:tinytunes/features/library/application/library_entry_order.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 
-/// Modal Drive folder browser + subfolders confirm for Add cloud folder.
+/// Provider-specific virtual root for the cloud folder browser.
 ///
-/// Purpose: Let the user pick a Drive folder and whether to recurse, without
+/// Purpose: Google starts at My Drive; OneDrive at My files — neither is
+/// selectable as an import root.
+class CloudFolderBrowserConfig {
+  /// Creates a browser config for [rootLocator] labeled [rootDisplayName].
+  const CloudFolderBrowserConfig({
+    required this.rootLocator,
+    required this.rootDisplayName,
+  });
+
+  /// Non-persisted browse root (`gdrive:root` or `onedrive:me`).
+  final MediaLocator rootLocator;
+
+  /// Localized label for the virtual root.
+  final String rootDisplayName;
+
+  /// Whether [locator] is the non-selectable virtual root.
+  bool isVirtualRoot(MediaLocator locator) =>
+      locator.value == rootLocator.value;
+}
+
+/// Modal cloud folder browser + subfolders confirm for Add cloud folder.
+///
+/// Purpose: Let the user pick a provider folder and whether to recurse, without
 /// putting dialog code inside [LibraryIngestController].
-/// Usage Context: Playlist home Add-cloud action after Google sign-in.
-Future<CloudFolderPick?> showDriveFolderPicker({
+/// Usage Context: Playlist home Add-cloud action after provider sign-in.
+Future<CloudFolderPick?> showCloudFolderPicker({
   required BuildContext context,
   required CloudLibrarySource cloud,
+  required CloudFolderBrowserConfig config,
 }) async {
   final l10n = AppLocalizations.of(context)!;
   final folder = await showDialog<_BrowsedFolder>(
     context: context,
-    builder: (context) => _DriveFolderBrowserDialog(cloud: cloud, l10n: l10n),
+    builder: (context) => _CloudFolderBrowserDialog(
+      cloud: cloud,
+      config: config,
+      l10n: l10n,
+    ),
   );
   if (folder == null || !context.mounted) return null;
 
@@ -56,59 +81,104 @@ class _BrowsedFolder {
   final String name;
 }
 
-class _DriveFolderBrowserDialog extends StatefulWidget {
-  const _DriveFolderBrowserDialog({required this.cloud, required this.l10n});
+class _CloudFolderBrowserDialog extends StatefulWidget {
+  const _CloudFolderBrowserDialog({
+    required this.cloud,
+    required this.config,
+    required this.l10n,
+  });
 
   final CloudLibrarySource cloud;
+  final CloudFolderBrowserConfig config;
   final AppLocalizations l10n;
 
   @override
-  State<_DriveFolderBrowserDialog> createState() =>
-      _DriveFolderBrowserDialogState();
+  State<_CloudFolderBrowserDialog> createState() =>
+      _CloudFolderBrowserDialogState();
 }
 
-class _DriveFolderBrowserDialogState extends State<_DriveFolderBrowserDialog> {
-  final List<_BrowsedFolder> _stack = [
+class _CloudFolderBrowserDialogState extends State<_CloudFolderBrowserDialog> {
+  late final List<_BrowsedFolder> _stack = [
     _BrowsedFolder(
-      locator: DriveMediaLocator.encode(
-        GoogleDriveCloudLibrarySource.myDriveRootFileId,
-      ),
-      name: 'My Drive',
+      locator: widget.config.rootLocator,
+      name: widget.config.rootDisplayName,
     ),
   ];
+
+  final ScrollController _scrollController = ScrollController();
 
   /// Folders and audio files under [_current] (folders first for navigation).
   List<CloudLibraryEntry> _children = const [];
   bool _loading = true;
   String? _error;
 
+  /// Whether the folder list has more content below the viewport.
+  bool _canScrollDown = false;
+
   _BrowsedFolder get _current => _stack.last;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_updateScrollAffordances);
     _load();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_updateScrollAffordances);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _updateScrollAffordances() {
+    if (!_scrollController.hasClients) {
+      if (_canScrollDown) {
+        setState(() => _canScrollDown = false);
+      }
+      return;
+    }
+    final position = _scrollController.position;
+    final canDown =
+        position.maxScrollExtent > 0 &&
+        position.pixels < position.maxScrollExtent - 24;
+    if (canDown != _canScrollDown) {
+      setState(() => _canScrollDown = canDown);
+    }
+  }
+
+  void _scheduleScrollAffordances() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _updateScrollAffordances();
+    });
   }
 
   Future<void> _load() async {
     setState(() {
       _loading = true;
       _error = null;
+      _canScrollDown = false;
     });
     try {
       final children = List<CloudLibraryEntry>.of(
         await widget.cloud.list(_current.locator),
       )..sort(_compareBrowserEntries);
       if (!mounted) return;
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }
       setState(() {
         _children = children;
         _loading = false;
       });
+      _scheduleScrollAffordances();
     } on Object catch (error) {
       if (!mounted) return;
       setState(() {
         _error = error.toString();
         _loading = false;
+        _canScrollDown = false;
       });
     }
   }
@@ -135,8 +205,10 @@ class _DriveFolderBrowserDialogState extends State<_DriveFolderBrowserDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = widget.l10n;
+    final theme = Theme.of(context);
+    final atVirtualRoot = widget.config.isVirtualRoot(_current.locator);
     return AlertDialog(
-      title: Text(l10n.driveFolderBrowserTitle),
+      title: Text(l10n.cloudFolderBrowserTitle),
       content: SizedBox(
         width: double.maxFinite,
         height: 360,
@@ -159,25 +231,64 @@ class _DriveFolderBrowserDialogState extends State<_DriveFolderBrowserDialog> {
                   : _error != null
                   ? Center(child: Text(_error!))
                   : _children.isEmpty
-                  ? Center(child: Text(l10n.driveFolderBrowserEmpty))
-                  : ListView.builder(
-                      itemCount: _children.length,
-                      itemBuilder: (context, index) {
-                        final entry = _children[index];
-                        if (entry.isDirectory) {
-                          return ListTile(
-                            leading: const Icon(Icons.folder_outlined),
-                            title: Text(entry.name),
-                            onTap: () => _open(entry),
-                          );
-                        }
-                        return ListTile(
-                          leading: const Icon(Icons.audiotrack_outlined),
-                          title: Text(entry.name),
-                          // Files are preview-only; selection is the current folder.
-                          enabled: false,
-                        );
-                      },
+                  ? Center(child: Text(l10n.cloudFolderBrowserEmpty))
+                  : Stack(
+                      children: [
+                        Scrollbar(
+                          controller: _scrollController,
+                          thumbVisibility: true,
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            itemCount: _children.length,
+                            itemBuilder: (context, index) {
+                              final entry = _children[index];
+                              if (entry.isDirectory) {
+                                return ListTile(
+                                  leading: const Icon(Icons.folder_outlined),
+                                  title: Text(entry.name),
+                                  onTap: () => _open(entry),
+                                );
+                              }
+                              return ListTile(
+                                leading: const Icon(Icons.audiotrack_outlined),
+                                title: Text(entry.name),
+                                // Files are preview-only; selection is the current folder.
+                                enabled: false,
+                              );
+                            },
+                          ),
+                        ),
+                        if (_canScrollDown)
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            height: 36,
+                            child: IgnorePointer(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      theme.colorScheme.surface.withValues(
+                                        alpha: 0,
+                                      ),
+                                      theme.colorScheme.surface,
+                                    ],
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  key: const Key('cloudFolderBrowserScrollHint'),
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  semanticLabel:
+                                      l10n.cloudFolderBrowserScrollMore,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
             ),
           ],
@@ -189,14 +300,10 @@ class _DriveFolderBrowserDialogState extends State<_DriveFolderBrowserDialog> {
           child: Text(l10n.cancelAction),
         ),
         FilledButton(
-          onPressed:
-              _current.locator.value ==
-                  DriveMediaLocator.encode(
-                    GoogleDriveCloudLibrarySource.myDriveRootFileId,
-                  ).value
+          onPressed: atVirtualRoot
               ? null
               : () => Navigator.of(context).pop(_current),
-          child: Text(l10n.driveFolderBrowserSelect),
+          child: Text(l10n.cloudFolderBrowserSelect),
         ),
       ],
     );

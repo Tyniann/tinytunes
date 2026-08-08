@@ -19,6 +19,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.1.0] - 2026-08-08
+
+### Added
+
+- Add personal OneDrive as a second read-only cloud library (Android): MSAL sign-in, Graph list/download, folder browser, ingest, download-then-play, shared cache with Google Drive
+- Add ADR 0003 for personal OneDrive cloud library decisions
+- Add Microsoft / OneDrive OAuth setup, signature-hash commands, and official brand asset inventory under `docs/legal/`
+- Add multi-provider cloud foundation: `CloudProviderId`, locator router, OneDrive locator codec, `clearForProvider`
+- Add cloud root ownership (`cloud_provider` / `cloud_account_key`) with account-replacement confirm/cancel for Google and OneDrive
+- Add parameterized Google/OneDrive parity tests (ingest, rescan/forget, queue cache, scoped sign-out, shared LRU)
+
+### Changed
+
+- Bump app version to `1.1.0+11`
+- Extend privacy policy drafts (EN/DE) to cover optional personal OneDrive / Microsoft sign-in
+- Move Google Drive cloud modules under `lib/core/cloud/google_drive/` (mirrored tests)
+- Google / OneDrive sign-out each wipe only that provider’s cache; new downloads use `cloud_cache/gdrive/…` or `cloud_cache/onedrive/…`
+- Cloud rescan prune deletes indexed audio cache before removing catalog tracks
+- Settings “Clear cloud cache” is provider-neutral (`CloudCacheStore.clearAll`)
+- Document multi-provider cloud behavior in `docs/features/cloud-library.md` and README
+
+### Fixed
+
+### Removed
+
+- Remove OneDrive / Google Drive spike-only Settings probes (production browsing is the folder dialog)
+
+### Security
+
+---
+
 ## [1.0.0] - 2026-08-08
 
 ### Added

@@ -110,6 +110,37 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settingsCloudAccountReplaceTitle => 'Cloud-Konto ersetzen?';
+
+  @override
+  String settingsCloudAccountReplaceBody(
+    String previousEmail,
+    String newEmail,
+  ) {
+    return 'Bibliotheksordner von $previousEmail werden von diesem Gerät entfernt (einschließlich Playlist-Einträgen und Cache-Dateien dieses Kontos). $newEmail wird das aktive Konto.';
+  }
+
+  @override
+  String get settingsCloudAccountReplaceConfirm => 'Ersetzen';
+
+  @override
+  String get settingsCloudAccountReplaceCancel => 'Abbrechen';
+
+  @override
+  String get settingsOneDriveSection => 'OneDrive';
+
+  @override
+  String get settingsOneDriveSignIn => 'Mit Microsoft anmelden';
+
+  @override
+  String get settingsOneDriveSignOut => 'Abmelden';
+
+  @override
+  String settingsOneDriveSignedInAs(String email) {
+    return 'Angemeldet als $email';
+  }
+
+  @override
   String settingsCloudCacheLimit(String size) {
     return 'Cloud-Cache-Limit: $size';
   }
@@ -122,7 +153,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settingsCloudCacheClearBody =>
-      'Löscht heruntergeladene Cloud-Dateien auf diesem Gerät. Deine Drive-Bibliothek und die Playlist bleiben erhalten.';
+      'Löscht heruntergeladene Cloud-Dateien auf diesem Gerät. Bibliotheksordner und Playlist bleiben erhalten.';
 
   @override
   String get settingsCloudCacheCleared => 'Cloud-Cache geleert.';
@@ -184,6 +215,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get addLibrarySourceGoogleDrive => 'Google Drive';
 
   @override
+  String get addLibrarySourceOneDrive => 'OneDrive';
+
+  @override
   String get playlistMenuTooltip => 'Playlist-Aktionen';
 
   @override
@@ -228,7 +262,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get forgetAllFoldersBody =>
-      'Entfernt jeden Bibliotheksordner (dieses Gerät und Google Drive) und ihre Titel aus der Warteschlange. Dateien auf dem Gerät und in Drive werden nicht gelöscht.';
+      'Entfernt jeden Bibliotheksordner (dieses Gerät und Cloud-Konten) und ihre Titel aus der Warteschlange. Dateien auf dem Gerät und in der Cloud werden nicht gelöscht.';
 
   @override
   String get confirmAction => 'Bestätigen';
@@ -273,19 +307,36 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get libraryCloudSignInRequired =>
+      'Melde dich zuerst in den Einstellungen bei einem Cloud-Konto an.';
+
+  @override
+  String get libraryCloudSignInRequiredGoogleDrive =>
       'Melde dich zuerst in den Einstellungen bei Google Drive an.';
+
+  @override
+  String get libraryCloudSignInRequiredOneDrive =>
+      'Melde dich zuerst in den Einstellungen bei OneDrive an.';
 
   @override
   String get addCloudFolderTooltip => 'Cloud-Ordner hinzufügen';
 
   @override
-  String get driveFolderBrowserTitle => 'Drive-Ordner wählen';
+  String get cloudFolderBrowserTitle => 'Ordner wählen';
 
   @override
-  String get driveFolderBrowserSelect => 'Diesen Ordner wählen';
+  String get cloudFolderBrowserSelect => 'Diesen Ordner wählen';
 
   @override
-  String get driveFolderBrowserEmpty => 'Dieser Ordner ist leer.';
+  String get cloudFolderBrowserEmpty => 'Dieser Ordner ist leer.';
+
+  @override
+  String get cloudFolderBrowserMyDrive => 'Meine Ablage';
+
+  @override
+  String get cloudFolderBrowserMyFiles => 'Meine Dateien';
+
+  @override
+  String get cloudFolderBrowserScrollMore => 'Weitere Ordner darunter';
 
   @override
   String get driveIncludeSubfoldersTitle => 'Auch Unterordner laden?';

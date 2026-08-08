@@ -1,18 +1,25 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:tinytunes/core/cloud/google_oauth_config.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_oauth_config.dart';
 
 /// Signed-in Google account snapshot for Drive access.
 ///
-/// Purpose: Expose only what Settings / cloud ingest need without leaking
+/// Purpose: Expose stable ownership identity + display email without leaking
 /// plugin types into feature widgets.
 /// Usage Context: Returned by [GoogleDriveAuth.currentAccount].
 @immutable
 class GoogleDriveAccount {
-  /// Creates an account row with [email] and optional [displayName].
-  const GoogleDriveAccount({required this.email, this.displayName});
+  /// Creates an account with [stableAccountKey] and display [email].
+  const GoogleDriveAccount({
+    required this.stableAccountKey,
+    required this.email,
+    this.displayName,
+  });
 
-  /// Primary email from Google Sign-In.
+  /// Stable Google account id (`GoogleSignInAccount.id`). Never use email.
+  final String stableAccountKey;
+
+  /// Primary email from Google Sign-In (Settings display only).
   final String email;
 
   /// Optional display name from the Google profile.
@@ -45,7 +52,7 @@ abstract class GoogleDriveAuth {
 
 /// Production [GoogleDriveAuth] backed by [GoogleSignIn].
 ///
-/// Purpose: Android Phase 7 OAuth spike and later Settings sign-in.
+/// Purpose: Android Settings Google Drive sign-in and Drive token acquisition.
 /// Usage Context: Wired via Riverpod; call [ensureInitialized] once before use.
 class GoogleSignInDriveAuth implements GoogleDriveAuth {
   /// Creates auth using the process-wide [GoogleSignIn.instance].
@@ -62,7 +69,7 @@ class GoogleSignInDriveAuth implements GoogleDriveAuth {
   GoogleDriveAccount? get currentAccount {
     final user = _user;
     if (user == null) return null;
-    return GoogleDriveAccount(email: user.email, displayName: user.displayName);
+    return _mapAccount(user);
   }
 
   /// Initializes the plugin with [GoogleOAuthConfig.serverClientId] once.
@@ -127,5 +134,22 @@ class GoogleSignInDriveAuth implements GoogleDriveAuth {
       debugPrint('lightweight Google sign-in failed: $error\n$stack');
       return null;
     }
+  }
+
+  static GoogleDriveAccount _mapAccount(GoogleSignInAccount user) {
+    final id = user.id.trim();
+    if (id.isEmpty) {
+      throw StateError('Google account is missing a stable id');
+    }
+    final email = user.email.trim();
+    if (email.isEmpty) {
+      throw StateError('Google account is missing an email');
+    }
+    final name = user.displayName?.trim();
+    return GoogleDriveAccount(
+      stableAccountKey: id,
+      email: email,
+      displayName: (name == null || name.isEmpty) ? null : name,
+    );
   }
 }

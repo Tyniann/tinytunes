@@ -85,10 +85,15 @@ class QueueTrackView {
 /// layer.
 extension CatalogDao on AppDatabase {
   /// Inserts a root or returns the existing id for the same [locator].
+  ///
+  /// When inserting a cloud root, pass [cloudProvider] and [cloudAccountKey]
+  /// (ownership). Existing rows keep their stored ownership values.
   Future<int> upsertRoot({
     required String locator,
     required String displayName,
     String sourceKind = 'local',
+    String? cloudProvider,
+    String? cloudAccountKey,
     DateTime? addedAt,
   }) async {
     final existing = await getRootByLocator(locator);
@@ -99,6 +104,8 @@ extension CatalogDao on AppDatabase {
         locator: locator,
         displayName: displayName,
         sourceKind: Value(sourceKind),
+        cloudProvider: Value(cloudProvider),
+        cloudAccountKey: Value(cloudAccountKey),
         addedAt: addedAt ?? DateTime.now().toUtc(),
       ),
     );
@@ -374,5 +381,58 @@ extension CatalogDao on AppDatabase {
         repeatMode: Value(repeatMode),
       ),
     );
+  }
+
+  /// Cloud roots for [providerToken] (`gdrive` / `onedrive`).
+  Future<List<LibraryRoot>> cloudRootsForProvider(String providerToken) {
+    return (select(libraryRoots)
+          ..where((t) => t.cloudProvider.equals(providerToken)))
+        .get();
+  }
+
+  /// Cloud roots owned by [accountKey] under [providerToken].
+  Future<List<LibraryRoot>> cloudRootsForAccount({
+    required String providerToken,
+    required String accountKey,
+  }) {
+    return (select(libraryRoots)..where(
+          (t) =>
+              t.cloudProvider.equals(providerToken) &
+              t.cloudAccountKey.equals(accountKey),
+        ))
+        .get();
+  }
+
+  /// Cloud roots for [providerToken] that still lack an account key.
+  Future<List<LibraryRoot>> unboundCloudRoots(String providerToken) {
+    return (select(libraryRoots)..where(
+          (t) =>
+              t.cloudProvider.equals(providerToken) &
+              t.cloudAccountKey.isNull(),
+        ))
+        .get();
+  }
+
+  /// Distinct non-null account keys for [providerToken].
+  Future<Set<String>> distinctCloudAccountKeys(String providerToken) async {
+    final rows = await cloudRootsForProvider(providerToken);
+    return {
+      for (final row in rows)
+        if (row.cloudAccountKey != null && row.cloudAccountKey!.trim().isNotEmpty)
+          row.cloudAccountKey!,
+    };
+  }
+
+  /// Binds unbound [providerToken] roots to [accountKey].
+  Future<int> bindUnboundCloudRoots({
+    required String providerToken,
+    required String accountKey,
+  }) {
+    return (update(libraryRoots)..where(
+          (t) =>
+              t.cloudProvider.equals(providerToken) &
+              t.cloudAccountKey.isNull(),
+        ))
+        .write(LibraryRootsCompanion(cloudAccountKey: Value(accountKey)));
   }
 }

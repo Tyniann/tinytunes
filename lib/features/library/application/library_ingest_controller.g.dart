@@ -54,7 +54,7 @@ final class LibraryIngestControllerProvider
 }
 
 String _$libraryIngestControllerHash() =>
-    r'7e12a5fee12a69a8f1b42341b82703ead6faf2a0';
+    r'4933f7d13ce657a1ba286c79ee8cb32dce5ac1a5';
 
 /// Single-flight library ingest: add folder, re-scan, forget.
 ///

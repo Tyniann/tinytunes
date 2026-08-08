@@ -4,14 +4,16 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tinytunes/core/cloud/cloud_cache_budget.dart';
 import 'package:tinytunes/core/cloud/cloud_cache_store.dart';
-import 'package:tinytunes/core/cloud/drive_media_locator.dart';
-import 'package:tinytunes/core/cloud/drive_remote.dart';
-import 'package:tinytunes/core/cloud/google_drive_cloud_library_source.dart';
+import 'package:tinytunes/core/cloud/cloud_provider_id.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_media_locator.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_remote.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_cloud_library_source.dart';
 import 'package:tinytunes/core/cloud/source_kinds.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
+import 'package:tinytunes/core/library/media_locator.dart';
 
-import 'fake_drive_remote.dart';
+import 'google_drive/fake_drive_remote.dart';
 
 void main() {
   late AppDatabase db;
@@ -168,5 +170,50 @@ void main() {
     await store.deleteForTrack(trackId);
     expect(await store.getByTrackId(trackId), isNull);
     expect(File(path).existsSync(), isFalse);
+  });
+
+  test('clearForProvider removes only matching locator prefix', () async {
+    final gTrack = await insertCloudTrack(fileId: 'g1', name: 'g.mp3');
+    final rootId = await db.upsertRoot(
+      locator: 'onedrive:drive/root',
+      displayName: 'OD',
+      sourceKind: SourceKinds.cloud,
+    );
+    final odLocator = 'onedrive:d1/i1';
+    final odResult = await db.upsertTracksBatch(rootId, [
+      TracksCompanion.insert(
+        rootId: rootId,
+        sourceItemId: odLocator,
+        locator: odLocator,
+        displayName: 'o.mp3',
+        sourceKind: const Value(SourceKinds.cloud),
+      ),
+    ]);
+    final oTrack = odResult.insertedIds.single;
+
+    final gPath = '${tempDir.path}/g.mp3';
+    final oPath = '${tempDir.path}/o.mp3';
+    await File(gPath).writeAsBytes([1]);
+    await File(oPath).writeAsBytes([2]);
+    final store = CloudCacheStore(db: db);
+    await store.upsert(
+      trackId: gTrack,
+      remoteLocator: DriveMediaLocator.encode('g1'),
+      localPath: gPath,
+      sizeBytes: 1,
+    );
+    await store.upsert(
+      trackId: oTrack,
+      remoteLocator: MediaLocator(odLocator),
+      localPath: oPath,
+      sizeBytes: 1,
+    );
+
+    await store.clearForProvider(CloudProviderId.googleDrive);
+
+    expect(await store.getByTrackId(gTrack), isNull);
+    expect(File(gPath).existsSync(), isFalse);
+    expect(await store.getByTrackId(oTrack), isNotNull);
+    expect(File(oPath).existsSync(), isTrue);
   });
 }

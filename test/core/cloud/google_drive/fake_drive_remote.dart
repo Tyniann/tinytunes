@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:tinytunes/core/cloud/drive_remote.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_remote.dart';
 
 /// In-memory [DriveRemote] for unit tests (no network / OAuth).
 class FakeDriveRemote implements DriveRemote {

@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:googleapis/drive/v3.dart' as drive;
-import 'package:tinytunes/core/cloud/drive_remote.dart';
-import 'package:tinytunes/core/cloud/google_access_token_client.dart';
-import 'package:tinytunes/core/cloud/google_drive_auth.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_remote.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_access_token_client.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_auth.dart';
 
 /// Production [DriveRemote] using Drive API v3 + OAuth access tokens.
 ///

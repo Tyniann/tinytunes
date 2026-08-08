@@ -8,7 +8,7 @@ import 'package:tinytunes/core/cloud/cloud_cache_budget.dart';
 import 'package:tinytunes/core/cloud/cloud_cache_budget_preferences.dart';
 import 'package:tinytunes/core/cloud/cloud_cache_store.dart';
 import 'package:tinytunes/core/cloud/cloud_providers.dart';
-import 'package:tinytunes/core/cloud/drive_media_locator.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_media_locator.dart';
 import 'package:tinytunes/core/cloud/source_kinds.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';

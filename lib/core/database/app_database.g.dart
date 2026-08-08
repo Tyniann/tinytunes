@@ -57,6 +57,28 @@ class $LibraryRootsTable extends LibraryRoots
     requiredDuringInsert: false,
     defaultValue: const Constant('local'),
   );
+  static const VerificationMeta _cloudProviderMeta = const VerificationMeta(
+    'cloudProvider',
+  );
+  @override
+  late final GeneratedColumn<String> cloudProvider = GeneratedColumn<String>(
+    'cloud_provider',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _cloudAccountKeyMeta = const VerificationMeta(
+    'cloudAccountKey',
+  );
+  @override
+  late final GeneratedColumn<String> cloudAccountKey = GeneratedColumn<String>(
+    'cloud_account_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _addedAtMeta = const VerificationMeta(
     'addedAt',
   );
@@ -74,6 +96,8 @@ class $LibraryRootsTable extends LibraryRoots
     locator,
     displayName,
     sourceKind,
+    cloudProvider,
+    cloudAccountKey,
     addedAt,
   ];
   @override
@@ -116,6 +140,24 @@ class $LibraryRootsTable extends LibraryRoots
         sourceKind.isAcceptableOrUnknown(data['source_kind']!, _sourceKindMeta),
       );
     }
+    if (data.containsKey('cloud_provider')) {
+      context.handle(
+        _cloudProviderMeta,
+        cloudProvider.isAcceptableOrUnknown(
+          data['cloud_provider']!,
+          _cloudProviderMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cloud_account_key')) {
+      context.handle(
+        _cloudAccountKeyMeta,
+        cloudAccountKey.isAcceptableOrUnknown(
+          data['cloud_account_key']!,
+          _cloudAccountKeyMeta,
+        ),
+      );
+    }
     if (data.containsKey('added_at')) {
       context.handle(
         _addedAtMeta,
@@ -149,6 +191,14 @@ class $LibraryRootsTable extends LibraryRoots
         DriftSqlType.string,
         data['${effectivePrefix}source_kind'],
       )!,
+      cloudProvider: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cloud_provider'],
+      ),
+      cloudAccountKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cloud_account_key'],
+      ),
       addedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}added_at'],
@@ -175,6 +225,12 @@ class LibraryRoot extends DataClass implements Insertable<LibraryRoot> {
   /// Catalog source kind; Phase 2 always writes `local`.
   final String sourceKind;
 
+  /// Cloud provider token (`gdrive` / `onedrive`); null for local roots.
+  final String? cloudProvider;
+
+  /// Stable provider account id owning this root; null until first bind.
+  final String? cloudAccountKey;
+
   /// When the root was first added.
   final DateTime addedAt;
   const LibraryRoot({
@@ -182,6 +238,8 @@ class LibraryRoot extends DataClass implements Insertable<LibraryRoot> {
     required this.locator,
     required this.displayName,
     required this.sourceKind,
+    this.cloudProvider,
+    this.cloudAccountKey,
     required this.addedAt,
   });
   @override
@@ -191,6 +249,12 @@ class LibraryRoot extends DataClass implements Insertable<LibraryRoot> {
     map['locator'] = Variable<String>(locator);
     map['display_name'] = Variable<String>(displayName);
     map['source_kind'] = Variable<String>(sourceKind);
+    if (!nullToAbsent || cloudProvider != null) {
+      map['cloud_provider'] = Variable<String>(cloudProvider);
+    }
+    if (!nullToAbsent || cloudAccountKey != null) {
+      map['cloud_account_key'] = Variable<String>(cloudAccountKey);
+    }
     map['added_at'] = Variable<DateTime>(addedAt);
     return map;
   }
@@ -201,6 +265,12 @@ class LibraryRoot extends DataClass implements Insertable<LibraryRoot> {
       locator: Value(locator),
       displayName: Value(displayName),
       sourceKind: Value(sourceKind),
+      cloudProvider: cloudProvider == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cloudProvider),
+      cloudAccountKey: cloudAccountKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cloudAccountKey),
       addedAt: Value(addedAt),
     );
   }
@@ -215,6 +285,8 @@ class LibraryRoot extends DataClass implements Insertable<LibraryRoot> {
       locator: serializer.fromJson<String>(json['locator']),
       displayName: serializer.fromJson<String>(json['displayName']),
       sourceKind: serializer.fromJson<String>(json['sourceKind']),
+      cloudProvider: serializer.fromJson<String?>(json['cloudProvider']),
+      cloudAccountKey: serializer.fromJson<String?>(json['cloudAccountKey']),
       addedAt: serializer.fromJson<DateTime>(json['addedAt']),
     );
   }
@@ -226,6 +298,8 @@ class LibraryRoot extends DataClass implements Insertable<LibraryRoot> {
       'locator': serializer.toJson<String>(locator),
       'displayName': serializer.toJson<String>(displayName),
       'sourceKind': serializer.toJson<String>(sourceKind),
+      'cloudProvider': serializer.toJson<String?>(cloudProvider),
+      'cloudAccountKey': serializer.toJson<String?>(cloudAccountKey),
       'addedAt': serializer.toJson<DateTime>(addedAt),
     };
   }
@@ -235,12 +309,20 @@ class LibraryRoot extends DataClass implements Insertable<LibraryRoot> {
     String? locator,
     String? displayName,
     String? sourceKind,
+    Value<String?> cloudProvider = const Value.absent(),
+    Value<String?> cloudAccountKey = const Value.absent(),
     DateTime? addedAt,
   }) => LibraryRoot(
     id: id ?? this.id,
     locator: locator ?? this.locator,
     displayName: displayName ?? this.displayName,
     sourceKind: sourceKind ?? this.sourceKind,
+    cloudProvider: cloudProvider.present
+        ? cloudProvider.value
+        : this.cloudProvider,
+    cloudAccountKey: cloudAccountKey.present
+        ? cloudAccountKey.value
+        : this.cloudAccountKey,
     addedAt: addedAt ?? this.addedAt,
   );
   LibraryRoot copyWithCompanion(LibraryRootsCompanion data) {
@@ -253,6 +335,12 @@ class LibraryRoot extends DataClass implements Insertable<LibraryRoot> {
       sourceKind: data.sourceKind.present
           ? data.sourceKind.value
           : this.sourceKind,
+      cloudProvider: data.cloudProvider.present
+          ? data.cloudProvider.value
+          : this.cloudProvider,
+      cloudAccountKey: data.cloudAccountKey.present
+          ? data.cloudAccountKey.value
+          : this.cloudAccountKey,
       addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
     );
   }
@@ -264,14 +352,23 @@ class LibraryRoot extends DataClass implements Insertable<LibraryRoot> {
           ..write('locator: $locator, ')
           ..write('displayName: $displayName, ')
           ..write('sourceKind: $sourceKind, ')
+          ..write('cloudProvider: $cloudProvider, ')
+          ..write('cloudAccountKey: $cloudAccountKey, ')
           ..write('addedAt: $addedAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, locator, displayName, sourceKind, addedAt);
+  int get hashCode => Object.hash(
+    id,
+    locator,
+    displayName,
+    sourceKind,
+    cloudProvider,
+    cloudAccountKey,
+    addedAt,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -280,6 +377,8 @@ class LibraryRoot extends DataClass implements Insertable<LibraryRoot> {
           other.locator == this.locator &&
           other.displayName == this.displayName &&
           other.sourceKind == this.sourceKind &&
+          other.cloudProvider == this.cloudProvider &&
+          other.cloudAccountKey == this.cloudAccountKey &&
           other.addedAt == this.addedAt);
 }
 
@@ -288,12 +387,16 @@ class LibraryRootsCompanion extends UpdateCompanion<LibraryRoot> {
   final Value<String> locator;
   final Value<String> displayName;
   final Value<String> sourceKind;
+  final Value<String?> cloudProvider;
+  final Value<String?> cloudAccountKey;
   final Value<DateTime> addedAt;
   const LibraryRootsCompanion({
     this.id = const Value.absent(),
     this.locator = const Value.absent(),
     this.displayName = const Value.absent(),
     this.sourceKind = const Value.absent(),
+    this.cloudProvider = const Value.absent(),
+    this.cloudAccountKey = const Value.absent(),
     this.addedAt = const Value.absent(),
   });
   LibraryRootsCompanion.insert({
@@ -301,6 +404,8 @@ class LibraryRootsCompanion extends UpdateCompanion<LibraryRoot> {
     required String locator,
     required String displayName,
     this.sourceKind = const Value.absent(),
+    this.cloudProvider = const Value.absent(),
+    this.cloudAccountKey = const Value.absent(),
     required DateTime addedAt,
   }) : locator = Value(locator),
        displayName = Value(displayName),
@@ -310,6 +415,8 @@ class LibraryRootsCompanion extends UpdateCompanion<LibraryRoot> {
     Expression<String>? locator,
     Expression<String>? displayName,
     Expression<String>? sourceKind,
+    Expression<String>? cloudProvider,
+    Expression<String>? cloudAccountKey,
     Expression<DateTime>? addedAt,
   }) {
     return RawValuesInsertable({
@@ -317,6 +424,8 @@ class LibraryRootsCompanion extends UpdateCompanion<LibraryRoot> {
       if (locator != null) 'locator': locator,
       if (displayName != null) 'display_name': displayName,
       if (sourceKind != null) 'source_kind': sourceKind,
+      if (cloudProvider != null) 'cloud_provider': cloudProvider,
+      if (cloudAccountKey != null) 'cloud_account_key': cloudAccountKey,
       if (addedAt != null) 'added_at': addedAt,
     });
   }
@@ -326,6 +435,8 @@ class LibraryRootsCompanion extends UpdateCompanion<LibraryRoot> {
     Value<String>? locator,
     Value<String>? displayName,
     Value<String>? sourceKind,
+    Value<String?>? cloudProvider,
+    Value<String?>? cloudAccountKey,
     Value<DateTime>? addedAt,
   }) {
     return LibraryRootsCompanion(
@@ -333,6 +444,8 @@ class LibraryRootsCompanion extends UpdateCompanion<LibraryRoot> {
       locator: locator ?? this.locator,
       displayName: displayName ?? this.displayName,
       sourceKind: sourceKind ?? this.sourceKind,
+      cloudProvider: cloudProvider ?? this.cloudProvider,
+      cloudAccountKey: cloudAccountKey ?? this.cloudAccountKey,
       addedAt: addedAt ?? this.addedAt,
     );
   }
@@ -352,6 +465,12 @@ class LibraryRootsCompanion extends UpdateCompanion<LibraryRoot> {
     if (sourceKind.present) {
       map['source_kind'] = Variable<String>(sourceKind.value);
     }
+    if (cloudProvider.present) {
+      map['cloud_provider'] = Variable<String>(cloudProvider.value);
+    }
+    if (cloudAccountKey.present) {
+      map['cloud_account_key'] = Variable<String>(cloudAccountKey.value);
+    }
     if (addedAt.present) {
       map['added_at'] = Variable<DateTime>(addedAt.value);
     }
@@ -365,6 +484,8 @@ class LibraryRootsCompanion extends UpdateCompanion<LibraryRoot> {
           ..write('locator: $locator, ')
           ..write('displayName: $displayName, ')
           ..write('sourceKind: $sourceKind, ')
+          ..write('cloudProvider: $cloudProvider, ')
+          ..write('cloudAccountKey: $cloudAccountKey, ')
           ..write('addedAt: $addedAt')
           ..write(')'))
         .toString();
@@ -720,7 +841,7 @@ class Track extends DataClass implements Insertable<Track> {
   /// Optional tag album.
   final String? album;
 
-  /// Reserved artwork cache path; always null in Phase 2.
+  /// Absolute path to capped on-device cover JPEG (`artwork/<trackId>.jpg`).
   final String? artworkCacheRef;
 
   /// Catalog source kind; Phase 2 always writes `local`.
@@ -2196,6 +2317,8 @@ typedef $$LibraryRootsTableCreateCompanionBuilder =
       required String locator,
       required String displayName,
       Value<String> sourceKind,
+      Value<String?> cloudProvider,
+      Value<String?> cloudAccountKey,
       required DateTime addedAt,
     });
 typedef $$LibraryRootsTableUpdateCompanionBuilder =
@@ -2204,6 +2327,8 @@ typedef $$LibraryRootsTableUpdateCompanionBuilder =
       Value<String> locator,
       Value<String> displayName,
       Value<String> sourceKind,
+      Value<String?> cloudProvider,
+      Value<String?> cloudAccountKey,
       Value<DateTime> addedAt,
     });
 
@@ -2257,6 +2382,16 @@ class $$LibraryRootsTableFilterComposer
 
   ColumnFilters<String> get sourceKind => $composableBuilder(
     column: $table.sourceKind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cloudProvider => $composableBuilder(
+    column: $table.cloudProvider,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cloudAccountKey => $composableBuilder(
+    column: $table.cloudAccountKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2320,6 +2455,16 @@ class $$LibraryRootsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get cloudProvider => $composableBuilder(
+    column: $table.cloudProvider,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get cloudAccountKey => $composableBuilder(
+    column: $table.cloudAccountKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get addedAt => $composableBuilder(
     column: $table.addedAt,
     builder: (column) => ColumnOrderings(column),
@@ -2348,6 +2493,16 @@ class $$LibraryRootsTableAnnotationComposer
 
   GeneratedColumn<String> get sourceKind => $composableBuilder(
     column: $table.sourceKind,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get cloudProvider => $composableBuilder(
+    column: $table.cloudProvider,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get cloudAccountKey => $composableBuilder(
+    column: $table.cloudAccountKey,
     builder: (column) => column,
   );
 
@@ -2412,12 +2567,16 @@ class $$LibraryRootsTableTableManager
                 Value<String> locator = const Value.absent(),
                 Value<String> displayName = const Value.absent(),
                 Value<String> sourceKind = const Value.absent(),
+                Value<String?> cloudProvider = const Value.absent(),
+                Value<String?> cloudAccountKey = const Value.absent(),
                 Value<DateTime> addedAt = const Value.absent(),
               }) => LibraryRootsCompanion(
                 id: id,
                 locator: locator,
                 displayName: displayName,
                 sourceKind: sourceKind,
+                cloudProvider: cloudProvider,
+                cloudAccountKey: cloudAccountKey,
                 addedAt: addedAt,
               ),
           createCompanionCallback:
@@ -2426,12 +2585,16 @@ class $$LibraryRootsTableTableManager
                 required String locator,
                 required String displayName,
                 Value<String> sourceKind = const Value.absent(),
+                Value<String?> cloudProvider = const Value.absent(),
+                Value<String?> cloudAccountKey = const Value.absent(),
                 required DateTime addedAt,
               }) => LibraryRootsCompanion.insert(
                 id: id,
                 locator: locator,
                 displayName: displayName,
                 sourceKind: sourceKind,
+                cloudProvider: cloudProvider,
+                cloudAccountKey: cloudAccountKey,
                 addedAt: addedAt,
               ),
           withReferenceMapper: (p0) => p0

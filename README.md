@@ -1,8 +1,8 @@
 # TinyTunes
 
 Simple, no-nonsense, local-first Android music player. Add folders, queue tracks, play in the
-background. Optional **Google Drive** support is read-only (list / download /
-cache — never write to Drive).
+background. Optional **Google Drive** and personal **OneDrive** support is
+read-only (list / download / cache — never write to the cloud).
 
 **Not on Google Play.** Source and release APKs via GitHub.
 
@@ -12,15 +12,15 @@ cache — never write to Drive).
 | License | [MIT](LICENSE) |
 | Privacy | https://blumenlaube.at/apps/tinytunes/privacy-policy.html |
 | Platforms | Android first (iOS later) |
-| Latest release | [v1.0.0](https://github.com/Tyniann/tinytunes/releases/tag/v1.0.0) |
+| Latest release | [v1.1.0](https://github.com/Tyniann/tinytunes/releases/tag/v1.1.0) |
 
-## Google Drive / OAuth
+## Cloud OAuth (Google Drive + OneDrive)
 
 | You | What to do |
 | --- | --- |
-| **Official release APK** (GitHub Releases) | Already wired to the maintainer’s OAuth clients. Install and sign in — Drive works. Google’s verification for `drive.readonly` may still be **pending**, so you might see an “unverified app” warning; that is expected until Google finishes review. |
-| **Forks / self-built APKs** | **Bring your own** Google Cloud project + OAuth clients. Replace `serverClientId` in `lib/core/cloud/google_oauth_config.dart`. The committed Client ID is for the official signed APK only — your debug/release SHA-1s will not match. |
-| **Contributors (local library only)** | No Google setup needed. SAF local folders never need OAuth. |
+| **Official release APK** (GitHub Releases) | Already wired to the maintainer’s Google + Microsoft clients. Install and sign in. Google may show an “unverified app” warning while `drive.readonly` review is pending; Microsoft may show **Unverified** publisher — both are expected for v1. |
+| **Forks / self-built APKs** | **Bring your own** OAuth. Google: replace `serverClientId` in `lib/core/cloud/google_drive/google_drive_oauth_config.dart`. OneDrive: replace Entra `clientId` + Android signature hashes in `lib/core/cloud/one_drive/one_drive_oauth_config.dart` (personal accounts only, `Files.Read`, **no client secret**). Committed IDs are for the official signed APK only. |
+| **Contributors (local library only)** | No Google / Microsoft setup. SAF local folders never need OAuth. |
 
 Step-by-step for forks: [docs/legal/android-signing-and-oauth.md](docs/legal/android-signing-and-oauth.md).
 
@@ -30,7 +30,7 @@ Step-by-step for forks: [docs/legal/android-signing-and-oauth.md](docs/legal/and
 - Shuffle × repeat, background playback / lock screen controls
 - Expandable system-volume slider on transport chrome
 - Add local folders (including subfolders) via Android SAF
-- Optional Google Drive folder ingest + download-then-play cache + cache budget
+- Optional Google Drive + personal OneDrive folder ingest, shared download-then-play cache + budget
 - Material 3 themes, EN / DE
 - In-app About dialog (logo, version, changelog, privacy policy link)
 
@@ -38,7 +38,7 @@ Step-by-step for forks: [docs/legal/android-signing-and-oauth.md](docs/legal/and
 
 - Flutter **3.41+** / Dart **3.11+** (see `pubspec.yaml`)
 - Android device or emulator
-- For Drive on **your own** builds/forks only: a Google Cloud project you control (see OAuth doc). Not needed if you only install the official APK.
+- For cloud on **your own** builds/forks only: GCP and/or Entra projects you control (see OAuth doc). Not needed if you only install the official APK.
 
 ## Build & run
 
@@ -56,9 +56,11 @@ Release APK (uses `android/key.properties` + keystore if present; else debug key
 flutter build apk --release
 ```
 
-### Drive setup (forks / own builds only)
+### Cloud setup (forks / own builds only)
 
 Skip this if you install the official release APK — OAuth is already configured.
+
+**Google Drive**
 
 1. Google Cloud Console → enable **Google Drive API**.
 2. OAuth consent screen (External, Testing is fine for yourself).
@@ -66,10 +68,20 @@ Skip this if you install the official release APK — OAuth is already configure
    SHA-1 (**one SHA per Android client** — use a second Android client for
    release if needed).
 4. Create **Web** OAuth client; copy its Client ID.
-5. Set it in `lib/core/cloud/google_oauth_config.dart` (`serverClientId`).
+5. Set it in `lib/core/cloud/google_drive/google_drive_oauth_config.dart` (`serverClientId`).
 6. Scope used: `https://www.googleapis.com/auth/drive.readonly`.
 
-Do **not** commit client secrets. Android client ID stays Console-only.
+**OneDrive (personal Microsoft accounts)**
+
+1. Entra app registration → **Personal Microsoft accounts only**.
+2. Public client only — **no** client secret.
+3. Graph delegated `Files.Read` (+ MSAL identity scopes). Never `Files.Read.All` or write scopes.
+4. Android platform entries for **debug and release** signature hashes
+   (`msauth://at.blumenlaube.tinytunes/…`).
+5. Paste client ID + hashes into `lib/core/cloud/one_drive/one_drive_oauth_config.dart`.
+
+Do **not** commit client secrets. Full checklist:
+[docs/legal/android-signing-and-oauth.md](docs/legal/android-signing-and-oauth.md).
 
 ### Release signing (optional)
 

@@ -134,6 +134,51 @@
       }
     }
   },
+  "settingsCloudAccountReplaceTitle": "Replace cloud account?",
+  "@settingsCloudAccountReplaceTitle": {
+    "description": "Title for confirming replacement of another account's cloud library roots."
+  },
+  "settingsCloudAccountReplaceBody": "Library folders from {previousEmail} will be removed from this device (including playlist entries and cached files for that account). {newEmail} will become the active account.",
+  "@settingsCloudAccountReplaceBody": {
+    "description": "Explains destructive account replacement for a cloud provider.",
+    "placeholders": {
+      "previousEmail": {
+        "type": "String"
+      },
+      "newEmail": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCloudAccountReplaceConfirm": "Replace",
+  "@settingsCloudAccountReplaceConfirm": {
+    "description": "Confirm button for cloud account replacement."
+  },
+  "settingsCloudAccountReplaceCancel": "Cancel",
+  "@settingsCloudAccountReplaceCancel": {
+    "description": "Cancel button for cloud account replacement (keeps old library)."
+  },
+  "settingsOneDriveSection": "OneDrive",
+  "@settingsOneDriveSection": {
+    "description": "Settings section for personal OneDrive sign-in."
+  },
+  "settingsOneDriveSignIn": "Sign in with Microsoft",
+  "@settingsOneDriveSignIn": {
+    "description": "Button to start Microsoft sign-in for OneDrive."
+  },
+  "settingsOneDriveSignOut": "Sign out",
+  "@settingsOneDriveSignOut": {
+    "description": "Button to sign out of OneDrive."
+  },
+  "settingsOneDriveSignedInAs": "Signed in as {email}",
+  "@settingsOneDriveSignedInAs": {
+    "description": "Shows the signed-in Microsoft account email.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "settingsCloudCacheLimit": "Cloud cache limit: {size}",
   "@settingsCloudCacheLimit": {
     "description": "Settings label above the cloud cache budget slider.",
@@ -152,7 +197,7 @@
   "@settingsCloudCacheClearTitle": {
     "description": "Confirmation dialog title for clearing cloud cache."
   },
-  "settingsCloudCacheClearBody": "Deletes downloaded cloud files on this device. Your Drive library and playlist stay intact.",
+  "settingsCloudCacheClearBody": "Deletes downloaded cloud files on this device. Your library roots and playlist stay intact.",
   "@settingsCloudCacheClearBody": {
     "description": "Confirmation dialog body for clearing cloud cache."
   },
@@ -237,6 +282,10 @@
   "@addLibrarySourceGoogleDrive": {
     "description": "Picker option for Google Drive folder import."
   },
+  "addLibrarySourceOneDrive": "OneDrive",
+  "@addLibrarySourceOneDrive": {
+    "description": "Picker option for personal OneDrive folder import."
+  },
   "playlistMenuTooltip": "Playlist actions",
   "@playlistMenuTooltip": {
     "description": "Tooltip for the playlist overflow menu."
@@ -294,7 +343,7 @@
   "@forgetAllFoldersTitle": {
     "description": "Confirm dialog title for forgetting every library root."
   },
-  "forgetAllFoldersBody": "Removes every library folder (this device and Google Drive) and clears their songs from the queue. Files on disk and in Drive are not deleted.",
+  "forgetAllFoldersBody": "Removes every library folder (this device and cloud accounts) and clears their songs from the queue. Files on disk and in the cloud are not deleted.",
   "@forgetAllFoldersBody": {
     "description": "Confirm dialog body for forgetting every library root."
   },
@@ -350,29 +399,49 @@
   "@libraryForgetAllFailed": {
     "description": "Message/toast when one or more SAF releases fail during forget-all."
   },
-  "libraryCloudSignInRequired": "Sign in to Google Drive in Settings first.",
+  "libraryCloudSignInRequired": "Sign in to a cloud account in Settings first.",
   "@libraryCloudSignInRequired": {
-    "description": "Message when Add cloud folder is used while signed out."
+    "description": "Generic message when Add cloud folder is used while signed out."
+  },
+  "libraryCloudSignInRequiredGoogleDrive": "Sign in to Google Drive in Settings first.",
+  "@libraryCloudSignInRequiredGoogleDrive": {
+    "description": "Message when Google Drive import is used while signed out."
+  },
+  "libraryCloudSignInRequiredOneDrive": "Sign in to OneDrive in Settings first.",
+  "@libraryCloudSignInRequiredOneDrive": {
+    "description": "Message when OneDrive import is used while signed out."
   },
   "addCloudFolderTooltip": "Add cloud folder",
   "@addCloudFolderTooltip": {
-    "description": "App bar tooltip for adding a Google Drive folder."
+    "description": "App bar tooltip for adding a cloud folder."
   },
-  "driveFolderBrowserTitle": "Choose Drive folder",
-  "@driveFolderBrowserTitle": {
-    "description": "Title of the Drive folder browser dialog."
+  "cloudFolderBrowserTitle": "Choose folder",
+  "@cloudFolderBrowserTitle": {
+    "description": "Title of the cloud folder browser dialog."
   },
-  "driveFolderBrowserSelect": "Select this folder",
-  "@driveFolderBrowserSelect": {
-    "description": "Confirms the current Drive folder as the cloud root."
+  "cloudFolderBrowserSelect": "Select this folder",
+  "@cloudFolderBrowserSelect": {
+    "description": "Confirms the current cloud folder as the library root."
   },
-  "driveFolderBrowserEmpty": "This folder is empty.",
-  "@driveFolderBrowserEmpty": {
-    "description": "Empty state when the current Drive folder has no subfolders or audio files."
+  "cloudFolderBrowserEmpty": "This folder is empty.",
+  "@cloudFolderBrowserEmpty": {
+    "description": "Empty state when the current cloud folder has no subfolders or audio files."
+  },
+  "cloudFolderBrowserMyDrive": "My Drive",
+  "@cloudFolderBrowserMyDrive": {
+    "description": "Virtual root label for Google Drive folder browser."
+  },
+  "cloudFolderBrowserMyFiles": "My files",
+  "@cloudFolderBrowserMyFiles": {
+    "description": "Virtual root label for OneDrive folder browser."
+  },
+  "cloudFolderBrowserScrollMore": "More folders below",
+  "@cloudFolderBrowserScrollMore": {
+    "description": "Accessibility label for the cloud browser scroll-down hint."
   },
   "driveIncludeSubfoldersTitle": "Also load subfolders?",
   "@driveIncludeSubfoldersTitle": {
-    "description": "Dialog title after picking a Drive folder."
+    "description": "Dialog title after picking a cloud folder."
   },
   "driveIncludeSubfoldersBody": "Include nested folders like local Add folder, or only files in this folder.",
   "@driveIncludeSubfoldersBody": {
@@ -380,11 +449,11 @@
   },
   "driveIncludeSubfoldersYes": "Include subfolders",
   "@driveIncludeSubfoldersYes": {
-    "description": "Positive choice for recursive Drive import."
+    "description": "Positive choice for recursive cloud import."
   },
   "driveIncludeSubfoldersNo": "This folder only",
   "@driveIncludeSubfoldersNo": {
-    "description": "Choice for flat Drive import."
+    "description": "Choice for flat cloud import."
   },
   "unknownArtist": "Unknown artist",
   "@unknownArtist": {

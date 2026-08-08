@@ -45,6 +45,31 @@
       }
     }
   },
+  "settingsCloudAccountReplaceTitle": "Cloud-Konto ersetzen?",
+  "settingsCloudAccountReplaceBody": "Bibliotheksordner von {previousEmail} werden von diesem Gerät entfernt (einschließlich Playlist-Einträgen und Cache-Dateien dieses Kontos). {newEmail} wird das aktive Konto.",
+  "@settingsCloudAccountReplaceBody": {
+    "placeholders": {
+      "previousEmail": {
+        "type": "String"
+      },
+      "newEmail": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsCloudAccountReplaceConfirm": "Ersetzen",
+  "settingsCloudAccountReplaceCancel": "Abbrechen",
+  "settingsOneDriveSection": "OneDrive",
+  "settingsOneDriveSignIn": "Mit Microsoft anmelden",
+  "settingsOneDriveSignOut": "Abmelden",
+  "settingsOneDriveSignedInAs": "Angemeldet als {email}",
+  "@settingsOneDriveSignedInAs": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "settingsCloudCacheLimit": "Cloud-Cache-Limit: {size}",
   "@settingsCloudCacheLimit": {
     "placeholders": {
@@ -56,7 +81,7 @@
   },
   "settingsCloudCacheClear": "Cloud-Cache leeren",
   "settingsCloudCacheClearTitle": "Cloud-Cache leeren?",
-  "settingsCloudCacheClearBody": "Löscht heruntergeladene Cloud-Dateien auf diesem Gerät. Deine Drive-Bibliothek und die Playlist bleiben erhalten.",
+  "settingsCloudCacheClearBody": "Löscht heruntergeladene Cloud-Dateien auf diesem Gerät. Bibliotheksordner und Playlist bleiben erhalten.",
   "settingsCloudCacheCleared": "Cloud-Cache geleert.",
   "messagesTitle": "Nachrichten",
   "messagesEmpty": "Noch keine Nachrichten.",
@@ -83,6 +108,7 @@
   "addLibrarySourceTitle": "Musik hinzufügen von",
   "addLibrarySourceLocal": "Dieses Gerät",
   "addLibrarySourceGoogleDrive": "Google Drive",
+  "addLibrarySourceOneDrive": "OneDrive",
   "playlistMenuTooltip": "Playlist-Aktionen",
   "clearQueue": "Warteschlange leeren",
   "rescanFolder": "Ordner erneut scannen",
@@ -103,7 +129,7 @@
   "forgetFolderTitle": "Ordner vergessen?",
   "forgetFolderBody": "Entfernt diesen Ordner aus der Bibliothek und seine Titel aus der Warteschlange.",
   "forgetAllFoldersTitle": "Alle Ordner vergessen?",
-  "forgetAllFoldersBody": "Entfernt jeden Bibliotheksordner (dieses Gerät und Google Drive) und ihre Titel aus der Warteschlange. Dateien auf dem Gerät und in Drive werden nicht gelöscht.",
+  "forgetAllFoldersBody": "Entfernt jeden Bibliotheksordner (dieses Gerät und Cloud-Konten) und ihre Titel aus der Warteschlange. Dateien auf dem Gerät und in der Cloud werden nicht gelöscht.",
   "confirmAction": "Bestätigen",
   "cancelAction": "Abbrechen",
   "pickFolderTitle": "Ordner wählen",
@@ -117,11 +143,16 @@
   "libraryForgetFailed": "Ordner lokal entfernt, aber Freigabe fehlgeschlagen.",
   "libraryForgetAllComplete": "Alle Ordner vergessen.",
   "libraryForgetAllFailed": "Ordner lokal entfernt, aber einige Freigaben fehlgeschlagen.",
-  "libraryCloudSignInRequired": "Melde dich zuerst in den Einstellungen bei Google Drive an.",
+  "libraryCloudSignInRequired": "Melde dich zuerst in den Einstellungen bei einem Cloud-Konto an.",
+  "libraryCloudSignInRequiredGoogleDrive": "Melde dich zuerst in den Einstellungen bei Google Drive an.",
+  "libraryCloudSignInRequiredOneDrive": "Melde dich zuerst in den Einstellungen bei OneDrive an.",
   "addCloudFolderTooltip": "Cloud-Ordner hinzufügen",
-  "driveFolderBrowserTitle": "Drive-Ordner wählen",
-  "driveFolderBrowserSelect": "Diesen Ordner wählen",
-  "driveFolderBrowserEmpty": "Dieser Ordner ist leer.",
+  "cloudFolderBrowserTitle": "Ordner wählen",
+  "cloudFolderBrowserSelect": "Diesen Ordner wählen",
+  "cloudFolderBrowserEmpty": "Dieser Ordner ist leer.",
+  "cloudFolderBrowserMyDrive": "Meine Ablage",
+  "cloudFolderBrowserMyFiles": "Meine Dateien",
+  "cloudFolderBrowserScrollMore": "Weitere Ordner darunter",
   "driveIncludeSubfoldersTitle": "Auch Unterordner laden?",
   "driveIncludeSubfoldersBody": "Verschachtelte Ordner wie beim lokalen Hinzufügen einbeziehen, oder nur Dateien in diesem Ordner.",
   "driveIncludeSubfoldersYes": "Unterordner einbeziehen",

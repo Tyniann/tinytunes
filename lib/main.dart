@@ -42,8 +42,9 @@ Future<void> main() async {
 
   // Eager attach: controller owns engine + session; handler receives remote.
   container.read(playbackControllerProvider);
-  // Restore a prior Google session without opening Settings first.
+  // Restore prior Google / OneDrive sessions without opening Settings first.
   container.read(googleDriveSessionControllerProvider);
+  container.read(oneDriveSessionControllerProvider);
 
   runApp(
     UncontrolledProviderScope(

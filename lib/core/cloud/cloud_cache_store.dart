@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:tinytunes/core/cloud/cloud_library_source.dart';
+import 'package:tinytunes/core/cloud/cloud_provider_id.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/library/artwork_cache_store.dart';
 import 'package:tinytunes/core/library/media_locator.dart';
@@ -90,6 +91,19 @@ class CloudCacheStore {
             .get();
     for (final id in trackIds) {
       await deleteForTrack(id);
+    }
+  }
+
+  /// Deletes cache rows whose remote locator belongs to [provider].
+  ///
+  /// Purpose: Provider sign-out must not wipe another provider’s downloads.
+  Future<void> clearForProvider(CloudProviderId provider) async {
+    final prefix = provider.locatorPrefix;
+    final rows = await _db.select(_db.cloudCacheEntries).get();
+    for (final row in rows) {
+      if (row.remoteLocator.startsWith(prefix)) {
+        await _deleteRowAndFile(row);
+      }
     }
   }
 

@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod/misc.dart' show Override;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tinytunes/core/cloud/cloud_providers.dart';
-import 'package:tinytunes/core/cloud/google_drive_auth.dart';
-import 'package:tinytunes/core/cloud/google_drive_probe.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_auth.dart';
+import 'package:tinytunes/core/cloud/one_drive/one_drive_auth.dart';
 import 'package:tinytunes/core/database/app_database.dart';
 import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/core/database/database_providers.dart';
@@ -29,7 +29,8 @@ import 'package:tinytunes/features/playlist/application/playlist_providers.dart'
 import 'package:tinytunes/main.dart';
 
 import '../core/cloud/fake_cloud_library_source.dart';
-import '../core/cloud/fake_google_drive.dart';
+import '../core/cloud/google_drive/fake_google_drive.dart';
+import '../core/cloud/one_drive/fake_one_drive.dart';
 import '../features/player/fake_playback_engine.dart';
 import '../features/player/fake_system_volume_source.dart';
 
@@ -52,7 +53,7 @@ Future<void> pumpApp(
   FakePlaybackEngine? playbackEngine,
   SystemVolumeSource? systemVolumeSource,
   GoogleDriveAuth? googleDriveAuth,
-  GoogleDriveProbe? googleDriveProbe,
+  OneDriveAuth? oneDriveAuth,
   bool liveQueueStreams = false,
 }) async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
@@ -63,7 +64,7 @@ Future<void> pumpApp(
   final volume = systemVolumeSource ?? FakeSystemVolumeSource();
   final handler = TinyTunesAudioHandler();
   final driveAuth = googleDriveAuth ?? FakeGoogleDriveAuth();
-  final driveProbe = googleDriveProbe ?? FakeGoogleDriveProbe(driveAuth);
+  final odAuth = oneDriveAuth ?? FakeOneDriveAuth();
 
   final streamOverrides = <Override>[
     if (!liveQueueStreams) ...[
@@ -97,7 +98,7 @@ Future<void> pumpApp(
           const _EmptyFakeMetadataReader(),
         ),
         googleDriveAuthProvider.overrideWithValue(driveAuth),
-        googleDriveProbeProvider.overrideWithValue(driveProbe),
+        oneDriveAuthProvider.overrideWithValue(odAuth),
         cloudLibrarySourceProvider.overrideWith(
           (ref) async => FakeCloudLibrarySource(),
         ),

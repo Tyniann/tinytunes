@@ -46,7 +46,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.memory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -58,6 +58,11 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) {
             await m.createTable(cloudCacheEntries);
           }
+          if (from < 3) {
+            await m.addColumn(libraryRoots, libraryRoots.cloudProvider);
+            await m.addColumn(libraryRoots, libraryRoots.cloudAccountKey);
+            await backfillCloudProviderFromLocators();
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');
@@ -66,6 +71,21 @@ class AppDatabase extends _$AppDatabase {
           }
         },
       );
+
+  /// Sets `cloud_provider` from locator prefixes when the column is still null.
+  ///
+  /// Purpose: One-shot ownership backfill after schema v3; safe to re-run.
+  /// Leaves `cloud_account_key` null until the first successful account bind.
+  Future<void> backfillCloudProviderFromLocators() async {
+    await customStatement(
+      "UPDATE library_roots SET cloud_provider = 'gdrive' "
+      "WHERE cloud_provider IS NULL AND locator LIKE 'gdrive:%'",
+    );
+    await customStatement(
+      "UPDATE library_roots SET cloud_provider = 'onedrive' "
+      "WHERE cloud_provider IS NULL AND locator LIKE 'onedrive:%'",
+    );
+  }
 
   /// Inserts the singleton `playback_state` row when missing.
   Future<void> _ensurePlaybackStateRow() async {

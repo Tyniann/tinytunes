@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tinytunes/core/cloud/cloud_library_source.dart';
+import 'package:tinytunes/core/cloud/cloud_provider_id.dart';
 import 'package:tinytunes/core/cloud/cloud_providers.dart';
 import 'package:tinytunes/core/cloud/source_kinds.dart';
 import 'package:tinytunes/core/database/app_database.dart';
@@ -184,23 +185,44 @@ class LibraryIngestController extends _$LibraryIngestController {
     }
   }
 
-  /// Picks a Drive folder and imports it as a cloud catalog root + queue refill.
+  /// Picks a cloud folder and imports it as a catalog root + queue refill.
   ///
-  /// [pick] owns UI (folder browser + subfolders dialog). Cancel returns `null`.
+  /// [provider] selects which session/ownership stamp to use. [pick] owns UI
+  /// (folder browser + subfolders dialog). Cancel returns `null`.
   Future<void> addCloudFolder({
     required LibraryIngestL10n l10n,
+    required CloudProviderId provider,
     required Future<CloudFolderPick?> Function() pick,
   }) async {
     if (state.isBusy) return;
 
     final reporter = ref.read(messageReporterProvider);
-    final auth = ref.read(googleDriveAuthProvider);
-    if (auth.currentAccount == null) {
-      reporter.reportError(
-        code: LibraryMessageCodes.cloudSignInRequired,
-        message: l10n.cloudSignInRequired,
-      );
-      return;
+    final String? accountKey;
+    switch (provider) {
+      case CloudProviderId.googleDrive:
+        final session = ref.read(googleDriveSessionControllerProvider);
+        if (session.accountChangeRequired ||
+            !session.canUseProvider ||
+            session.account == null) {
+          reporter.reportError(
+            code: LibraryMessageCodes.cloudSignInRequired,
+            message: l10n.cloudSignInRequired,
+          );
+          return;
+        }
+        accountKey = session.account!.stableAccountKey;
+      case CloudProviderId.oneDrive:
+        final session = ref.read(oneDriveSessionControllerProvider);
+        if (session.accountChangeRequired ||
+            !session.canUseProvider ||
+            session.account == null) {
+          reporter.reportError(
+            code: LibraryMessageCodes.cloudSignInRequired,
+            message: l10n.cloudSignInRequired,
+          );
+          return;
+        }
+        accountKey = session.account!.stableAccountKey;
     }
 
     _begin(IngestPhase.picking);
@@ -236,6 +258,8 @@ class LibraryIngestController extends _$LibraryIngestController {
         locator: picked.locator.value,
         displayName: picked.displayName,
         sourceKind: SourceKinds.cloud,
+        cloudProvider: provider.token,
+        cloudAccountKey: accountKey,
       );
       await _scanNewCloudRoot(
         rootId: rootId,
@@ -905,7 +929,7 @@ class LibraryIngestController extends _$LibraryIngestController {
     );
   }
 
-  /// Deletes artwork for pruned tracks, then removes their catalog rows.
+  /// Deletes cloud cache + artwork for pruned tracks, then catalog rows.
   Future<void> _pruneMissingTracks(
     AppDatabase db,
     int rootId,
@@ -913,6 +937,10 @@ class LibraryIngestController extends _$LibraryIngestController {
   ) async {
     final doomed = await db.trackIdsNotIn(rootId, seenSourceItemIds);
     if (doomed.isNotEmpty) {
+      final cache = ref.read(cloudCacheStoreProvider);
+      for (final id in doomed) {
+        await cache.deleteForTrack(id);
+      }
       await ref.read(artworkCacheStoreProvider).deleteForTrackIds(doomed);
     }
     await db.deleteTracksNotIn(rootId, seenSourceItemIds);

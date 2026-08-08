@@ -1,11 +1,15 @@
-import 'package:tinytunes/core/cloud/google_drive_auth.dart';
-import 'package:tinytunes/core/cloud/google_drive_probe.dart';
+import 'package:tinytunes/core/cloud/google_drive/google_drive_auth.dart';
 
 /// In-memory [GoogleDriveAuth] for unit tests (no Play Services).
 class FakeGoogleDriveAuth implements GoogleDriveAuth {
   /// Creates a fake with optional [account] and injectable failures.
   FakeGoogleDriveAuth({
     this.account,
+    this.signInAccount = const GoogleDriveAccount(
+      stableAccountKey: 'gid-user',
+      email: 'user@example.com',
+      displayName: 'Example User',
+    ),
     this.accessToken = 'fake-token',
     this.signInError,
     this.tokenError,
@@ -13,6 +17,9 @@ class FakeGoogleDriveAuth implements GoogleDriveAuth {
 
   /// Mutable account used by [currentAccount].
   GoogleDriveAccount? account;
+
+  /// Account returned by a successful [signIn].
+  GoogleDriveAccount signInAccount;
 
   /// Token returned by [accessTokenForDriveReadonly].
   String accessToken;
@@ -43,10 +50,7 @@ class FakeGoogleDriveAuth implements GoogleDriveAuth {
     signInCalls++;
     final error = signInError;
     if (error != null) throw error;
-    account = const GoogleDriveAccount(
-      email: 'user@example.com',
-      displayName: 'Example User',
-    );
+    account = signInAccount;
     return account!;
   }
 
@@ -71,28 +75,5 @@ class FakeGoogleDriveAuth implements GoogleDriveAuth {
       throw StateError('Not signed in');
     }
     return accessToken;
-  }
-}
-
-/// [GoogleDriveProbe] that returns a fixed listing (no network).
-class FakeGoogleDriveProbe extends GoogleDriveProbe {
-  /// Creates a probe with injectable [entries] / [listError].
-  FakeGoogleDriveProbe(super.auth, {this.entries = const [], this.listError});
-
-  /// Entries returned by [listMyDriveRoot].
-  List<DriveProbeEntry> entries;
-
-  /// When set, [listMyDriveRoot] throws this object.
-  Object? listError;
-
-  /// How many times [listMyDriveRoot] was called.
-  int listCalls = 0;
-
-  @override
-  Future<List<DriveProbeEntry>> listMyDriveRoot({int pageSize = 50}) async {
-    listCalls++;
-    final error = listError;
-    if (error != null) throw error;
-    return entries;
   }
 }

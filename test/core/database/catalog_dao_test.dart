@@ -190,4 +190,85 @@ void main() {
     expect(a, b);
     expect(await db.select(db.libraryRoots).get(), hasLength(1));
   });
+
+  test('provider account queries do not cross providers', () async {
+    await db.upsertRoot(
+      locator: 'gdrive:a',
+      displayName: 'G',
+      sourceKind: 'cloud',
+      cloudProvider: 'gdrive',
+      cloudAccountKey: 'gid-1',
+    );
+    await db.upsertRoot(
+      locator: 'onedrive:d/i',
+      displayName: 'O',
+      sourceKind: 'cloud',
+      cloudProvider: 'onedrive',
+      cloudAccountKey: 'oid-1',
+    );
+    await db.upsertRoot(
+      locator: 'gdrive:b',
+      displayName: 'G2',
+      sourceKind: 'cloud',
+      cloudProvider: 'gdrive',
+      cloudAccountKey: 'gid-2',
+    );
+
+    final g = await db.cloudRootsForProvider('gdrive');
+    final o = await db.cloudRootsForAccount(
+      providerToken: 'onedrive',
+      accountKey: 'oid-1',
+    );
+    final keys = await db.distinctCloudAccountKeys('gdrive');
+
+    expect(g, hasLength(2));
+    expect(o, hasLength(1));
+    expect(o.single.locator, 'onedrive:d/i');
+    expect(keys, {'gid-1', 'gid-2'});
+  });
+
+  test('bindUnboundCloudRoots only fills null keys for that provider', () async {
+    await db.upsertRoot(
+      locator: 'gdrive:unbound',
+      displayName: 'U',
+      sourceKind: 'cloud',
+      cloudProvider: 'gdrive',
+    );
+    await db.upsertRoot(
+      locator: 'gdrive:owned',
+      displayName: 'O',
+      sourceKind: 'cloud',
+      cloudProvider: 'gdrive',
+      cloudAccountKey: 'gid-keep',
+    );
+    await db.upsertRoot(
+      locator: 'onedrive:d/u',
+      displayName: 'OD',
+      sourceKind: 'cloud',
+      cloudProvider: 'onedrive',
+    );
+
+    await db.bindUnboundCloudRoots(
+      providerToken: 'gdrive',
+      accountKey: 'gid-new',
+    );
+
+    final gUnbound = await db.unboundCloudRoots('gdrive');
+    final gOwned = await db.cloudRootsForAccount(
+      providerToken: 'gdrive',
+      accountKey: 'gid-new',
+    );
+    final odUnbound = await db.unboundCloudRoots('onedrive');
+
+    expect(gUnbound, isEmpty);
+    expect(gOwned.map((r) => r.locator), contains('gdrive:unbound'));
+    expect(
+      (await db.cloudRootsForAccount(
+        providerToken: 'gdrive',
+        accountKey: 'gid-keep',
+      )).single.locator,
+      'gdrive:owned',
+    );
+    expect(odUnbound, hasLength(1));
+  });
 }

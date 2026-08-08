@@ -1,7 +1,7 @@
 name: tinytunes
-description: "Local-first Android music player with optional Google Drive (read-only)."
+description: "Local-first Android music player with optional Google Drive and OneDrive (read-only)."
 publish_to: 'none'
-version: 1.0.0+10
+version: 1.1.0+11
 
 environment:
   sdk: ^3.11.0
@@ -58,6 +58,7 @@ dependencies:
   url_launcher: ^6.3.2
   image: ^4.8.0
   dynamic_color: 1.8.1
+  msal_auth: ^3.5.2
 
 dev_dependencies:
   flutter_test:
@@ -115,5 +116,10 @@ flutter:
   assets:
     - assets/branding/google_drive_icon.png
     - assets/branding/google_g_logo.png
+    - assets/branding/onedrive_icon.png
+    - assets/branding/microsoft_symbol.png
+    - assets/branding/ms_signin_light.png
+    - assets/branding/ms_signin_dark.png
     - assets/branding/tinytunes_logo.png
+    - assets/msal_config.json
     - docs/CHANGELOG.md

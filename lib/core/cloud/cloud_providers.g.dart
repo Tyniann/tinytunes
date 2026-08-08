@@ -192,12 +192,154 @@ final class CloudCacheDirectoryProvider
 String _$cloudCacheDirectoryHash() =>
     r'74b11b107a644ea3e3ebd2074354394cea060ace';
 
-/// Production Google Drive [CloudLibrarySource] once the cache directory exists.
+/// Production Google Drive [CloudLibrarySource] (provider subdirectory layout).
+
+@ProviderFor(googleDriveCloudLibrarySource)
+final googleDriveCloudLibrarySourceProvider =
+    GoogleDriveCloudLibrarySourceProvider._();
+
+/// Production Google Drive [CloudLibrarySource] (provider subdirectory layout).
+
+final class GoogleDriveCloudLibrarySourceProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<CloudLibrarySource>,
+          CloudLibrarySource,
+          FutureOr<CloudLibrarySource>
+        >
+    with
+        $FutureModifier<CloudLibrarySource>,
+        $FutureProvider<CloudLibrarySource> {
+  /// Production Google Drive [CloudLibrarySource] (provider subdirectory layout).
+  GoogleDriveCloudLibrarySourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'googleDriveCloudLibrarySourceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$googleDriveCloudLibrarySourceHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<CloudLibrarySource> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<CloudLibrarySource> create(Ref ref) {
+    return googleDriveCloudLibrarySource(ref);
+  }
+}
+
+String _$googleDriveCloudLibrarySourceHash() =>
+    r'e3fcdafcd306cf3087dfb1795a32dd86c151c561';
+
+/// Production OneDrive [OneDriveRemote] (Graph HTTP).
+
+@ProviderFor(oneDriveRemote)
+final oneDriveRemoteProvider = OneDriveRemoteProvider._();
+
+/// Production OneDrive [OneDriveRemote] (Graph HTTP).
+
+final class OneDriveRemoteProvider
+    extends $FunctionalProvider<OneDriveRemote, OneDriveRemote, OneDriveRemote>
+    with $Provider<OneDriveRemote> {
+  /// Production OneDrive [OneDriveRemote] (Graph HTTP).
+  OneDriveRemoteProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'oneDriveRemoteProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$oneDriveRemoteHash();
+
+  @$internal
+  @override
+  $ProviderElement<OneDriveRemote> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  OneDriveRemote create(Ref ref) {
+    return oneDriveRemote(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(OneDriveRemote value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<OneDriveRemote>(value),
+    );
+  }
+}
+
+String _$oneDriveRemoteHash() => r'e95e52428effbeccbe1f02bb09542176d67c6ad3';
+
+/// Production OneDrive [CloudLibrarySource] (provider subdirectory layout).
+
+@ProviderFor(oneDriveCloudLibrarySource)
+final oneDriveCloudLibrarySourceProvider =
+    OneDriveCloudLibrarySourceProvider._();
+
+/// Production OneDrive [CloudLibrarySource] (provider subdirectory layout).
+
+final class OneDriveCloudLibrarySourceProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<CloudLibrarySource>,
+          CloudLibrarySource,
+          FutureOr<CloudLibrarySource>
+        >
+    with
+        $FutureModifier<CloudLibrarySource>,
+        $FutureProvider<CloudLibrarySource> {
+  /// Production OneDrive [CloudLibrarySource] (provider subdirectory layout).
+  OneDriveCloudLibrarySourceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'oneDriveCloudLibrarySourceProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$oneDriveCloudLibrarySourceHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<CloudLibrarySource> $createElement(
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<CloudLibrarySource> create(Ref ref) {
+    return oneDriveCloudLibrarySource(ref);
+  }
+}
+
+String _$oneDriveCloudLibrarySourceHash() =>
+    r'7cd5857ca524cf45b6417e1ad2de3df8a9d16db7';
+
+/// Delegating [CloudLibrarySource] routing by locator prefix.
 
 @ProviderFor(cloudLibrarySource)
 final cloudLibrarySourceProvider = CloudLibrarySourceProvider._();
 
-/// Production Google Drive [CloudLibrarySource] once the cache directory exists.
+/// Delegating [CloudLibrarySource] routing by locator prefix.
 
 final class CloudLibrarySourceProvider
     extends
@@ -209,7 +351,7 @@ final class CloudLibrarySourceProvider
     with
         $FutureModifier<CloudLibrarySource>,
         $FutureProvider<CloudLibrarySource> {
-  /// Production Google Drive [CloudLibrarySource] once the cache directory exists.
+  /// Delegating [CloudLibrarySource] routing by locator prefix.
   CloudLibrarySourceProvider._()
     : super(
         from: null,
@@ -237,20 +379,20 @@ final class CloudLibrarySourceProvider
 }
 
 String _$cloudLibrarySourceHash() =>
-    r'019741935347083cae4e43d9771a2afae008fe26';
+    r'e248d95e336fe03f7f175acf9138f644bdf18d5e';
 
-/// [CloudCacheStore] bound to the app database.
+/// [CloudCacheStore] bound to the app database (deletes artwork with audio).
 
 @ProviderFor(cloudCacheStore)
 final cloudCacheStoreProvider = CloudCacheStoreProvider._();
 
-/// [CloudCacheStore] bound to the app database.
+/// [CloudCacheStore] bound to the app database (deletes artwork with audio).
 
 final class CloudCacheStoreProvider
     extends
         $FunctionalProvider<CloudCacheStore, CloudCacheStore, CloudCacheStore>
     with $Provider<CloudCacheStore> {
-  /// [CloudCacheStore] bound to the app database.
+  /// [CloudCacheStore] bound to the app database (deletes artwork with audio).
   CloudCacheStoreProvider._()
     : super(
         from: null,
@@ -284,7 +426,7 @@ final class CloudCacheStoreProvider
   }
 }
 
-String _$cloudCacheStoreHash() => r'0a648adec657acaed5823ae9f6219aef1471e884';
+String _$cloudCacheStoreHash() => r'e5b15eb27d63774768046be043df78dcfd0fa289';
 
 /// Prefs wrapper for the cloud cache budget.
 
@@ -412,62 +554,11 @@ abstract class _$CloudCacheBudgetController extends $Notifier<int> {
   }
 }
 
-/// Production [GoogleDriveProbe] for diagnostics / tests.
-
-@ProviderFor(googleDriveProbe)
-final googleDriveProbeProvider = GoogleDriveProbeProvider._();
-
-/// Production [GoogleDriveProbe] for diagnostics / tests.
-
-final class GoogleDriveProbeProvider
-    extends
-        $FunctionalProvider<
-          GoogleDriveProbe,
-          GoogleDriveProbe,
-          GoogleDriveProbe
-        >
-    with $Provider<GoogleDriveProbe> {
-  /// Production [GoogleDriveProbe] for diagnostics / tests.
-  GoogleDriveProbeProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'googleDriveProbeProvider',
-        isAutoDispose: false,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
-
-  @override
-  String debugGetCreateSourceHash() => _$googleDriveProbeHash();
-
-  @$internal
-  @override
-  $ProviderElement<GoogleDriveProbe> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
-
-  @override
-  GoogleDriveProbe create(Ref ref) {
-    return googleDriveProbe(ref);
-  }
-
-  /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(GoogleDriveProbe value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<GoogleDriveProbe>(value),
-    );
-  }
-}
-
-String _$googleDriveProbeHash() => r'afc9824dc031e26ed5e3196695702f6d640de691';
-
 /// Controllers Google Drive sign-in / sign-out for Settings.
 ///
-/// Purpose: Drive Settings buttons through a testable seam; wipe cache on
-/// sign-out; restore a lightweight session on first build.
-/// Usage Context: Settings Google Drive section.
+/// Purpose: Drive Settings through a testable seam; bind/replace root ownership;
+/// wipe **Google** cache on normal sign-out; restore on first build.
+/// Usage Context: Eagerly read from `main`; Settings Google Drive section.
 
 @ProviderFor(GoogleDriveSessionController)
 final googleDriveSessionControllerProvider =
@@ -475,9 +566,9 @@ final googleDriveSessionControllerProvider =
 
 /// Controllers Google Drive sign-in / sign-out for Settings.
 ///
-/// Purpose: Drive Settings buttons through a testable seam; wipe cache on
-/// sign-out; restore a lightweight session on first build.
-/// Usage Context: Settings Google Drive section.
+/// Purpose: Drive Settings through a testable seam; bind/replace root ownership;
+/// wipe **Google** cache on normal sign-out; restore on first build.
+/// Usage Context: Eagerly read from `main`; Settings Google Drive section.
 final class GoogleDriveSessionControllerProvider
     extends
         $NotifierProvider<
@@ -486,9 +577,9 @@ final class GoogleDriveSessionControllerProvider
         > {
   /// Controllers Google Drive sign-in / sign-out for Settings.
   ///
-  /// Purpose: Drive Settings buttons through a testable seam; wipe cache on
-  /// sign-out; restore a lightweight session on first build.
-  /// Usage Context: Settings Google Drive section.
+  /// Purpose: Drive Settings through a testable seam; bind/replace root ownership;
+  /// wipe **Google** cache on normal sign-out; restore on first build.
+  /// Usage Context: Eagerly read from `main`; Settings Google Drive section.
   GoogleDriveSessionControllerProvider._()
     : super(
         from: null,
@@ -517,13 +608,13 @@ final class GoogleDriveSessionControllerProvider
 }
 
 String _$googleDriveSessionControllerHash() =>
-    r'38a4d3f26244633f6443927270d08871b5b0ea18';
+    r'07b5d1e73029edc49f189ea687f0bcac884e5c5a';
 
 /// Controllers Google Drive sign-in / sign-out for Settings.
 ///
-/// Purpose: Drive Settings buttons through a testable seam; wipe cache on
-/// sign-out; restore a lightweight session on first build.
-/// Usage Context: Settings Google Drive section.
+/// Purpose: Drive Settings through a testable seam; bind/replace root ownership;
+/// wipe **Google** cache on normal sign-out; restore on first build.
+/// Usage Context: Eagerly read from `main`; Settings Google Drive section.
 
 abstract class _$GoogleDriveSessionController
     extends $Notifier<GoogleDriveSessionState> {
@@ -538,6 +629,128 @@ abstract class _$GoogleDriveSessionController
             as $ClassProviderElement<
               AnyNotifier<GoogleDriveSessionState, GoogleDriveSessionState>,
               GoogleDriveSessionState,
+              Object?,
+              Object?
+            >;
+    element.handleCreate(ref, build);
+  }
+}
+
+/// Production [OneDriveAuth]. Tests override [oneDriveAuthProvider].
+
+@ProviderFor(oneDriveAuth)
+final oneDriveAuthProvider = OneDriveAuthProvider._();
+
+/// Production [OneDriveAuth]. Tests override [oneDriveAuthProvider].
+
+final class OneDriveAuthProvider
+    extends $FunctionalProvider<OneDriveAuth, OneDriveAuth, OneDriveAuth>
+    with $Provider<OneDriveAuth> {
+  /// Production [OneDriveAuth]. Tests override [oneDriveAuthProvider].
+  OneDriveAuthProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'oneDriveAuthProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$oneDriveAuthHash();
+
+  @$internal
+  @override
+  $ProviderElement<OneDriveAuth> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  OneDriveAuth create(Ref ref) {
+    return oneDriveAuth(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(OneDriveAuth value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<OneDriveAuth>(value),
+    );
+  }
+}
+
+String _$oneDriveAuthHash() => r'306d9b13c2f46682dc2055e86e8ed1188690c61b';
+
+/// Controllers OneDrive sign-in / sign-out for Settings.
+///
+/// Purpose: Drive Settings through a testable seam; bind/replace root ownership;
+/// wipe **OneDrive** cache on normal sign-out; restore on first build.
+/// Usage Context: Eagerly read from `main`; Settings OneDrive section.
+
+@ProviderFor(OneDriveSessionController)
+final oneDriveSessionControllerProvider = OneDriveSessionControllerProvider._();
+
+/// Controllers OneDrive sign-in / sign-out for Settings.
+///
+/// Purpose: Drive Settings through a testable seam; bind/replace root ownership;
+/// wipe **OneDrive** cache on normal sign-out; restore on first build.
+/// Usage Context: Eagerly read from `main`; Settings OneDrive section.
+final class OneDriveSessionControllerProvider
+    extends $NotifierProvider<OneDriveSessionController, OneDriveSessionState> {
+  /// Controllers OneDrive sign-in / sign-out for Settings.
+  ///
+  /// Purpose: Drive Settings through a testable seam; bind/replace root ownership;
+  /// wipe **OneDrive** cache on normal sign-out; restore on first build.
+  /// Usage Context: Eagerly read from `main`; Settings OneDrive section.
+  OneDriveSessionControllerProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'oneDriveSessionControllerProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$oneDriveSessionControllerHash();
+
+  @$internal
+  @override
+  OneDriveSessionController create() => OneDriveSessionController();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(OneDriveSessionState value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<OneDriveSessionState>(value),
+    );
+  }
+}
+
+String _$oneDriveSessionControllerHash() =>
+    r'47a185380a0afd79b36e1e59ea287c18cd4ebf70';
+
+/// Controllers OneDrive sign-in / sign-out for Settings.
+///
+/// Purpose: Drive Settings through a testable seam; bind/replace root ownership;
+/// wipe **OneDrive** cache on normal sign-out; restore on first build.
+/// Usage Context: Eagerly read from `main`; Settings OneDrive section.
+
+abstract class _$OneDriveSessionController
+    extends $Notifier<OneDriveSessionState> {
+  OneDriveSessionState build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final ref = this.ref as $Ref<OneDriveSessionState, OneDriveSessionState>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<OneDriveSessionState, OneDriveSessionState>,
+              OneDriveSessionState,
               Object?,
               Object?
             >;
