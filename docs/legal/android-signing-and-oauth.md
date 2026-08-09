@@ -11,9 +11,10 @@ optional release APKs).
 | **Forks / self-built APKs** | **Bring your own** GCP project + OAuth clients. Replace `serverClientId`. Register **your** debug and (if applicable) release SHA-1s. | **Bring your own** Entra app registration (personal accounts only). Replace the public client ID and register **your** debug/release signature hashes. |
 | **Local library (SAF)** | Needs **zero** Google / Microsoft setup. | Same. |
 
-Privacy policy (consent screen / users):  
-https://blumenlaube.at/apps/tinytunes/privacy-policy.html  
-In-repo drafts: [docs/legal/](.).
+Privacy policy:
+
+- **Official APK** consent / in-app link: live HTML on the publisher’s host (see root README).
+- **In-repo** [`privacy-policy.md`](privacy-policy.md) / [`.de.md`](privacy-policy.de.md): **drafts with placeholders** — forks must fill controller identity, host their **own** HTTPS policy, and must not reuse another publisher’s URL or name as controller.
 
 Related ADRs: [0002 Google Drive](../adr/0002-google-drive-cloud-library.md),
 [0003 OneDrive](../adr/0003-onedrive-cloud-library.md).  

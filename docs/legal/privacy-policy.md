@@ -1,11 +1,18 @@
 # Privacy Policy — TinyTunes
 
-**Effective date:** 6 August 2026  
-**Last updated:** 8 August 2026  
-**Language:** English (authoritative for international disclosure). A German version is provided in [`privacy-policy.de.md`](privacy-policy.de.md).  
-**Live HTML:** https://blumenlaube.at/apps/tinytunes/privacy-policy.html
+> **Draft template (not a live legal notice).**  
+> This file ships in the git repo with **placeholders** so forks do not inherit another
+> publisher’s identity as controller. Replace every `[PLACEHOLDER]` before you publish
+> a real policy (GitHub Pages, your domain, store listing, OAuth consent).  
+> The published HTML for the official TinyTunes build is separate from this draft.
 
-**Controller:** Mario Angerer · privacy@blumenlaube.at
+**Status:** Draft / template  
+**Effective date:** `[EFFECTIVE DATE]`  
+**Last updated:** `[LAST UPDATED DATE]`  
+**Language:** English (authoritative for international disclosure). A German draft is provided in [`privacy-policy.de.md`](privacy-policy.de.md).  
+**Public HTTPS URL (after you publish):** `[PUBLIC PRIVACY POLICY URL]`
+
+**Controller:** `[CONTROLLER LEGAL NAME]` · `[PRIVACY CONTACT EMAIL]`
 
 ---
 
@@ -17,9 +24,9 @@
 
 | Field | Value |
 | --- | --- |
-| Legal name | Mario Angerer |
-| Contact email | [privacy@blumenlaube.at](mailto:privacy@blumenlaube.at) |
-| App package (Android) | `at.blumenlaube.tinytunes` |
+| Legal name | `[CONTROLLER LEGAL NAME]` |
+| Contact email | `[PRIVACY CONTACT EMAIL]` |
+| App package (Android) | `[ANDROID APPLICATION ID]` |
 
 If you have questions about this policy or your personal data, contact us at the email above.
 
@@ -196,9 +203,9 @@ Where the GDPR (or UK GDPR) applies, you have the right to:
 - Disconnect Google: Sign out in Settings; optionally revoke TinyTunes in your [Google Account third-party connections](https://myaccount.google.com/permissions)  
 - Disconnect Microsoft: Sign out in Settings; optionally revoke TinyTunes in your Microsoft account privacy / app permissions  
 
-For requests that need our help (for example confirmation what we hold as controller), email [privacy@blumenlaube.at](mailto:privacy@blumenlaube.at). We will respond within the statutory period (generally one month).
+For requests that need our help (for example confirmation what we hold as controller), email `[PRIVACY CONTACT EMAIL]`. We will respond within the statutory period (generally one month).
 
-You also have the right to lodge a complaint with a supervisory authority, in particular in your EU/EEA member state of residence. In Austria, for example, that is the **Österreichische Datenschutzbehörde** ([dsb.gv.at](https://www.dsb.gv.at/)).
+You also have the right to lodge a complaint with a supervisory authority, in particular in your EU/EEA member state of residence. Example (Austria): the **Österreichische Datenschutzbehörde** ([dsb.gv.at](https://www.dsb.gv.at/)). Replace with the authority that applies to `[CONTROLLER LEGAL NAME]` / your users.
 
 ---
 
@@ -218,7 +225,7 @@ TinyTunes does not use your personal data for automated decision-making or profi
 
 We may update this policy when the App’s features or legal requirements change. The “Last updated” date at the top will change accordingly. Material changes affecting cloud OAuth use should be reflected before you rely on a new scope or new sharing of data.
 
-The current version lives in the TinyTunes repository under `docs/legal/` and, once published, at the public HTTPS URL used on Google and Microsoft OAuth consent screens.
+The draft lives in the TinyTunes repository under `docs/legal/`. The version that binds users is the **published** HTTPS page at `[PUBLIC PRIVACY POLICY URL]` (filled in by the publisher of each build).
 
 ---
 
@@ -226,15 +233,17 @@ The current version lives in the TinyTunes repository under `docs/legal/` and, o
 
 Google and Microsoft consent / branding flows need a **publicly accessible HTTPS** privacy policy URL. Hosting only inside the git repo is not enough.
 
-Recommended: publish this file (or an HTML export) via GitHub Pages, your own domain, or another stable HTTPS host, then put that URL in:
+Recommended: publish a filled copy of this file (or an HTML export) via GitHub Pages, your own domain, or another stable HTTPS host, then put that URL in:
 
 1. Google Cloud Console → OAuth consent screen → Privacy policy  
 2. Microsoft Entra app registration branding → Privacy statement URL  
 3. Play Console / store listing (when applicable)  
 4. In-app Settings link (see [`README.md`](README.md) in this folder)
 
-**Publish note (Phase 0):** the in-repo drafts now describe optional personal OneDrive. Update the live HTML at blumenlaube.at to match before relying on that URL for Microsoft consent branding.
+**Forks:** do not reuse another publisher’s privacy URL or controller identity. Register your own OAuth clients, host your own policy, and set your own contact details.
+
+**Publish note:** update your live HTML whenever this draft’s substance changes (for example new cloud providers), before pointing OAuth consent branding at that URL.
 
 ---
 
-*This document is provided to describe TinyTunes’ intended data practices. It is not legal advice. Have it reviewed for your jurisdiction if needed.*
+*This document is a template describing TinyTunes’ intended data practices. It is not legal advice. Have a filled version reviewed for your jurisdiction if needed.*

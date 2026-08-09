@@ -96,10 +96,9 @@ ADRs: [docs/adr/](docs/adr/). Changelog: [docs/CHANGELOG.md](docs/CHANGELOG.md).
 
 ## Privacy
 
-- [English](https://blumenlaube.at/apps/tinytunes/privacy-policy.html)
-- [Deutsch](https://blumenlaube.at/apps/tinytunes/privacy-policy.de.html)
+- Official builds: [English](https://blumenlaube.at/apps/tinytunes/privacy-policy.html) · [Deutsch](https://blumenlaube.at/apps/tinytunes/privacy-policy.de.html)
 - Also linked from **Settings → About** in the app
-- Sources in-repo: [docs/legal/](docs/legal/)
+- In-repo Markdown under [docs/legal/](docs/legal/) is a **draft with placeholders** (forks must substitute their own controller / contact / hosted URL — do not ship another publisher’s identity)
 
 ## Contributing
 

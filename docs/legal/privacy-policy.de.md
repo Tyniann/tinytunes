@@ -1,12 +1,20 @@
 # Datenschutzerklärung — TinyTunes
 
-**Gültig ab:** 6. August 2026  
-**Zuletzt aktualisiert:** 8. August 2026  
+> **Entwurf / Vorlage (kein lebendes Rechtsdokument).**  
+> Diese Datei liegt im Git-Repository mit **Platzhaltern**, damit Forks nicht die
+> Identität eines anderen Anbieters als Verantwortlichen übernehmen. Ersetzen Sie
+> jedes `[PLATZHALTER]`, bevor Sie eine echte Erklärung veröffentlichen (eigene Domain,
+> GitHub Pages, Store, OAuth-Zustimmung).  
+> Die veröffentlichte HTML-Fassung der offiziellen TinyTunes-Builds ist von diesem Entwurf getrennt.
 
-Die englische Fassung [`privacy-policy.md`](privacy-policy.md) ist die verbindliche Fassung für internationale Angaben (z. B. Google-/Microsoft-OAuth). Diese deutsche Fassung dient der Verständlichkeit für Nutzerinnen und Nutzer im deutschsprachigen Raum.  
-**Online:** https://blumenlaube.at/apps/tinytunes/privacy-policy.de.html
+**Status:** Entwurf / Vorlage  
+**Gültig ab:** `[GÜLTIG-AB-DATUM]`  
+**Zuletzt aktualisiert:** `[AKTUALISIERT-AM]`  
 
-**Verantwortlicher:** Mario Angerer · privacy@blumenlaube.at
+Die englische Fassung [`privacy-policy.md`](privacy-policy.md) ist die verbindliche Vorlage für internationale Angaben (z. B. Google-/Microsoft-OAuth). Diese deutsche Fassung dient der Verständlichkeit für Nutzerinnen und Nutzer im deutschsprachigen Raum.  
+**Öffentliche HTTPS-URL (nach Veröffentlichung):** `[ÖFFENTLICHE-DATENSCHUTZ-URL]`
+
+**Verantwortlicher:** `[NAME DES VERANTWORTLICHEN]` · `[DATENSCHUTZ-KONTAKT-E-MAIL]`
 
 ---
 
@@ -16,9 +24,9 @@ Die englische Fassung [`privacy-policy.md`](privacy-policy.md) ist die verbindli
 
 | Feld | Wert |
 | --- | --- |
-| Name / Firma | Mario Angerer |
-| E-Mail | [privacy@blumenlaube.at](mailto:privacy@blumenlaube.at) |
-| Android-Paketname | `at.blumenlaube.tinytunes` |
+| Name / Firma | `[NAME DES VERANTWORTLICHEN]` |
+| E-Mail | `[DATENSCHUTZ-KONTAKT-E-MAIL]` |
+| Android-Paketname | `[ANDROID-APPLICATION-ID]` |
 
 ---
 
@@ -107,7 +115,7 @@ Soweit die DSGVO gilt: Auskunft, Berichtigung, Löschung, Einschränkung, Daten�
 
 In der App u. a.: Ordner vergessen, Cloud-Cache leeren, Abmelden; zusätzlich Zugriff bei Google widerrufen: [myaccount.google.com/permissions](https://myaccount.google.com/permissions); bei Microsoft über die Konto-/App-Berechtigungen widerrufen.
 
-Anfragen an [privacy@blumenlaube.at](mailto:privacy@blumenlaube.at). Beschwerderecht bei einer Aufsichtsbehörde, in Österreich z. B. der [Datenschutzbehörde](https://www.dsb.gv.at/).
+Anfragen an `[DATENSCHUTZ-KONTAKT-E-MAIL]`. Beschwerderecht bei einer Aufsichtsbehörde im Wohnsitzmitgliedstaat. Beispiel Österreich: [Datenschutzbehörde](https://www.dsb.gv.at/) — anpassen an `[NAME DES VERANTWORTLICHEN]` / Ihre Nutzerinnen und Nutzer.
 
 ---
 
@@ -115,8 +123,10 @@ Anfragen an [privacy@blumenlaube.at](mailto:privacy@blumenlaube.at). Beschwerder
 
 Die App richtet sich nicht an Kinder. Keine automatisierten Entscheidungen mit Rechtswirkung im Sinne von Art. 22 DSGVO. Änderungen werden durch Aktualisierung des Datums und der veröffentlichten Fassung kenntlich gemacht.
 
-**Hinweis (Phase 0):** Die Live-HTML-Fassungen unter blumenlaube.at sollten an diese Entwürfe angepasst werden, bevor die Microsoft-Zustimmungsseite auf die Privacy-URL verweist.
+**Forks:** keine fremde Privacy-URL und keine fremde Verantwortlichen-Identität wiederverwenden. Eigene OAuth-Clients, eigene gehostete Erklärung, eigene Kontaktdaten.
+
+**Hinweis:** Die Live-HTML-Fassung muss dem befüllten Entwurf entsprechen, bevor OAuth-Zustimmungsseiten auf die Privacy-URL verweisen.
 
 ---
 
-*Keine Rechtsberatung. Bei Bedarf für Ihre Jurisdiktion rechtlich prüfen lassen.*
+*Vorlage, keine Rechtsberatung. Befüllte Fassung bei Bedarf für Ihre Jurisdiktion rechtlich prüfen lassen.*

@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Replace personal controller identity in in-repo privacy drafts (EN/DE) with placeholders so forks do not inherit another publisher as data controller
+
 ### Fixed
 
 ### Removed
