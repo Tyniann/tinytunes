@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- Keep High contrast light transport controls visible: pin dock inverse to near-black so lime accents do not vanish
+
 ### Removed
 
 ### Security

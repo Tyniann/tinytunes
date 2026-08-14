@@ -71,6 +71,21 @@ void main() {
       );
     });
 
+    test('highContrast light dock stays black against lime accents', () {
+      final catalog = ThemeCatalog.standard();
+      final light = catalog
+          .resolve(ThemeCatalog.highContrastSchemeId)
+          .colorSchemeFor(Brightness.light);
+
+      expect(light.inverseSurface, ThemeCatalog.highContrastDarkSurface);
+      expect(light.onInverseSurface, const Color(0xFFFFFFFF));
+      expect(light.primary, ThemeCatalog.luckyLimeSeed);
+      expect(
+        light.inverseSurface.computeLuminance(),
+        lessThan(light.primary.computeLuminance()),
+      );
+    });
+
     test('picker ids list hue families before high contrast', () {
       final catalog = ThemeCatalog.standard();
       expect(

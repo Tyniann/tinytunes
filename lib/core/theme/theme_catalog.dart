@@ -100,6 +100,10 @@ class ThemeCatalog {
       contrastLevel: 1.0,
       darkPrimary: luckyLimeSeed,
       darkSurface: highContrastDarkSurface,
+      lightPrimary: luckyLimeSeed,
+      lightOnPrimary: Color(0xFF000000),
+      lightInverseSurface: highContrastDarkSurface,
+      lightOnInverseSurface: Color(0xFFFFFFFF),
     ),
   ]);
 

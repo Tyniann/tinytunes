@@ -43,10 +43,12 @@ Static entries in `ThemeCatalog.standard()`:
 | `default` | Lucky Lime | seed `#88AA00` |
 | `electricBlue` | Electric Blue | cyan `#70D9E8` (dark + light); dark/light inverse `#071016`; light paper `#F7FBFC` |
 | `emberSignal` | Ember Signal | dark oxblood `#C45B4A` on `#0E0D11`; light vermillion `#E63B2E` on paper `#F0EBE1`; light inverse poster ink `#0A0A0A` |
-| `highContrast` | High contrast | Lucky Lime seed, `contrastLevel` `1.0` |
+| `highContrast` | High contrast | Lucky Lime seed, `contrastLevel` `1.0`; light inverse (dock) `#050700` |
 
 High contrast dark mode additionally anchors surfaces near black (`#050700`)
-and pins `primary` to `#88AA00`.
+and pins `primary` to `#88AA00`. High contrast light pins the transport dock
+(`inverseSurface`) to the same near-black so lime shuffle / repeat / play stay
+visible against it.
 
 Prefs key `theme.schemeId`. Missing/unknown static id resolves themes to
 `default` (Lucky Lime). Fresh install stays on `default`. The prefs id is
