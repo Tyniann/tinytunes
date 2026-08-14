@@ -351,6 +351,7 @@ void main() {
     expect(find.text(l10n.settingsAboutPrivacyPolicy), findsOneWidget);
     expect(find.text(l10n.settingsAboutOpenChangelogOnline), findsOneWidget);
     expect(find.text(l10n.settingsAboutGitHub), findsOneWidget);
+    expect(find.text(l10n.settingsAboutCheckForUpdates), findsOneWidget);
     expect(find.byType(Image), findsWidgets);
 
     await tester.ensureVisible(find.text(l10n.settingsAboutClose));

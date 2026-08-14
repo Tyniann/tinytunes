@@ -48,7 +48,7 @@ Bei optionaler Anmeldung bei **Google** (Drive) oder **Microsoft** (persönliche
 | --- | --- | --- |
 | Bibliothek / Katalog | Ordnerwurzeln, Dateinamen, Locators (`gdrive:…` / OneDrive), optionale Tags (Titel, Interpret, Album) | Indexierung und Anzeige |
 | Warteschlange / Wiedergabe | Reihenfolge, aktueller Titel | Steuerung der Wiedergabe |
-| Einstellungen | Theme, Cache-Limit | Speichern Ihrer Wahl |
+| Einstellungen | Theme, Cache-Limit, letzter Update-Check, zurückgestellte Version | Speichern Ihrer Wahl |
 | Sitzungsnachrichten | Kurze Status-/Fehlermeldungen | Nachrichtenübersicht |
 | Cloud-Cache (optional) | Heruntergeladene Audiodateien und Cache-Metadaten | Wiedergabe von Cloud-Titeln |
 
@@ -69,6 +69,10 @@ Bei optionaler Anmeldung bei **Google** (Drive) oder **Microsoft** (persönliche
 
 Keine eigenen Analytics-/Werbe-Tracker; kein Verkauf von Daten; kein TinyTunes-Cloud-Konto; **kein** Schreiben/Löschen/Umbenennen auf Google Drive oder OneDrive; lokale Musik ohne Cloud-Konto nutzbar.
 
+### 3.5 GitHub-Updateprüfung
+
+Beim Start der **offiziellen GitHub-APK** (release-signiert; höchstens einmal in 24 Stunden) und bei **Nach Updates suchen** in Über fragt die App die neueste öffentliche Version bei GitHub ab (`https://api.github.com/repos/Tyniann/tinytunes/releases/latest`). GitHub sieht Ihre Geräte-IP und einen User-Agent, der TinyTunes identifiziert. Bibliothek, Konten und Hörhistorie werden dabei nicht gesendet. Forks und Debug-Builds stellen diese Anfrage nicht. Es gilt die [GitHub-Datenschutzerklärung](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement). Zeitpunkt der letzten Prüfung und eine zurückgestellte Version können auf dem Gerät gespeichert werden.
+
 ---
 
 ## 4. Zwecke und Rechtsgrundlagen (DSGVO)
@@ -77,6 +81,7 @@ Keine eigenen Analytics-/Werbe-Tracker; kein Verkauf von Daten; kein TinyTunes-C
 | --- | --- |
 | Lokale Wiedergabe, Katalog, Warteschlange | Art. 6 Abs. 1 lit. b DSGVO |
 | Einstellungen | Art. 6 Abs. 1 lit. b bzw. lit. f DSGVO |
+| GitHub-Updateprüfung (neuere öffentliche Version) | Art. 6 Abs. 1 lit. f DSGVO; Dialog kann geschlossen werden |
 | Optionales Google Drive (Anmeldung, Listen, Download in lokalen Cache, Abspielen) | Art. 6 Abs. 1 lit. a DSGVO (**Einwilligung**); widerrufbar durch Abmelden / Widerruf in den Google-Kontoeinstellungen |
 | Optionales persönliches OneDrive (Anmeldung, Listen, Download in lokalen Cache, Abspielen) | Art. 6 Abs. 1 lit. a DSGVO (**Einwilligung**); widerrufbar durch Abmelden / Widerruf in den Microsoft-Kontoeinstellungen |
 | Beantwortung Ihrer Datenschutzanfragen | Art. 6 Abs. 1 lit. c und/oder lit. b/f DSGVO |
@@ -105,7 +110,11 @@ Bei Nutzung von persönlichem OneDrive verarbeitet Microsoft Konten- und OneDriv
 
 TinyTunes nutzt Microsoft-Anmeldung (MSAL) und Microsoft Graph nur zum Anmelden, Auflisten und **Lesen/Herunterladen** ausgewählter Audiodateien in den **lokalen** Cache. Kein Schreibzugriff auf OneDrive durch die App.
 
-Übermittlungen in Drittländer können bei Google bzw. Microsoft nach deren Mechanismen (z. B. Standardvertragsklauseln) erfolgen.
+Übermittlungen in Drittländer können bei Google, Microsoft oder GitHub nach deren Mechanismen (z. B. Standardvertragsklauseln) erfolgen.
+
+### 6.3 GitHub
+
+Die App fragt bei **GitHub** (`api.github.com`) die neueste öffentliche TinyTunes-Version ab. GitHub verarbeitet diese Anfrage gemäß [GitHub-Datenschutzerklärung](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement). Bibliothek und Kontodaten werden dabei nicht gesendet.
 
 ---
 

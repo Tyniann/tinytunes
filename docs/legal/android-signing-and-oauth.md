@@ -20,6 +20,17 @@ Related ADRs: [0002 Google Drive](../adr/0002-google-drive-cloud-library.md),
 [0003 OneDrive](../adr/0003-onedrive-cloud-library.md).  
 OAuth effort research: [onedrive-oauth-public-effort.md](../research/onedrive-oauth-public-effort.md).
 
+## Update check (forks)
+
+The app contacts GitHub for updates **only** when the installed APK is the
+official GitHub build: package `at.blumenlaube.tinytunes` **and** the official
+**release** signing certificate. Forks, self-built APKs, and debug/`flutter run`
+builds do not ping GitHub and do not show Check for updates.
+
+To check *your* releases instead, change `OfficialRelease` in
+`lib/core/updates/official_release.dart` (repo + your release cert hash).
+Full behavior: [`docs/features/update-check.md`](../features/update-check.md).
+
 ---
 
 ## Google Drive OAuth (forks)

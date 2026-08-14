@@ -20,6 +20,9 @@ import 'package:tinytunes/core/routing/app_router.dart';
 import 'package:tinytunes/core/routing/app_routes.dart';
 import 'package:tinytunes/core/settings/package_info_provider.dart';
 import 'package:tinytunes/core/theme/theme_providers.dart';
+import 'package:tinytunes/core/updates/github_release.dart';
+import 'package:tinytunes/core/updates/github_release_client.dart';
+import 'package:tinytunes/core/updates/update_providers.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tinytunes/features/library/application/library_providers.dart';
 import 'package:tinytunes/features/player/application/player_providers.dart';
@@ -31,6 +34,7 @@ import 'package:tinytunes/main.dart';
 import '../core/cloud/fake_cloud_library_source.dart';
 import '../core/cloud/google_drive/fake_google_drive.dart';
 import '../core/cloud/one_drive/fake_one_drive.dart';
+import '../core/updates/fake_github_release_client.dart';
 import '../features/player/fake_playback_engine.dart';
 import '../features/player/fake_system_volume_source.dart';
 
@@ -54,6 +58,8 @@ Future<void> pumpApp(
   SystemVolumeSource? systemVolumeSource,
   GoogleDriveAuth? googleDriveAuth,
   OneDriveAuth? oneDriveAuth,
+  GithubReleaseClient? githubReleaseClient,
+  bool officialApk = true,
   bool liveQueueStreams = false,
 }) async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
@@ -91,6 +97,17 @@ Future<void> pumpApp(
             buildNumber: '6',
           ),
         ),
+        githubReleaseClientProvider.overrideWithValue(
+          githubReleaseClient ??
+              FakeGithubReleaseClient(
+                release: const GithubRelease(
+                  tagName: 'v0.6.0',
+                  htmlUrl:
+                      'https://github.com/Tyniann/tinytunes/releases/tag/v0.6.0',
+                ),
+              ),
+        ),
+        isOfficialApkProvider.overrideWith((ref) async => officialApk),
         localLibrarySourceProvider.overrideWithValue(
           librarySource ?? const _EmptyFakeLibrarySource(),
         ),
@@ -108,7 +125,7 @@ Future<void> pumpApp(
         systemVolumeSourceProvider.overrideWithValue(volume),
         appRouterProvider.overrideWithValue(
           GoRouter(
-            navigatorKey: GlobalKey<NavigatorState>(debugLabel: 'test-root'),
+            navigatorKey: rootNavigatorKey,
             initialLocation: initialLocation,
             routes: $appRoutes,
           ),

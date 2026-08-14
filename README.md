@@ -23,6 +23,7 @@ read-only (list / download / cache — never write to the cloud).
 | **Contributors (local library only)** | No Google / Microsoft setup. SAF local folders never need OAuth. |
 
 Step-by-step for forks: [docs/legal/android-signing-and-oauth.md](docs/legal/android-signing-and-oauth.md).
+Forks and debug builds do not contact GitHub for updates (official release-signed APK only) — see [docs/features/update-check.md](docs/features/update-check.md).
 
 ## Features
 
@@ -34,7 +35,7 @@ Step-by-step for forks: [docs/legal/android-signing-and-oauth.md](docs/legal/and
 - Optional Google Drive + personal OneDrive folder ingest, shared download-then-play cache + budget
 - Color schemes: Lucky Lime, Electric Blue, Ember Signal, High contrast, Dynamic
 - Material 3 themes, EN / DE
-- In-app About dialog (logo, version, changelog, privacy policy link)
+- In-app About dialog (logo, version, changelog, privacy policy link, check for updates)
 
 ## Requirements
 

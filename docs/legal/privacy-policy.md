@@ -52,7 +52,7 @@ Depending on how you use the App, the following may be stored in the App’s pri
 | --- | --- | --- |
 | Library / catalog | Folder roots you add, file/display names, opaque locators (local content URIs, `gdrive:<fileId>`, or OneDrive drive/item locators), optional audio tags (title, artist, album) | Index music and show it in the queue |
 | Queue / playback state | Ordered playlist entries, now-playing related state | Play and navigate your queue |
-| Settings | Theme preference, cloud cache size limit | Remember your choices |
+| Settings | Theme preference, cloud cache size limit, last update-check time, dismissed update tag | Remember your choices |
 | Session messages | Short in-app status/error messages | Show recent feedback in the message center |
 | Cloud cache (optional) | Downloaded audio files and cache index metadata (size, last access) | Play cloud tracks offline-capable after download |
 
@@ -85,6 +85,10 @@ As of the effective date, TinyTunes does **not**:
 - Upload, modify, rename, or delete files on Google Drive or OneDrive (cloud access is **read-only**)
 - Require an account with us to play **local** device music
 
+### 3.5 GitHub release check
+
+On the **official GitHub APK** (release-signed), on launch (at most once per 24 hours) and when you tap **Check for updates** in About, the App requests the latest public release from GitHub (`https://api.github.com/repos/Tyniann/tinytunes/releases/latest`). GitHub receives your device IP address and a User-Agent identifying TinyTunes. The App does not send your music library, cloud accounts, or listening history. Forks and debug builds do not make this request. GitHub processes that request under [GitHub’s Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement). Last-check time and a dismissed version tag may be stored on the device.
+
 If that changes in a future version, this policy will be updated.
 
 ---
@@ -96,7 +100,8 @@ We process personal data only as needed to provide the App you choose to use:
 | Purpose | Typical data | Legal basis (GDPR) |
 | --- | --- | --- |
 | Provide local playback, catalog, and queue | On-device library and queue data | Art. 6(1)(b) — performance of the contract / service you request by using the App |
-| Remember settings (theme, cache budget) | Preferences on device | Art. 6(1)(b); where required locally, Art. 6(1)(f) legitimate interest in a functioning UI — overridden by your control of settings and uninstall |
+| Remember settings (theme, cache budget, update-check) | Preferences on device | Art. 6(1)(b); where required locally, Art. 6(1)(f) legitimate interest in a functioning UI — overridden by your control of settings and uninstall |
+| Check GitHub for a newer public release | Device IP and User-Agent seen by GitHub; on-device last-check / dismissed-tag prefs | Art. 6(1)(f) legitimate interest in telling you a newer APK exists — you can dismiss the dialog |
 | Optional Google Drive library (sign-in, list, download-to-cache, play) | Google email/name display, tokens, Drive file metadata and file bytes you trigger for playback | Art. 6(1)(a) — **consent**, given when you sign in and grant Drive access (and withdrawable by signing out / revoking access in Google Account settings) |
 | Optional personal OneDrive library (sign-in, list, download-to-cache, play) | Microsoft email/name display, tokens, OneDrive file metadata and file bytes you trigger for playback | Art. 6(1)(a) — **consent**, given when you sign in and grant Files.Read (and withdrawable by signing out / revoking access in your Microsoft account) |
 | Answer privacy requests you send us | Whatever you include in email | Art. 6(1)(c) legal obligation and/or Art. 6(1)(f) / (b) as applicable |
@@ -118,7 +123,7 @@ We do not run a TinyTunes server-side archive of your library.
 
 ---
 
-## 6. Recipients and processors (Google / Microsoft)
+## 6. Recipients and processors (Google / Microsoft / GitHub)
 
 ### 6.1 No TinyTunes cloud recipients
 
@@ -159,7 +164,11 @@ TinyTunes does **not** use OneDrive data for advertising and does not grant the 
 
 Microsoft may process data in locations outside the EEA under Microsoft’s own transfer mechanisms. See Microsoft’s privacy documentation for details.
 
-### 6.4 Device / OS vendors
+### 6.4 GitHub
+
+The App contacts **GitHub** (`api.github.com`) to read the latest public TinyTunes release. That request is processed by GitHub under [GitHub’s Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement). TinyTunes does not send your library or account data in that request.
+
+### 6.5 Device / OS vendors
 
 Your device manufacturer and OS (for example Google Android / Play Services) may process data under their own policies when you install the App, use system folder pickers, or use platform sign-in components.
 
@@ -167,7 +176,7 @@ Your device manufacturer and OS (for example Google Android / Play Services) may
 
 ## 7. International transfers
 
-On-device data stays on your device unless you choose a feature that contacts Google (Sign-In / Drive) or Microsoft (sign-in / Graph / OneDrive). Those transfers are governed by Google’s or Microsoft’s terms and transfer tools. We do not operate additional TinyTunes international transfers of your library.
+On-device data stays on your device unless you choose a feature that contacts Google (Sign-In / Drive), Microsoft (sign-in / Graph / OneDrive), or GitHub (latest-release check). Those transfers are governed by Google’s, Microsoft’s, or GitHub’s terms and transfer tools. We do not operate additional TinyTunes international transfers of your library.
 
 ---
 

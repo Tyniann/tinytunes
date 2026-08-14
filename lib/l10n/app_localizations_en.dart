@@ -100,6 +100,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAboutClose => 'Close';
 
   @override
+  String get settingsAboutCheckForUpdates => 'Check for updates';
+
+  @override
+  String get settingsAboutUpToDate => 'You\'re on the latest version.';
+
+  @override
+  String get settingsAboutUpdateCheckFailed => 'Could not check for updates.';
+
+  @override
+  String get updateAvailableTitle => 'Update available';
+
+  @override
+  String updateAvailableBody(String latest, String installed) {
+    return 'Version $latest is on GitHub. You have $installed.';
+  }
+
+  @override
+  String get updateAvailableOpen => 'View on GitHub';
+
+  @override
+  String get updateAvailableLater => 'Later';
+
+  @override
   String get settingsGoogleDriveSection => 'Google Drive';
 
   @override

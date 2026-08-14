@@ -272,6 +272,48 @@ abstract class AppLocalizations {
   /// **'Close'**
   String get settingsAboutClose;
 
+  /// About button that queries GitHub for a newer release.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for updates'**
+  String get settingsAboutCheckForUpdates;
+
+  /// SnackBar when a manual update check finds no newer release.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re on the latest version.'**
+  String get settingsAboutUpToDate;
+
+  /// SnackBar when a manual GitHub update check fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not check for updates.'**
+  String get settingsAboutUpdateCheckFailed;
+
+  /// Title of the newer-release dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get updateAvailableTitle;
+
+  /// Body comparing GitHub latest tag to the installed version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {latest} is on GitHub. You have {installed}.'**
+  String updateAvailableBody(String latest, String installed);
+
+  /// Opens the GitHub release page in the browser.
+  ///
+  /// In en, this message translates to:
+  /// **'View on GitHub'**
+  String get updateAvailableOpen;
+
+  /// Dismisses the update dialog until a newer tag appears.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get updateAvailableLater;
+
   /// Settings section for Google Drive sign-in (Phase 7).
   ///
   /// In en, this message translates to:

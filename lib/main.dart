@@ -12,6 +12,7 @@ import 'package:tinytunes/core/theme/theme_providers.dart';
 import 'package:tinytunes/features/player/application/playback_controller.dart';
 import 'package:tinytunes/features/player/application/player_providers.dart';
 import 'package:tinytunes/features/player/application/tinytunes_audio_handler.dart';
+import 'package:tinytunes/features/settings/presentation/update_check_binder.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 import 'package:toastification/toastification.dart';
 
@@ -56,8 +57,9 @@ Future<void> main() async {
 
 /// Root TinyTunes application widget shared by production and tests.
 ///
-/// Purpose: Compose Material 3 themes, l10n, typed router, and toast overlay
-/// in one place so [pumpApp] cannot drift from `main`.
+/// Purpose: Compose Material 3 themes, l10n, typed router, toast overlay, and
+/// the GitHub update-check binder in one place so [pumpApp] cannot drift from
+/// `main`.
 /// Usage Context: Passed to [runApp] after prefs bootstrap; also used by the
 /// widget test harness.
 class TinyTunesApp extends ConsumerWidget {
@@ -78,6 +80,8 @@ class TinyTunesApp extends ConsumerWidget {
           theme: light,
           darkTheme: dark,
           themeMode: themeMode,
+          builder: (context, child) =>
+              UpdateCheckBinder(child: child ?? const SizedBox.shrink()),
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,

@@ -121,6 +121,42 @@
   "@settingsAboutClose": {
     "description": "Dismisses the About dialog."
   },
+  "settingsAboutCheckForUpdates": "Check for updates",
+  "@settingsAboutCheckForUpdates": {
+    "description": "About button that queries GitHub for a newer release."
+  },
+  "settingsAboutUpToDate": "You're on the latest version.",
+  "@settingsAboutUpToDate": {
+    "description": "SnackBar when a manual update check finds no newer release."
+  },
+  "settingsAboutUpdateCheckFailed": "Could not check for updates.",
+  "@settingsAboutUpdateCheckFailed": {
+    "description": "SnackBar when a manual GitHub update check fails."
+  },
+  "updateAvailableTitle": "Update available",
+  "@updateAvailableTitle": {
+    "description": "Title of the newer-release dialog."
+  },
+  "updateAvailableBody": "Version {latest} is on GitHub. You have {installed}.",
+  "@updateAvailableBody": {
+    "description": "Body comparing GitHub latest tag to the installed version.",
+    "placeholders": {
+      "latest": {
+        "type": "String"
+      },
+      "installed": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableOpen": "View on GitHub",
+  "@updateAvailableOpen": {
+    "description": "Opens the GitHub release page in the browser."
+  },
+  "updateAvailableLater": "Later",
+  "@updateAvailableLater": {
+    "description": "Dismisses the update dialog until a newer tag appears."
+  },
   "settingsGoogleDriveSection": "Google Drive",
   "@settingsGoogleDriveSection": {
     "description": "Settings section for Google Drive sign-in (Phase 7)."

@@ -36,6 +36,23 @@
   "settingsAboutGitHub": "GitHub-Repository",
   "settingsAboutOpenLinkFailed": "Link konnte nicht geöffnet werden.",
   "settingsAboutClose": "Schließen",
+  "settingsAboutCheckForUpdates": "Nach Updates suchen",
+  "settingsAboutUpToDate": "Du hast die aktuelle Version.",
+  "settingsAboutUpdateCheckFailed": "Update-Prüfung fehlgeschlagen.",
+  "updateAvailableTitle": "Update verfügbar",
+  "updateAvailableBody": "Version {latest} ist auf GitHub. Installiert: {installed}.",
+  "@updateAvailableBody": {
+    "placeholders": {
+      "latest": {
+        "type": "String"
+      },
+      "installed": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAvailableOpen": "Auf GitHub ansehen",
+  "updateAvailableLater": "Später",
   "settingsGoogleDriveSection": "Google Drive",
   "settingsGoogleDriveSignIn": "Mit Google anmelden",
   "settingsGoogleDriveSignOut": "Abmelden",

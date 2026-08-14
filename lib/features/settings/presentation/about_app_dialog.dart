@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tinytunes/core/legal/legal_urls.dart';
+import 'package:tinytunes/core/updates/update_check.dart';
+import 'package:tinytunes/core/updates/update_providers.dart';
+import 'package:tinytunes/features/settings/presentation/update_available_dialog.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -20,16 +24,16 @@ Future<void> showAboutAppDialog({
   );
 }
 
-class _AboutAppDialog extends StatefulWidget {
+class _AboutAppDialog extends ConsumerStatefulWidget {
   const _AboutAppDialog({required this.packageInfo});
 
   final PackageInfo packageInfo;
 
   @override
-  State<_AboutAppDialog> createState() => _AboutAppDialogState();
+  ConsumerState<_AboutAppDialog> createState() => _AboutAppDialogState();
 }
 
-class _AboutAppDialogState extends State<_AboutAppDialog> {
+class _AboutAppDialogState extends ConsumerState<_AboutAppDialog> {
   late final Future<String> _changelogFuture;
 
   @override
@@ -48,11 +52,48 @@ class _AboutAppDialogState extends State<_AboutAppDialog> {
     }
   }
 
+  Future<void> _checkForUpdates() async {
+    final result = await ref
+        .read(updateCheckControllerProvider.notifier)
+        .checkNow();
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    switch (result.outcome) {
+      case UpdateCheckOutcome.available:
+        final release = result.release!;
+        final choice = await showUpdateAvailableDialog(
+          context: context,
+          release: release,
+          installedVersion: widget.packageInfo.version,
+        );
+        if (!mounted) return;
+        if (choice == UpdateAvailableChoice.later) {
+          await ref
+              .read(updateCheckControllerProvider.notifier)
+              .dismissTag(release.tagName);
+        }
+      case UpdateCheckOutcome.current:
+      case UpdateCheckOutcome.dismissed:
+      case UpdateCheckOutcome.skippedInterval:
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.settingsAboutUpToDate)));
+      case UpdateCheckOutcome.skippedUnofficial:
+        return;
+      case UpdateCheckOutcome.failed:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.settingsAboutUpdateCheckFailed)),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final info = widget.packageInfo;
+    final checking = ref.watch(updateCheckControllerProvider).checking;
+    final officialApk = ref.watch(isOfficialApkProvider).asData?.value ?? false;
     final versionLabel = info.buildNumber.trim().isEmpty
         ? info.version
         : '${info.version}+${info.buildNumber}';
@@ -96,7 +137,24 @@ class _AboutAppDialogState extends State<_AboutAppDialog> {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 16),
+              if (officialApk)
+                Align(
+                  alignment: Alignment.center,
+                  child: checking
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : TextButton(
+                          onPressed: _checkForUpdates,
+                          child: Text(l10n.settingsAboutCheckForUpdates),
+                        ),
+                ),
+              const SizedBox(height: 8),
               Text(
                 l10n.settingsAboutChangelogHeading,
                 style: theme.textTheme.titleSmall,

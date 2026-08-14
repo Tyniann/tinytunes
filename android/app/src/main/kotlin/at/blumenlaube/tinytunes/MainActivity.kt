@@ -4,7 +4,7 @@ import com.ryanheise.audioservice.AudioServiceActivity
 import io.flutter.embedding.engine.FlutterEngine
 
 /**
- * Hosts SAF MethodChannel + audio_service.
+ * Hosts SAF / storage / package-identity MethodChannels + audio_service.
  *
  * Extends [AudioServiceActivity] (package README) so media-session wiring stays
  * intact while still registering [SafLibraryPlugin].
@@ -14,5 +14,6 @@ class MainActivity : AudioServiceActivity() {
         super.configureFlutterEngine(flutterEngine)
         flutterEngine.plugins.add(SafLibraryPlugin())
         flutterEngine.plugins.add(StoragePlugin())
+        flutterEngine.plugins.add(PackageIdentityPlugin())
     }
 }

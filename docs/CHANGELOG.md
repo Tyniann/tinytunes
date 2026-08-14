@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Add Electric Blue and Ember Signal color schemes (light + dark) in Settings
 - Add cover-carousel home stage with a compressed queue ledger and floating transport dock
 - Add sticky containing-folder headers on the queue (compact folder icon + last folder name)
+- Add a GitHub latest-release check on startup (24h interval) and from About, with a dialog linking to the new version (official release-signed APK only)
 
 ### Changed
 
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Rename the Default color scheme label to Lucky Lime (prefs id `default` unchanged)
 - Use ice cyan (not navy) for Electric Blue light; pin Ember Signal light dock/cover ink to Variant D black
 - Replace personal controller identity in in-repo privacy drafts (EN/DE) with placeholders so forks do not inherit another publisher as data controller
+- Note GitHub latest-release checks in the privacy policy (device IP / User-Agent only; no library data; official APK only)
 
 ### Fixed
 

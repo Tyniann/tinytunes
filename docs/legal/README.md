@@ -25,9 +25,12 @@ inherit another publisher’s identity as data controller.
 ## In-app
 
 Settings → **About TinyTunes** opens a dialog with logo, version, bundled
-changelog preview, and buttons for:
+changelog preview, **Check for updates**, and buttons for:
 
 - Full changelog on GitHub
 - Privacy policy (locale-aware EN/DE URL)
+
+Startup also checks GitHub for a newer release (see
+[`docs/features/update-check.md`](../features/update-check.md)).
 
 Constants: `lib/core/legal/legal_urls.dart`.
