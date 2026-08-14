@@ -44,9 +44,17 @@
   "@settingsThemeDark": {
     "description": "Theme mode option for dark appearance."
   },
-  "settingsSchemeDefault": "Default",
+  "settingsSchemeDefault": "Lucky Lime",
   "@settingsSchemeDefault": {
-    "description": "Brand green color scheme option."
+    "description": "Brand lime color scheme option (prefs id default)."
+  },
+  "settingsSchemeElectricBlue": "Electric Blue",
+  "@settingsSchemeElectricBlue": {
+    "description": "Cool ice cyan color scheme option."
+  },
+  "settingsSchemeEmberSignal": "Ember Signal",
+  "@settingsSchemeEmberSignal": {
+    "description": "Warm oxblood / vermillion color scheme option."
   },
   "settingsSchemeHighContrast": "High contrast",
   "@settingsSchemeHighContrast": {

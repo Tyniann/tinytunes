@@ -4,8 +4,9 @@
 
 Extensible Material 3 theming with two independent knobs: appearance **mode**
 (System / Light / Dark) and named **color scheme** catalog. Shipped schemes:
-`default` and `highContrast` (brand seed `#88AA00`), plus optional `dynamic`
-(Material You / wallpaper colors) when the platform supplies them.
+Lucky Lime (`default`), Electric Blue, Ember Signal, High contrast, plus
+optional `dynamic` (Material You / wallpaper colors) when the platform
+supplies them.
 
 ## Location
 
@@ -37,21 +38,27 @@ Settings exposes a horizontal `SegmentedButton` (System / Light / Dark).
 
 Static entries in `ThemeCatalog.standard()`:
 
-| Id | Seed | `contrastLevel` |
+| Id | Display | Seed / anchors |
 | --- | --- | --- |
-| `default` | `#88AA00` | `0.0` |
-| `highContrast` | `#88AA00` | `1.0` (Material high) |
+| `default` | Lucky Lime | seed `#88AA00` |
+| `electricBlue` | Electric Blue | cyan `#70D9E8` (dark + light); dark/light inverse `#071016`; light paper `#F7FBFC` |
+| `emberSignal` | Ember Signal | dark oxblood `#C45B4A` on `#0E0D11`; light vermillion `#E63B2E` on paper `#F0EBE1`; light inverse poster ink `#0A0A0A` |
+| `highContrast` | High contrast | Lucky Lime seed, `contrastLevel` `1.0` |
 
 High contrast dark mode additionally anchors surfaces near black (`#050700`)
-and pins `primary` to the brand `#88AA00` so controls retain the intended
-green instead of Material's lighter generated dark accent.
+and pins `primary` to `#88AA00`.
 
 Prefs key `theme.schemeId`. Missing/unknown static id resolves themes to
-`default`. Fresh install stays on `default`.
+`default` (Lucky Lime). Fresh install stays on `default`. The prefs id is
+unchanged so existing installs do not jump scheme when the label became
+Lucky Lime.
 
 `dynamic` is **not** a seed catalog entry. When selected and platform
 `ColorScheme`s are present, `MaterialApp` uses those schemes directly. Mode
 still chooses light vs dark vs system.
+
+Typography is **not** part of the scheme catalog. Now-playing title weight
+and tracking live on the home stage widget.
 
 ### Dynamic (Material You)
 
@@ -61,7 +68,7 @@ still chooses light vs dark vs system.
 - Picker shows Dynamic only when `resolved && light != null && dark != null`.
 - Wallpaper / system color changes rebuild live while Dynamic is selected.
 - **Rewrite race:** before the first builder callback, prefs are left alone
-  (themes may temporarily show `default`). After a resolved callback with no
+  (themes may temporarily show Lucky Lime). After a resolved callback with no
   colors, if prefs say `dynamic`, rewrite to `default` (no toast).
 
 ### Locale
@@ -84,8 +91,9 @@ Settings-only prefs (`shared_preferences`), not Drift.
 Settings:
 
 - **Mode** — segmented control
-- **Color scheme** — swatch chips (primary / secondary / surface dots + label);
-  info icon (when Dynamic is visible) opens a short Material You explainer
+- **Color scheme** — wrapping swatch chips (primary / secondary / surface dots
+  + label); info icon (when Dynamic is visible) opens a short Material You
+  explainer
 
 ## Dependencies
 
@@ -97,6 +105,7 @@ Settings:
 ## Related Features
 
 - [Message center](message-center.md)
+- [Player](player.md)
 
 ---
-*Last updated: 2026-08-07*
+*Last updated: 2026-08-14*

@@ -38,6 +38,52 @@ void main() {
       expect(scheme.darkTheme.useMaterial3, isTrue);
     });
 
+    test('standard catalog includes Electric Blue and Ember Signal', () {
+      final catalog = ThemeCatalog.standard();
+      final electric = catalog.resolve(ThemeCatalog.electricBlueSchemeId);
+      final ember = catalog.resolve(ThemeCatalog.emberSignalSchemeId);
+
+      expect(electric.id, ThemeCatalog.electricBlueSchemeId);
+      expect(
+        electric.darkTheme.colorScheme.primary,
+        ThemeCatalog.electricBlueSignal,
+      );
+      expect(
+        electric.lightTheme.colorScheme.primary,
+        ThemeCatalog.electricBlueSignal,
+      );
+      expect(
+        electric.lightTheme.colorScheme.inverseSurface,
+        ThemeCatalog.electricBlueLightInverse,
+      );
+      expect(ember.id, ThemeCatalog.emberSignalSchemeId);
+      expect(
+        ember.darkTheme.colorScheme.primary,
+        ThemeCatalog.emberSignalDarkPrimary,
+      );
+      expect(
+        ember.lightTheme.colorScheme.primary,
+        ThemeCatalog.emberSignalLightPrimary,
+      );
+      expect(
+        ember.lightTheme.colorScheme.inverseSurface,
+        ThemeCatalog.emberSignalLightInverse,
+      );
+    });
+
+    test('picker ids list hue families before high contrast', () {
+      final catalog = ThemeCatalog.standard();
+      expect(
+        catalog.pickerSchemeIds(dynamicAvailable: false),
+        [
+          ThemeCatalog.defaultSchemeId,
+          ThemeCatalog.electricBlueSchemeId,
+          ThemeCatalog.emberSignalSchemeId,
+          ThemeCatalog.highContrastSchemeId,
+        ],
+      );
+    });
+
     test('resolve falls back to default for unknown scheme id', () {
       final catalog = ThemeCatalog.standard();
       final scheme = catalog.resolve('missing');

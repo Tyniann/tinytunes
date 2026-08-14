@@ -42,7 +42,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsThemeDark => 'Dark';
 
   @override
-  String get settingsSchemeDefault => 'Default';
+  String get settingsSchemeDefault => 'Lucky Lime';
+
+  @override
+  String get settingsSchemeElectricBlue => 'Electric Blue';
+
+  @override
+  String get settingsSchemeEmberSignal => 'Ember Signal';
 
   @override
   String get settingsSchemeHighContrast => 'High contrast';

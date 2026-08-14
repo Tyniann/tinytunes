@@ -164,11 +164,23 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get settingsThemeDark;
 
-  /// Brand green color scheme option.
+  /// Brand lime color scheme option (prefs id default).
   ///
   /// In en, this message translates to:
-  /// **'Default'**
+  /// **'Lucky Lime'**
   String get settingsSchemeDefault;
+
+  /// Cool ice cyan color scheme option.
+  ///
+  /// In en, this message translates to:
+  /// **'Electric Blue'**
+  String get settingsSchemeElectricBlue;
+
+  /// Warm oxblood / vermillion color scheme option.
+  ///
+  /// In en, this message translates to:
+  /// **'Ember Signal'**
+  String get settingsSchemeEmberSignal;
 
   /// Aggressive high-contrast color scheme option.
   ///

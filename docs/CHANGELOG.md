@@ -9,8 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Add Electric Blue and Ember Signal color schemes (light + dark) in Settings
+- Add cover-carousel home stage with a compressed queue ledger and floating transport dock
+
 ### Changed
 
+- Rename the Default color scheme label to Lucky Lime (prefs id `default` unchanged)
+- Use ice cyan (not navy) for Electric Blue light; pin Ember Signal light dock/cover ink to Variant D black
 - Replace personal controller identity in in-repo privacy drafts (EN/DE) with placeholders so forks do not inherit another publisher as data controller
 
 ### Fixed

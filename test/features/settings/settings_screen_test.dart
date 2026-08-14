@@ -41,6 +41,8 @@ void main() {
     expect(find.text(l10n.settingsModeSection), findsOneWidget);
     expect(find.text(l10n.settingsColorSchemeSection), findsOneWidget);
     expect(find.text(l10n.settingsSchemeDefault), findsOneWidget);
+    expect(find.text(l10n.settingsSchemeElectricBlue), findsOneWidget);
+    expect(find.text(l10n.settingsSchemeEmberSignal), findsOneWidget);
     expect(find.text(l10n.settingsSchemeHighContrast), findsOneWidget);
 
     await tester.tap(find.text(l10n.settingsThemeLight));
@@ -58,6 +60,12 @@ void main() {
 
     expect(find.text(l10n.settingsGoogleDriveSection), findsOneWidget);
     expect(find.text(l10n.settingsGoogleDriveSignIn), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text(l10n.settingsOneDriveSignIn),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pump();
     expect(find.text(l10n.settingsOneDriveSection), findsOneWidget);
     expect(find.text(l10n.settingsOneDriveSignIn), findsOneWidget);
     await tester.scrollUntilVisible(
@@ -112,6 +120,8 @@ void main() {
 
     final l10n = lookupAppLocalizations(const Locale('en'));
     expect(find.text(l10n.settingsSchemeDefault), findsOneWidget);
+    expect(find.text(l10n.settingsSchemeElectricBlue), findsOneWidget);
+    expect(find.text(l10n.settingsSchemeEmberSignal), findsOneWidget);
     expect(find.text(l10n.settingsSchemeHighContrast), findsOneWidget);
     expect(find.text(l10n.settingsSchemeDynamic), findsOneWidget);
     expect(find.byIcon(Icons.info_outline), findsWidgets);

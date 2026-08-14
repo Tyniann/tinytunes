@@ -53,9 +53,10 @@ void main() {
     await seedQueue();
     await pumpApp(tester, database: db);
 
-    expect(find.text('Alpha'), findsOneWidget);
-    expect(find.text('Beta'), findsOneWidget);
-    expect(find.text('Artist A'), findsOneWidget);
+    // Title appears on the stage and again in the queue ledger.
+    expect(find.text('Alpha'), findsWidgets);
+    expect(find.text('Beta'), findsWidgets);
+    expect(find.text('Artist A'), findsWidgets);
     await endPumpApp(tester);
   });
 
@@ -63,12 +64,12 @@ void main() {
     await seedQueue();
     await pumpApp(tester, database: db, liveQueueStreams: true);
 
-    expect(find.text('Alpha'), findsOneWidget);
+    expect(find.text('Alpha'), findsWidgets);
     await tester.tap(find.byTooltip('Remove from queue').first);
     await tester.pumpAndSettle();
 
     expect(find.text('Alpha'), findsNothing);
-    expect(find.text('Beta'), findsOneWidget);
+    expect(find.text('Beta'), findsWidgets);
     await endPumpApp(tester);
   });
 

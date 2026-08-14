@@ -26,7 +26,7 @@ ThemePreferences themePreferences(Ref ref) {
   return ThemePreferences(ref.watch(sharedPreferencesProvider));
 }
 
-/// Shipped [ThemeCatalog] (`default` + `highContrast`).
+/// Shipped [ThemeCatalog] (Lucky Lime, Electric Blue, Ember Signal, High contrast).
 @Riverpod(keepAlive: true)
 ThemeCatalog themeCatalog(Ref ref) => ThemeCatalog.standard();
 

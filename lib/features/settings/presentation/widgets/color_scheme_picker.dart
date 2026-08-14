@@ -7,8 +7,9 @@ import 'package:tinytunes/l10n/app_localizations.dart';
 
 /// Horizontal color-scheme chips with swatches + labels.
 ///
-/// Purpose: Let the user pick Default / High contrast / Dynamic (when available)
-/// with visible names and preview dots.
+/// Purpose: Let the user pick a named color scheme (Lucky Lime, Electric Blue,
+/// Ember Signal, High contrast, Dynamic when available) with visible names
+/// and preview dots.
 /// Usage Context: Settings Color scheme section.
 class ColorSchemePicker extends ConsumerWidget {
   /// Creates the scheme picker row.
@@ -26,37 +27,45 @@ class ColorSchemePicker extends ConsumerWidget {
       dynamicAvailable: availability.isAvailable,
     );
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (final id in ids)
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: _SchemePreviewChip(
-                schemeId: id,
-                label: _labelFor(l10n, id),
-                selected: selectedId == id,
-                colorScheme: previewColorScheme(
-                  catalog: catalog,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 8.0;
+        final columns = constraints.maxWidth >= 560 ? 3 : 2;
+        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final id in ids)
+              SizedBox(
+                width: width,
+                child: _SchemePreviewChip(
                   schemeId: id,
-                  brightness: brightness,
-                  availability: availability,
+                  label: _labelFor(l10n, id),
+                  selected: selectedId == id,
+                  colorScheme: previewColorScheme(
+                    catalog: catalog,
+                    schemeId: id,
+                    brightness: brightness,
+                    availability: availability,
+                  ),
+                  onTap: () {
+                    ref
+                        .read(appThemeSchemeIdControllerProvider.notifier)
+                        .setSchemeId(id);
+                  },
                 ),
-                onTap: () {
-                  ref
-                      .read(appThemeSchemeIdControllerProvider.notifier)
-                      .setSchemeId(id);
-                },
               ),
-            ),
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 
   static String _labelFor(AppLocalizations l10n, String schemeId) {
     return switch (schemeId) {
+      ThemeCatalog.electricBlueSchemeId => l10n.settingsSchemeElectricBlue,
+      ThemeCatalog.emberSignalSchemeId => l10n.settingsSchemeEmberSignal,
       ThemeCatalog.highContrastSchemeId => l10n.settingsSchemeHighContrast,
       ThemeCatalog.dynamicSchemeId => l10n.settingsSchemeDynamic,
       _ => l10n.settingsSchemeDefault,

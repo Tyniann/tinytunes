@@ -47,10 +47,14 @@ void main() {
       final catalog = ThemeCatalog.standard();
       expect(catalog.pickerSchemeIds(dynamicAvailable: false), [
         ThemeCatalog.defaultSchemeId,
+        ThemeCatalog.electricBlueSchemeId,
+        ThemeCatalog.emberSignalSchemeId,
         ThemeCatalog.highContrastSchemeId,
       ]);
       expect(catalog.pickerSchemeIds(dynamicAvailable: true), [
         ThemeCatalog.defaultSchemeId,
+        ThemeCatalog.electricBlueSchemeId,
+        ThemeCatalog.emberSignalSchemeId,
         ThemeCatalog.highContrastSchemeId,
         ThemeCatalog.dynamicSchemeId,
       ]);

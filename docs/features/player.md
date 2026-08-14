@@ -10,7 +10,7 @@ via pure `QueueNavigator`; the handler stays a thin façade.
 ## Location
 
 - **Module:** `lib/features/player/`
-- **Main Screen:** Transport chrome on `lib/features/playlist/presentation/playlist_home_screen.dart`
+- **Main Screen:** Playlist home shell on `lib/features/playlist/presentation/playlist_home_baseline.dart`
 - **Related Files:**
   - `lib/features/player/application/playback_controller.dart`
   - `lib/features/player/application/queue_navigator.dart`
@@ -20,6 +20,8 @@ via pure `QueueNavigator`; the handler stays a thin façade.
   - `lib/features/player/application/playback_engine.dart`
   - `lib/features/player/application/just_audio_playback_engine.dart`
   - `lib/features/player/presentation/transport_chrome.dart`
+  - `lib/features/playlist/presentation/home_stage_carousel.dart`
+  - `lib/features/playlist/presentation/home_queue_list.dart`
   - `lib/features/player/application/system_volume_source.dart`
   - `lib/features/player/application/device_system_volume_source.dart`
   - `lib/features/player/application/player_providers.dart`
@@ -40,16 +42,19 @@ registration and media-session wiring coexist.
 
 ### Transport / home
 
-- Row tap plays an entry; tap current toggles pause.
-- Transport: **Shuffle | Prev | Play/Pause | Next | Repeat** + seek bar +
-  expandable system-volume slider (speaker toggle left of seek).
-- Shuffle and Repeat are always enabled (never greyed); Prev/Play/Next need a current track.
+- Home is a cover **carousel** (swipe to stage, tap cover to play) over a
+  compressed **queue ledger** (index, thumb, title/artist, visible remove) and
+  a floating **transport dock** (inverse-surface card: seek, shuffle, prev,
+  play, next, repeat, expandable volume).
+- Row tap plays an entry; tap current toggles pause. Dock play starts the
+  staged carousel track when nothing is current.
+- Shuffle and Repeat are always enabled (never greyed); Prev/Next need a current track.
 - Queue list stays **canonical** `sortIndex` order (shuffle never reorders the list).
-- Current row highlight via `ColorScheme`.
+- Current row uses a primary-color rail; now-playing title uses a light-weight
+  display style (not a per-scheme typeface).
 - When `currentQueueEntryId` changes and the row is outside the viewport, the
-  list animates to center that row (next / previous / shuffle / natural advance).
-- Queue trailing cover thumb (left of remove) when `artworkCacheRef` is set;
-  no placeholder — title/artist expand toward remove when art is missing.
+  list animates to center that row (next / previous / shuffle / complete).
+- Queue cover thumb when `artworkCacheRef` is set.
 - `MediaItem.artUri` set from the capped cover file for notification / lock screen.
 - Cloud tracks resolve via `PlaybackUriResolver` (download-then-play + cache); see [cloud-library.md](cloud-library.md).
 
@@ -146,4 +151,4 @@ expose play, pause, seek, skip previous/next via the handler façade.
 - [Message center](message-center.md) — player error/info codes
 
 ---
-*Last updated: 2026-08-06*
+*Last updated: 2026-08-14*
