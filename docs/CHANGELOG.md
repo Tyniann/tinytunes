@@ -13,8 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
-- Keep High contrast light transport controls visible: pin dock inverse to near-black so lime accents do not vanish
-
 ### Removed
 
 ### Security
@@ -37,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Replace personal controller identity in in-repo privacy drafts (EN/DE) with placeholders so forks do not inherit another publisher as data controller
 
 ### Fixed
+
+- Keep High contrast light transport controls visible: pin dock inverse to near-black so lime accents do not vanish
 
 ### Removed
 
