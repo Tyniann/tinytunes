@@ -1,7 +1,7 @@
 name: tinytunes
 description: "Local-first Android music player with optional Google Drive and OneDrive (read-only)."
 publish_to: 'none'
-version: 1.1.0+11
+version: 1.2.0+12
 
 environment:
   sdk: ^3.11.0

@@ -4,10 +4,10 @@ Index of TinyTunes feature docs. Each major product module gets a kebab-case fil
 
 ## Documented features
 
-- [Theming](theming.md) — Mode + scheme picker (`default`, `highContrast`, optional Material You `dynamic`)
+- [Theming](theming.md) — Mode + scheme picker (Lucky Lime, Electric Blue, Ember Signal, High contrast, optional Material You Dynamic)
 - [Library ingest](library-ingest.md) — local + cloud catalog, single queue, SAF / Drive / OneDrive scan / forget
 - [Cloud library](cloud-library.md) — Google Drive + personal OneDrive read-only (Android), shared download-then-play cache
-- [Player](player.md) — playback + background, Shuffle × Repeat matrix transport, expandable system volume
+- [Player](player.md) — carousel home, sticky folder headers, Shuffle × Repeat, background playback
 - [Message center](message-center.md) — session log, toast pipeline, unread badge
 
 ## Later / candidates (not implemented)

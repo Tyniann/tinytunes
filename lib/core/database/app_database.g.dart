@@ -627,6 +627,17 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
     requiredDuringInsert: false,
     defaultValue: const Constant('local'),
   );
+  static const VerificationMeta _parentFolderNameMeta = const VerificationMeta(
+    'parentFolderName',
+  );
+  @override
+  late final GeneratedColumn<String> parentFolderName = GeneratedColumn<String>(
+    'parent_folder_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -641,6 +652,7 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
     album,
     artworkCacheRef,
     sourceKind,
+    parentFolderName,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -740,6 +752,15 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
         sourceKind.isAcceptableOrUnknown(data['source_kind']!, _sourceKindMeta),
       );
     }
+    if (data.containsKey('parent_folder_name')) {
+      context.handle(
+        _parentFolderNameMeta,
+        parentFolderName.isAcceptableOrUnknown(
+          data['parent_folder_name']!,
+          _parentFolderNameMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -801,6 +822,10 @@ class $TracksTable extends Tracks with TableInfo<$TracksTable, Track> {
         DriftSqlType.string,
         data['${effectivePrefix}source_kind'],
       )!,
+      parentFolderName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}parent_folder_name'],
+      ),
     );
   }
 
@@ -846,6 +871,13 @@ class Track extends DataClass implements Insertable<Track> {
 
   /// Catalog source kind; Phase 2 always writes `local`.
   final String sourceKind;
+
+  /// Display name of the folder this file sits in (root or nested).
+  ///
+  /// Purpose: Sticky queue section headers show CD / chapter folders without
+  /// parsing opaque locators. Null on rows ingested before schema v4 until
+  /// the next Add / Re-scan.
+  final String? parentFolderName;
   const Track({
     required this.id,
     required this.rootId,
@@ -859,6 +891,7 @@ class Track extends DataClass implements Insertable<Track> {
     this.album,
     this.artworkCacheRef,
     required this.sourceKind,
+    this.parentFolderName,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -887,6 +920,9 @@ class Track extends DataClass implements Insertable<Track> {
       map['artwork_cache_ref'] = Variable<String>(artworkCacheRef);
     }
     map['source_kind'] = Variable<String>(sourceKind);
+    if (!nullToAbsent || parentFolderName != null) {
+      map['parent_folder_name'] = Variable<String>(parentFolderName);
+    }
     return map;
   }
 
@@ -916,6 +952,9 @@ class Track extends DataClass implements Insertable<Track> {
           ? const Value.absent()
           : Value(artworkCacheRef),
       sourceKind: Value(sourceKind),
+      parentFolderName: parentFolderName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(parentFolderName),
     );
   }
 
@@ -937,6 +976,7 @@ class Track extends DataClass implements Insertable<Track> {
       album: serializer.fromJson<String?>(json['album']),
       artworkCacheRef: serializer.fromJson<String?>(json['artworkCacheRef']),
       sourceKind: serializer.fromJson<String>(json['sourceKind']),
+      parentFolderName: serializer.fromJson<String?>(json['parentFolderName']),
     );
   }
   @override
@@ -955,6 +995,7 @@ class Track extends DataClass implements Insertable<Track> {
       'album': serializer.toJson<String?>(album),
       'artworkCacheRef': serializer.toJson<String?>(artworkCacheRef),
       'sourceKind': serializer.toJson<String>(sourceKind),
+      'parentFolderName': serializer.toJson<String?>(parentFolderName),
     };
   }
 
@@ -971,6 +1012,7 @@ class Track extends DataClass implements Insertable<Track> {
     Value<String?> album = const Value.absent(),
     Value<String?> artworkCacheRef = const Value.absent(),
     String? sourceKind,
+    Value<String?> parentFolderName = const Value.absent(),
   }) => Track(
     id: id ?? this.id,
     rootId: rootId ?? this.rootId,
@@ -986,6 +1028,9 @@ class Track extends DataClass implements Insertable<Track> {
         ? artworkCacheRef.value
         : this.artworkCacheRef,
     sourceKind: sourceKind ?? this.sourceKind,
+    parentFolderName: parentFolderName.present
+        ? parentFolderName.value
+        : this.parentFolderName,
   );
   Track copyWithCompanion(TracksCompanion data) {
     return Track(
@@ -1011,6 +1056,9 @@ class Track extends DataClass implements Insertable<Track> {
       sourceKind: data.sourceKind.present
           ? data.sourceKind.value
           : this.sourceKind,
+      parentFolderName: data.parentFolderName.present
+          ? data.parentFolderName.value
+          : this.parentFolderName,
     );
   }
 
@@ -1028,7 +1076,8 @@ class Track extends DataClass implements Insertable<Track> {
           ..write('artist: $artist, ')
           ..write('album: $album, ')
           ..write('artworkCacheRef: $artworkCacheRef, ')
-          ..write('sourceKind: $sourceKind')
+          ..write('sourceKind: $sourceKind, ')
+          ..write('parentFolderName: $parentFolderName')
           ..write(')'))
         .toString();
   }
@@ -1047,6 +1096,7 @@ class Track extends DataClass implements Insertable<Track> {
     album,
     artworkCacheRef,
     sourceKind,
+    parentFolderName,
   );
   @override
   bool operator ==(Object other) =>
@@ -1063,7 +1113,8 @@ class Track extends DataClass implements Insertable<Track> {
           other.artist == this.artist &&
           other.album == this.album &&
           other.artworkCacheRef == this.artworkCacheRef &&
-          other.sourceKind == this.sourceKind);
+          other.sourceKind == this.sourceKind &&
+          other.parentFolderName == this.parentFolderName);
 }
 
 class TracksCompanion extends UpdateCompanion<Track> {
@@ -1079,6 +1130,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
   final Value<String?> album;
   final Value<String?> artworkCacheRef;
   final Value<String> sourceKind;
+  final Value<String?> parentFolderName;
   const TracksCompanion({
     this.id = const Value.absent(),
     this.rootId = const Value.absent(),
@@ -1092,6 +1144,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
     this.album = const Value.absent(),
     this.artworkCacheRef = const Value.absent(),
     this.sourceKind = const Value.absent(),
+    this.parentFolderName = const Value.absent(),
   });
   TracksCompanion.insert({
     this.id = const Value.absent(),
@@ -1106,6 +1159,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
     this.album = const Value.absent(),
     this.artworkCacheRef = const Value.absent(),
     this.sourceKind = const Value.absent(),
+    this.parentFolderName = const Value.absent(),
   }) : rootId = Value(rootId),
        sourceItemId = Value(sourceItemId),
        locator = Value(locator),
@@ -1123,6 +1177,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
     Expression<String>? album,
     Expression<String>? artworkCacheRef,
     Expression<String>? sourceKind,
+    Expression<String>? parentFolderName,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1137,6 +1192,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
       if (album != null) 'album': album,
       if (artworkCacheRef != null) 'artwork_cache_ref': artworkCacheRef,
       if (sourceKind != null) 'source_kind': sourceKind,
+      if (parentFolderName != null) 'parent_folder_name': parentFolderName,
     });
   }
 
@@ -1153,6 +1209,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
     Value<String?>? album,
     Value<String?>? artworkCacheRef,
     Value<String>? sourceKind,
+    Value<String?>? parentFolderName,
   }) {
     return TracksCompanion(
       id: id ?? this.id,
@@ -1167,6 +1224,7 @@ class TracksCompanion extends UpdateCompanion<Track> {
       album: album ?? this.album,
       artworkCacheRef: artworkCacheRef ?? this.artworkCacheRef,
       sourceKind: sourceKind ?? this.sourceKind,
+      parentFolderName: parentFolderName ?? this.parentFolderName,
     );
   }
 
@@ -1209,6 +1267,9 @@ class TracksCompanion extends UpdateCompanion<Track> {
     if (sourceKind.present) {
       map['source_kind'] = Variable<String>(sourceKind.value);
     }
+    if (parentFolderName.present) {
+      map['parent_folder_name'] = Variable<String>(parentFolderName.value);
+    }
     return map;
   }
 
@@ -1226,7 +1287,8 @@ class TracksCompanion extends UpdateCompanion<Track> {
           ..write('artist: $artist, ')
           ..write('album: $album, ')
           ..write('artworkCacheRef: $artworkCacheRef, ')
-          ..write('sourceKind: $sourceKind')
+          ..write('sourceKind: $sourceKind, ')
+          ..write('parentFolderName: $parentFolderName')
           ..write(')'))
         .toString();
   }
@@ -2667,6 +2729,7 @@ typedef $$TracksTableCreateCompanionBuilder =
       Value<String?> album,
       Value<String?> artworkCacheRef,
       Value<String> sourceKind,
+      Value<String?> parentFolderName,
     });
 typedef $$TracksTableUpdateCompanionBuilder =
     TracksCompanion Function({
@@ -2682,6 +2745,7 @@ typedef $$TracksTableUpdateCompanionBuilder =
       Value<String?> album,
       Value<String?> artworkCacheRef,
       Value<String> sourceKind,
+      Value<String?> parentFolderName,
     });
 
 final class $$TracksTableReferences
@@ -2806,6 +2870,11 @@ class $$TracksTableFilterComposer
 
   ColumnFilters<String> get sourceKind => $composableBuilder(
     column: $table.sourceKind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get parentFolderName => $composableBuilder(
+    column: $table.parentFolderName,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2947,6 +3016,11 @@ class $$TracksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get parentFolderName => $composableBuilder(
+    column: $table.parentFolderName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$LibraryRootsTableOrderingComposer get rootId {
     final $$LibraryRootsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3020,6 +3094,11 @@ class $$TracksTableAnnotationComposer
 
   GeneratedColumn<String> get sourceKind => $composableBuilder(
     column: $table.sourceKind,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get parentFolderName => $composableBuilder(
+    column: $table.parentFolderName,
     builder: (column) => column,
   );
 
@@ -3142,6 +3221,7 @@ class $$TracksTableTableManager
                 Value<String?> album = const Value.absent(),
                 Value<String?> artworkCacheRef = const Value.absent(),
                 Value<String> sourceKind = const Value.absent(),
+                Value<String?> parentFolderName = const Value.absent(),
               }) => TracksCompanion(
                 id: id,
                 rootId: rootId,
@@ -3155,6 +3235,7 @@ class $$TracksTableTableManager
                 album: album,
                 artworkCacheRef: artworkCacheRef,
                 sourceKind: sourceKind,
+                parentFolderName: parentFolderName,
               ),
           createCompanionCallback:
               ({
@@ -3170,6 +3251,7 @@ class $$TracksTableTableManager
                 Value<String?> album = const Value.absent(),
                 Value<String?> artworkCacheRef = const Value.absent(),
                 Value<String> sourceKind = const Value.absent(),
+                Value<String?> parentFolderName = const Value.absent(),
               }) => TracksCompanion.insert(
                 id: id,
                 rootId: rootId,
@@ -3183,6 +3265,7 @@ class $$TracksTableTableManager
                 album: album,
                 artworkCacheRef: artworkCacheRef,
                 sourceKind: sourceKind,
+                parentFolderName: parentFolderName,
               ),
           withReferenceMapper: (p0) => p0
               .map(

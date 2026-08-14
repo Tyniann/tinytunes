@@ -42,6 +42,9 @@ class QueueTrackView {
     this.album,
     this.artworkCacheRef,
     this.sourceKind = 'local',
+    this.rootId = 0,
+    this.rootDisplayName = '',
+    this.parentFolderName,
   });
 
   /// `queue_entries.id`.
@@ -74,9 +77,30 @@ class QueueTrackView {
   /// Catalog origin (`local` / `cloud`).
   final String sourceKind;
 
+  /// Owning `library_roots.id`.
+  final int rootId;
+
+  /// Picked library-root folder label.
+  final String rootDisplayName;
+
+  /// Immediate parent folder name written at ingest, when known.
+  final String? parentFolderName;
+
   /// Prefer tag title, else [displayName].
   String get listTitle =>
       (title != null && title!.trim().isNotEmpty) ? title! : displayName;
+
+  /// Folder label for sticky section headers: parent folder, else the root.
+  String get containingFolderName {
+    final parent = parentFolderName?.trim();
+    if (parent != null && parent.isNotEmpty) return parent;
+    final root = rootDisplayName.trim();
+    if (root.isNotEmpty) return root;
+    return displayName;
+  }
+
+  /// Groups consecutive rows from the same root folder together.
+  String get folderSectionKey => '$rootId\u0001$containingFolderName';
 }
 
 /// Thin catalog/queue data access on [AppDatabase].
@@ -194,6 +218,9 @@ extension CatalogDao on AppDatabase {
               sourceKind: row.sourceKind.present
                   ? row.sourceKind
                   : const Value.absent(),
+              parentFolderName: row.parentFolderName.present
+                  ? row.parentFolderName
+                  : const Value.absent(),
             ),
           );
           updated.add(existing.id);
@@ -305,6 +332,7 @@ extension CatalogDao on AppDatabase {
   Stream<List<QueueTrackView>> watchOrderedQueue() {
     final query = select(queueEntries).join([
       innerJoin(tracks, tracks.id.equalsExp(queueEntries.trackId)),
+      innerJoin(libraryRoots, libraryRoots.id.equalsExp(tracks.rootId)),
     ])..orderBy([OrderingTerm.asc(queueEntries.sortIndex)]);
 
     return query.watch().map(_mapQueueRows);
@@ -314,6 +342,7 @@ extension CatalogDao on AppDatabase {
   Future<List<QueueTrackView>> getOrderedQueue() async {
     final query = select(queueEntries).join([
       innerJoin(tracks, tracks.id.equalsExp(queueEntries.trackId)),
+      innerJoin(libraryRoots, libraryRoots.id.equalsExp(tracks.rootId)),
     ])..orderBy([OrderingTerm.asc(queueEntries.sortIndex)]);
     return _mapQueueRows(await query.get());
   }
@@ -323,6 +352,7 @@ extension CatalogDao on AppDatabase {
         .map((row) {
           final entry = row.readTable(queueEntries);
           final track = row.readTable(tracks);
+          final root = row.readTable(libraryRoots);
           return QueueTrackView(
             queueEntryId: entry.id,
             trackId: track.id,
@@ -334,6 +364,9 @@ extension CatalogDao on AppDatabase {
             album: track.album,
             artworkCacheRef: track.artworkCacheRef,
             sourceKind: track.sourceKind,
+            rootId: root.id,
+            rootDisplayName: root.displayName,
+            parentFolderName: track.parentFolderName,
           );
         })
         .toList(growable: false);

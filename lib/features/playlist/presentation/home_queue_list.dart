@@ -6,12 +6,13 @@ import 'package:tinytunes/core/database/catalog_dao.dart';
 import 'package:tinytunes/features/player/application/playback_controller.dart';
 import 'package:tinytunes/features/playlist/application/playlist_providers.dart';
 import 'package:tinytunes/features/playlist/presentation/queue_cover_thumb.dart';
+import 'package:tinytunes/features/playlist/presentation/queue_folder_sections.dart';
 import 'package:tinytunes/l10n/app_localizations.dart';
 
-/// Compressed ledger-style queue: index, thumb, title/artist, visible remove.
+/// Compressed ledger-style queue: sticky folder headers and scannable rows.
 ///
-/// Purpose: Scannable queue rows with an obvious delete control, at a tighter
-/// density under the cover carousel.
+/// Purpose: Show CD / chapter folder changes as compact pinned headers, with
+/// an obvious delete control on each track row.
 /// Usage Context: Lower stage of [PlaylistHomeBaseline].
 class HomeQueueList extends ConsumerStatefulWidget {
   /// Creates the home queue ledger.
@@ -41,6 +42,7 @@ class HomeQueueList extends ConsumerStatefulWidget {
 
 class _HomeQueueListState extends ConsumerState<HomeQueueList> {
   static const double _itemExtent = 56;
+  static const double _headerExtent = 28;
 
   final ScrollController _scroll = ScrollController();
 
@@ -53,7 +55,6 @@ class _HomeQueueListState extends ConsumerState<HomeQueueList> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
     final currentId = ref.watch(
       playbackControllerProvider.select((s) => s.currentQueueEntryId),
     );
@@ -69,62 +70,50 @@ class _HomeQueueListState extends ConsumerState<HomeQueueList> {
       },
     );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 6, 12, 4),
-          child: Row(
-            children: [
-              Text(
-                widget.queue.length.toString().padLeft(2, '0'),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.primary,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
+    final sections = groupQueueByContainingFolder(widget.queue);
+
+    return CustomScrollView(
+      controller: _scroll,
+      slivers: [
+        for (final section in sections)
+          SliverMainAxisGroup(
+            slivers: [
+              PinnedHeaderSliver(
+                child: _FolderSectionHeader(name: section.folderName),
               ),
-              const SizedBox(width: 10),
-              Text(
-                l10n.playlistMenuTooltip.toUpperCase(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  letterSpacing: 1.2,
+              SliverFixedExtentList(
+                itemExtent: _itemExtent,
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) {
+                    final row = section.tracks[i];
+                    final index = section.firstIndex + i;
+                    final isCurrent = row.queueEntryId == currentId;
+                    final isFocused = index == widget.focusedIndex;
+                    return _QueueRow(
+                      index: index,
+                      row: row,
+                      isCurrent: isCurrent,
+                      isPlaying: isCurrent && playing,
+                      isFocused: isFocused,
+                      busy: widget.busy,
+                      unknownArtist: l10n.unknownArtist,
+                      removeTooltip: l10n.removeFromQueueTooltip,
+                      onPlay: () {
+                        widget.onFocusIndex(index);
+                        ref
+                            .read(playbackControllerProvider.notifier)
+                            .playEntry(row.queueEntryId);
+                      },
+                      onRemove: () => ref
+                          .read(queueActionsProvider)
+                          .removeEntry(row.queueEntryId),
+                    );
+                  },
+                  childCount: section.tracks.length,
                 ),
               ),
             ],
           ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            controller: _scroll,
-            itemExtent: _itemExtent,
-            itemCount: widget.queue.length,
-            itemBuilder: (context, index) {
-              final row = widget.queue[index];
-              final isCurrent = row.queueEntryId == currentId;
-              final isFocused = index == widget.focusedIndex;
-              return _QueueRow(
-                index: index,
-                row: row,
-                isCurrent: isCurrent,
-                isPlaying: isCurrent && playing,
-                isFocused: isFocused,
-                busy: widget.busy,
-                unknownArtist: l10n.unknownArtist,
-                removeTooltip: l10n.removeFromQueueTooltip,
-                onPlay: () {
-                  widget.onFocusIndex(index);
-                  ref
-                      .read(playbackControllerProvider.notifier)
-                      .playEntry(row.queueEntryId);
-                },
-                onRemove: () => ref
-                    .read(queueActionsProvider)
-                    .removeEntry(row.queueEntryId),
-              );
-            },
-          ),
-        ),
       ],
     );
   }
@@ -138,10 +127,9 @@ class _HomeQueueListState extends ConsumerState<HomeQueueList> {
 
   Future<void> _revealIfNeeded(int entryId) async {
     if (!_scroll.hasClients) return;
-    final index = widget.queue.indexWhere((r) => r.queueEntryId == entryId);
-    if (index < 0) return;
+    final top = _offsetForEntry(entryId);
+    if (top == null) return;
     final position = _scroll.position;
-    final top = index * _itemExtent;
     final bottom = top + _itemExtent;
     final visible =
         bottom > position.pixels &&
@@ -153,6 +141,87 @@ class _HomeQueueListState extends ConsumerState<HomeQueueList> {
       target,
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
+    );
+  }
+
+  double? _offsetForEntry(int entryId) {
+    var offset = 0.0;
+    for (final section in groupQueueByContainingFolder(widget.queue)) {
+      offset += _headerExtent;
+      for (final row in section.tracks) {
+        if (row.queueEntryId == entryId) return offset;
+        offset += _itemExtent;
+      }
+    }
+    return null;
+  }
+}
+
+/// Compact pinned folder change marker: hairline, folder icon, name.
+///
+/// Purpose: Make CD / chapter boundaries obvious without a tall section bar.
+/// Usage Context: [PinnedHeaderSliver] in [HomeQueueList].
+class _FolderSectionHeader extends StatelessWidget {
+  const _FolderSectionHeader({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.surface,
+      child: SizedBox(
+        height: _HomeQueueListState._headerExtent,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: scheme.outlineVariant,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: constraints.maxWidth * 0.7,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.folder_outlined,
+                          size: 14,
+                          color: scheme.primary,
+                        ),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: scheme.onSurface,
+                                  letterSpacing: 0.2,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 }

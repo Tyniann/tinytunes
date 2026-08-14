@@ -43,9 +43,9 @@ registration and media-session wiring coexist.
 ### Transport / home
 
 - Home is a cover **carousel** (swipe to stage, tap cover to play) over a
-  compressed **queue ledger** (index, thumb, title/artist, visible remove) and
-  a floating **transport dock** (inverse-surface card: seek, shuffle, prev,
-  play, next, repeat, expandable volume).
+  compressed **queue ledger** with **sticky containing-folder headers** (compact
+  hairline + folder icon + last folder name; CD / chapter changes pin at the
+  top) and a floating **transport dock**.
 - Row tap plays an entry; tap current toggles pause. Dock play starts the
   staged carousel track when nothing is current.
 - Shuffle and Repeat are always enabled (never greyed); Prev/Next need a current track.

@@ -143,6 +143,25 @@ void main() {
     expect(track.title, 'Updated');
   });
 
+  test('queue view exposes containing folder from parent or root', () async {
+    final rootId = await seedRoot();
+    final result = await db.upsertTracksBatch(rootId, [
+      TracksCompanion.insert(
+        rootId: rootId,
+        sourceItemId: 'a',
+        locator: 'a',
+        displayName: 'a.mp3',
+        parentFolderName: const Value('CD 1'),
+      ),
+      trackRow('b', 'b.mp3'),
+    ]);
+    await db.appendTrackIds(result.insertedIds);
+
+    final queue = await db.getOrderedQueue();
+    expect(queue.map((e) => e.containingFolderName).toList(), ['CD 1', 'Music']);
+    expect(queue.first.rootDisplayName, 'Music');
+  });
+
   test('removing queue entry nulls playback_state.currentQueueEntryId', () async {
     final rootId = await seedRoot();
     final result = await db.upsertTracksBatch(rootId, [trackRow('a', 'a.mp3')]);

@@ -127,7 +127,7 @@ void main() {
   });
 
   test('schema v3 ownership columns: local stays null; gdrive backfill', () async {
-    expect(db.schemaVersion, 3);
+    expect(db.schemaVersion, 4);
 
     final localId = await db.upsertRoot(
       locator: 'content://tree/local',

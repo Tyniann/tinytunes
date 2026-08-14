@@ -10,14 +10,12 @@ class FakeOneDriveRemote implements OneDriveRemote {
     Map<String, List<OneDriveRemoteEntry>>? childrenByParent,
     Map<String, OneDriveRemoteFileMeta>? files,
     Map<String, List<int>>? fileBytes,
-    Object? listError,
-    Object? downloadError,
+    this.listError,
+    this.downloadError,
   }) : rootChildren = rootChildren ?? const [],
        childrenByParent = childrenByParent ?? {},
        files = files ?? {},
-       fileBytes = fileBytes ?? {},
-       listError = listError,
-       downloadError = downloadError;
+       fileBytes = fileBytes ?? {};
 
   /// Children returned by [listRootChildren].
   final List<OneDriveRemoteEntry> rootChildren;

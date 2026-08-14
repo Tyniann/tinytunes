@@ -70,6 +70,13 @@ class Tracks extends Table {
   /// Catalog source kind; Phase 2 always writes `local`.
   TextColumn get sourceKind => text().withDefault(const Constant('local'))();
 
+  /// Display name of the folder this file sits in (root or nested).
+  ///
+  /// Purpose: Sticky queue section headers show CD / chapter folders without
+  /// parsing opaque locators. Null on rows ingested before schema v4 until
+  /// the next Add / Re-scan.
+  TextColumn get parentFolderName => text().nullable()();
+
   @override
   List<Set<Column<Object>>>? get uniqueKeys => [
         {rootId, sourceItemId},

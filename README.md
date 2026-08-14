@@ -12,7 +12,7 @@ read-only (list / download / cache — never write to the cloud).
 | License | [MIT](LICENSE) |
 | Privacy | https://blumenlaube.at/apps/tinytunes/privacy-policy.html |
 | Platforms | Android first (iOS later) |
-| Latest release | [v1.1.0](https://github.com/Tyniann/tinytunes/releases/tag/v1.1.0) |
+| Latest release | [v1.2.0](https://github.com/Tyniann/tinytunes/releases/tag/v1.2.0) |
 
 ## Cloud OAuth (Google Drive + OneDrive)
 
@@ -27,10 +27,12 @@ Step-by-step for forks: [docs/legal/android-signing-and-oauth.md](docs/legal/and
 ## Features
 
 - Winamp-style single queue (play / pause / prev / next)
+- Cover carousel, sticky folder headers, floating transport dock
 - Shuffle × repeat, background playback / lock screen controls
 - Expandable system-volume slider on transport chrome
 - Add local folders (including subfolders) via Android SAF
 - Optional Google Drive + personal OneDrive folder ingest, shared download-then-play cache + budget
+- Color schemes: Lucky Lime, Electric Blue, Ember Signal, High contrast, Dynamic
 - Material 3 themes, EN / DE
 - In-app About dialog (logo, version, changelog, privacy policy link)
 

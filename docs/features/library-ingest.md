@@ -26,7 +26,7 @@ Indexes user-picked local music folders into a durable **catalog** and a single 
 4. If the root locator already exists → refresh its catalog and append every
    discovered track that is not already queued. This makes Add folder the
    explicit way to refill a cleared queue without creating duplicates.
-5. Otherwise insert `library_roots`, walk the tree (recurse **all** directories; match audio **files** only by extension).
+5. Otherwise insert `library_roots`, walk the tree (recurse **all** directories; match audio **files** only by extension). Each file stores `parent_folder_name` — the folder it sits in (nested CD / chapter name, or the root label).
 6. Upsert catalog in batches while walking (partial catalog may remain on failure).
    Local files: read tags + write capped cover JPEG when embedded art exists.
 7. **Append to queue only after a full successful walk** (all batches OK, not cancelled).
@@ -92,7 +92,7 @@ Catalog is kept until Forget or a successful Re-scan/Add with access.
 | Table | Role |
 | --- | --- |
 | `library_roots` | Opaque root locator + display name |
-| `tracks` | Catalog identity `(rootId, sourceItemId)`; tags; `artworkCacheRef` path to capped cover JPEG (local: filled at ingest; cloud: on play-path) |
+| `tracks` | Catalog identity `(rootId, sourceItemId)`; tags; `parent_folder_name` (containing folder at ingest); `artworkCacheRef` path to capped cover JPEG (local: filled at ingest; cloud: on play-path) |
 | `queue_entries` | Ordered unique `trackId` links |
 | `playback_state` | Singleton `id=1`; `currentQueueEntryId` ON DELETE SET NULL; driven by [player](player.md) |
 

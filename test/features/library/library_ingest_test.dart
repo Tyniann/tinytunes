@@ -97,6 +97,15 @@ void main() {
     final queue = await db.watchOrderedQueue().first;
     expect(queue.map((e) => e.displayName).toList(), ['a.mp3', 'b.mp3']);
     expect(queue.every((e) => e.title == 'Tagged'), isTrue);
+    final tracks = await db.select(db.tracks).get();
+    expect(
+      tracks.firstWhere((t) => t.displayName == 'a.mp3').parentFolderName,
+      'music',
+    );
+    expect(
+      tracks.firstWhere((t) => t.displayName == 'b.mp3').parentFolderName,
+      'album',
+    );
     expect(messageCodes(), contains(LibraryMessageCodes.scanComplete));
   });
 

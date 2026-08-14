@@ -688,29 +688,34 @@ class LibraryIngestController extends _$LibraryIngestController {
     var batchesFailed = false;
     String? failureDetail;
 
-    final dirs = Queue<MediaLocator>()..add(rootLocator);
-    final pending = <CloudLibraryEntry>[];
+    final rootRow = await (db.select(db.libraryRoots)
+          ..where((t) => t.id.equals(rootId)))
+        .getSingle();
+    final dirs = Queue<_DirFrame>()
+      ..add(_DirFrame(rootLocator, rootRow.displayName));
+    final pending = <_PendingCloud>[];
 
     Future<bool> flushBatch() async {
       if (pending.isEmpty) return true;
-      final chunk = List<CloudLibraryEntry>.from(pending);
+      final chunk = List<_PendingCloud>.from(pending);
       pending.clear();
 
       // Leave title/artist/album absent so re-scan does not wipe play-path tags.
       final companions = <TracksCompanion>[
-        for (final entry in chunk)
+        for (final item in chunk)
           TracksCompanion.insert(
             rootId: rootId,
-            sourceItemId: entry.locator.value,
-            locator: entry.locator.value,
-            displayName: entry.name,
-            sizeBytes: Value(entry.sizeBytes),
-            modifiedAt: Value(entry.modifiedAt),
+            sourceItemId: item.entry.locator.value,
+            locator: item.entry.locator.value,
+            displayName: item.entry.name,
+            parentFolderName: Value(item.parentFolderName),
+            sizeBytes: Value(item.entry.sizeBytes),
+            modifiedAt: Value(item.entry.modifiedAt),
             sourceKind: const Value(SourceKinds.cloud),
           ),
       ];
-      for (final entry in chunk) {
-        seenSourceItemIds.add(entry.locator.value);
+      for (final item in chunk) {
+        seenSourceItemIds.add(item.entry.locator.value);
         processed++;
         state = state.copyWith(
           phase: IngestPhase.scanning,
@@ -740,10 +745,10 @@ class LibraryIngestController extends _$LibraryIngestController {
         cancelled = true;
         break;
       }
-      final parent = dirs.removeFirst();
+      final frame = dirs.removeFirst();
       final List<CloudLibraryEntry> children;
       try {
-        children = List<CloudLibraryEntry>.of(await cloud.list(parent))
+        children = List<CloudLibraryEntry>.of(await cloud.list(frame.locator))
           ..sort((a, b) => compareDisplayNames(a.name, b.name));
       } on Object catch (error, stack) {
         debugPrint('cloud list failed: $error\n$stack');
@@ -756,10 +761,10 @@ class LibraryIngestController extends _$LibraryIngestController {
       for (final child in children) {
         if (child.isDirectory) {
           if (includeSubfolders) {
-            dirs.add(child.locator);
+            dirs.add(_DirFrame(child.locator, child.name));
           }
         } else {
-          pending.add(child);
+          pending.add(_PendingCloud(child, frame.folderName));
           if (pending.length >= _batchSize) {
             final ok = await flushBatch();
             if (!ok) break;
@@ -808,12 +813,16 @@ class LibraryIngestController extends _$LibraryIngestController {
     var batchesFailed = false;
     String? failureDetail;
 
-    final dirs = Queue<MediaLocator>()..add(rootLocator);
-    final pendingFiles = <LibraryEntry>[];
+    final rootRow = await (db.select(db.libraryRoots)
+          ..where((t) => t.id.equals(rootId)))
+        .getSingle();
+    final dirs = Queue<_DirFrame>()
+      ..add(_DirFrame(rootLocator, rootRow.displayName));
+    final pendingFiles = <_PendingLocal>[];
 
     Future<bool> flushBatch() async {
       if (pendingFiles.isEmpty) return true;
-      final chunk = List<LibraryEntry>.from(pendingFiles);
+      final chunk = List<_PendingLocal>.from(pendingFiles);
       pendingFiles.clear();
 
       final companions = <TracksCompanion>[];
@@ -825,10 +834,11 @@ class LibraryIngestController extends _$LibraryIngestController {
         }
         final slice = chunk.skip(i).take(_metadataConcurrency).toList();
         final results = await Future.wait(
-          slice.map((entry) => _readTags(source, reader, entry)),
+          slice.map((pending) => _readTags(source, reader, pending.entry)),
         );
         for (var j = 0; j < slice.length; j++) {
-          final entry = slice[j];
+          final pending = slice[j];
+          final entry = pending.entry;
           final tags = results[j];
           seenSourceItemIds.add(entry.locator.value);
           companions.add(
@@ -837,6 +847,7 @@ class LibraryIngestController extends _$LibraryIngestController {
               sourceItemId: entry.locator.value,
               locator: entry.locator.value,
               displayName: entry.name,
+              parentFolderName: Value(pending.parentFolderName),
               title: Value(tags?.title),
               artist: Value(tags?.artist),
               album: Value(tags?.album),
@@ -882,10 +893,10 @@ class LibraryIngestController extends _$LibraryIngestController {
         cancelled = true;
         break;
       }
-      final parent = dirs.removeFirst();
+      final frame = dirs.removeFirst();
       final List<LibraryEntry> children;
       try {
-        children = await source.listChildren(parent);
+        children = await source.listChildren(frame.locator);
       } on Object catch (error, stack) {
         debugPrint('listChildren failed: $error\n$stack');
         failed = true;
@@ -896,9 +907,9 @@ class LibraryIngestController extends _$LibraryIngestController {
 
       for (final child in children) {
         if (child.isDirectory) {
-          dirs.add(child.locator);
+          dirs.add(_DirFrame(child.locator, child.name));
         } else if (isAudioFileName(child.name)) {
-          pendingFiles.add(child);
+          pendingFiles.add(_PendingLocal(child, frame.folderName));
           if (pendingFiles.length >= _batchSize) {
             final ok = await flushBatch();
             if (!ok) break;
@@ -1006,4 +1017,40 @@ class _WalkOutcome {
   final List<int> newlyInsertedTrackIds;
   final List<int> allTouchedTrackIds;
   final String? failureDetail;
+}
+
+/// One directory to visit during ingest, with the folder name files sit in.
+class _DirFrame {
+  /// Creates a visit frame for [locator] whose files sit in [folderName].
+  const _DirFrame(this.locator, this.folderName);
+
+  /// Folder to list.
+  final MediaLocator locator;
+
+  /// Display name stored on files found in this folder.
+  final String folderName;
+}
+
+/// Local file waiting for a tag-read batch, plus its containing folder.
+class _PendingLocal {
+  /// Creates a pending local file in [parentFolderName].
+  const _PendingLocal(this.entry, this.parentFolderName);
+
+  /// Listed file.
+  final LibraryEntry entry;
+
+  /// Immediate parent folder display name.
+  final String parentFolderName;
+}
+
+/// Cloud file waiting for an upsert batch, plus its containing folder.
+class _PendingCloud {
+  /// Creates a pending cloud file in [parentFolderName].
+  const _PendingCloud(this.entry, this.parentFolderName);
+
+  /// Listed remote file.
+  final CloudLibraryEntry entry;
+
+  /// Immediate parent folder display name.
+  final String parentFolderName;
 }

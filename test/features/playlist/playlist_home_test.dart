@@ -57,6 +57,8 @@ void main() {
     expect(find.text('Alpha'), findsWidgets);
     expect(find.text('Beta'), findsWidgets);
     expect(find.text('Artist A'), findsWidgets);
+    expect(find.text('Music'), findsOneWidget);
+    expect(find.text('Playlist actions'), findsNothing);
     await endPumpApp(tester);
   });
 

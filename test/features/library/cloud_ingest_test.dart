@@ -177,6 +177,14 @@ void main() {
     final tracks = await db.select(db.tracks).get();
     expect(tracks, hasLength(2));
     expect(tracks.every((t) => t.sourceKind == SourceKinds.cloud), isTrue);
+    expect(
+      tracks.firstWhere((t) => t.displayName == 'a.mp3').parentFolderName,
+      'Musik',
+    );
+    expect(
+      tracks.firstWhere((t) => t.displayName == 'b.mp3').parentFolderName,
+      'album',
+    );
     final queue = await db.getOrderedQueue();
     expect(queue, hasLength(2));
   });
