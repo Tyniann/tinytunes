@@ -1,8 +1,11 @@
 # TinyTunes
 
-Simple, no-nonsense, local-first Android music player. Add folders, queue tracks, play in the
-background. Optional **Google Drive** and personal **OneDrive** support is
-read-only (list / download / cache — never write to the cloud).
+No ads. No shop. No nonsense.
+
+Just an Android app that plays your music / audiobooks. For free. Forever.
+
+Add folders (+ sub-folder support), queue tracks, shuffle x repeat, play in the
+background and more. Supports **local**, **Google Drive** and personal **OneDrive**.
 
 **Not on Google Play.** Source and release APKs via GitHub.
 
@@ -13,17 +16,6 @@ read-only (list / download / cache — never write to the cloud).
 | Privacy | https://blumenlaube.at/apps/tinytunes/privacy-policy.html |
 | Platforms | Android first (iOS later) |
 | Latest release | [v1.2.0](https://github.com/Tyniann/tinytunes/releases/tag/v1.2.0) |
-
-## Cloud OAuth (Google Drive + OneDrive)
-
-| You | What to do |
-| --- | --- |
-| **Official release APK** (GitHub Releases) | Already wired to the maintainer’s Google + Microsoft clients. Install and sign in. Google may show an “unverified app” warning while `drive.readonly` review is pending; Microsoft may show **Unverified** publisher — both are expected for v1. |
-| **Forks / self-built APKs** | **Bring your own** OAuth. Google: replace `serverClientId` in `lib/core/cloud/google_drive/google_drive_oauth_config.dart`. OneDrive: replace Entra `clientId` + Android signature hashes in `lib/core/cloud/one_drive/one_drive_oauth_config.dart` (personal accounts only, `Files.Read`, **no client secret**). Committed IDs are for the official signed APK only. |
-| **Contributors (local library only)** | No Google / Microsoft setup. SAF local folders never need OAuth. |
-
-Step-by-step for forks: [docs/legal/android-signing-and-oauth.md](docs/legal/android-signing-and-oauth.md).
-Forks and debug builds do not contact GitHub for updates (official release-signed APK only) — see [docs/features/update-check.md](docs/features/update-check.md).
 
 ## Features
 
@@ -37,7 +29,18 @@ Forks and debug builds do not contact GitHub for updates (official release-signe
 - Material 3 themes, EN / DE
 - In-app About dialog (logo, version, changelog, privacy policy link, check for updates)
 
-## Requirements
+## Cloud OAuth (Google Drive + OneDrive)
+
+| You | What to do |
+| --- | --- |
+| **Official release APK** (GitHub Releases) | Already wired to the maintainer’s Google + Microsoft clients. Install and sign in. Google may show an “unverified app” warning while `drive.readonly` review is pending; Microsoft may show **Unverified** publisher — both are expected for v1. |
+| **Forks / self-built APKs** | **Bring your own** OAuth. Google: replace `serverClientId` in `lib/core/cloud/google_drive/google_drive_oauth_config.dart`. OneDrive: replace Entra `clientId` + Android signature hashes in `lib/core/cloud/one_drive/one_drive_oauth_config.dart` (personal accounts only, `Files.Read`, **no client secret**). Committed IDs are for the official signed APK only. |
+| **Contributors (local library only)** | No Google / Microsoft setup. SAF local folders never need OAuth. |
+
+Step-by-step for forks: [docs/legal/android-signing-and-oauth.md](docs/legal/android-signing-and-oauth.md).
+Forks and debug builds do not contact GitHub for updates (official release-signed APK only) — see [docs/features/update-check.md](docs/features/update-check.md).
+
+## Requirements for development
 
 - Flutter **3.41+** / Dart **3.11+** (see `pubspec.yaml`)
 - Android device or emulator
@@ -101,7 +104,7 @@ ADRs: [docs/adr/](docs/adr/). Changelog: [docs/CHANGELOG.md](docs/CHANGELOG.md).
 
 - Official builds: [English](https://blumenlaube.at/apps/tinytunes/privacy-policy.html) · [Deutsch](https://blumenlaube.at/apps/tinytunes/privacy-policy.de.html)
 - Also linked from **Settings → About** in the app
-- In-repo Markdown under [docs/legal/](docs/legal/) is a **draft with placeholders** (forks must substitute their own controller / contact / hosted URL — do not ship another publisher’s identity)
+- In-repo Markdown under [docs/legal/](docs/legal/) is a **draft with placeholders** (forks must substitute their own controller / contact / hosted URL)
 
 ## Contributing
 
